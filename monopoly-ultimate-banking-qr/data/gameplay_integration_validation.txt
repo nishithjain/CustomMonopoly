@@ -1,0 +1,21 @@
+Gameplay Integration Validation
+=============================
+Passed: 17 / 17
+
+[PASS] Property workflow exists
+[PASS] Event workflow exists
+[PASS] Game Engine is used
+[PASS] Property rules not duplicated in UI
+[PASS] Event relationship maps not duplicated in UI
+[PASS] Event workflow planner exists
+[PASS] 23 Event workflows mapped
+[PASS] successful results persist
+[PASS] scanner remains reusable
+[PASS] ScanGate remains active
+[PASS] transient workflow not persisted
+[PASS] no virtual board position added
+[PASS] no advanced Auction UI added
+[PASS] no debt UI added
+[PASS] gameplay workflow tests exist
+[PASS] gameplay integration docs exist
+[PASS] game-core remains Android-free

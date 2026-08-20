@@ -1,0 +1,22 @@
+Persistence Validation
+====================
+Passed: 18 / 18
+
+[PASS] Room dependency exists
+[PASS] Room KTX exists
+[PASS] Room compiler via KSP exists
+[PASS] SavedGameEntity exists
+[PASS] SavedGameDao exists
+[PASS] BoardBankerDatabase exists
+[PASS] GameSessionRepository exists
+[PASS] RoomGameSessionRepository exists
+[PASS] GameSession serializer exists
+[PASS] schemaVersion exists
+[PASS] no fallbackToDestructiveMigration
+[PASS] Room only in app layer
+[PASS] game-core has no Android imports
+[PASS] game-core does not depend on app
+[PASS] Resume uses persisted availability
+[PASS] transient scanner state not in SavedGameEntity
+[PASS] serialization round-trip tests exist
+[PASS] persistence architecture doc exists

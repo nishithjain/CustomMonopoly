@@ -1,0 +1,228 @@
+EVENT EXTRACTION REPORT
+=======================
+
+Expected events: 23
+Processed: 23
+
+COMPLETE: 17
+NEEDS_REVIEW: 6
+UNREADABLE: 0
+
+EVT_01 Boom Town
+Status: COMPLETE
+Printed rule: Property prices bounce back! Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MOVE_PLAYER, SELECT_PROPERTY, SPECIAL_RULE
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_02 Crime Down
+Status: COMPLETE
+Printed rule: Police arrest local newspaper thief! Tap this card then one of your property cards. (Colour set rent level jumps +1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_INCREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_03 Deal Of The Week
+Status: COMPLETE
+Printed rule: Word on the street says the market is booming! Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MOVE_PLAYER, SELECT_PROPERTY, SPECIAL_RULE
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_04 Demolished
+Status: COMPLETE
+Printed rule: Your builders get the wrong address! Tap this card then any property card. (Rent level resets to 1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_05 Grand Designs
+Status: COMPLETE
+Printed rule: One of your properties gets a TV makeover! Tap this card then one of your property cards. (Rent level jumps to 5)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_INCREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_06 Haunted House
+Status: COMPLETE
+Printed rule: Something strange is going on! Swap another player's property with one of yours. Pick another player. Tap this card then you each tap one of your property cards to swap. Exchange cards too!
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: SELECT_PLAYER, SELECT_PROPERTY, AFFECT_PROPERTY, SPECIAL_RULE
+Requires Player Scan: True
+Requires Property Scan: True
+
+EVT_07 Highway Tax
+Status: COMPLETE
+Printed rule: Your roads need repairs! Tap this card then your Bank card to pay M50 per property you own.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MONEY_LOSS, SELECT_PLAYER
+Requires Player Scan: True
+Requires Property Scan: False
+
+EVT_08 House Party
+Status: NEEDS_REVIEW
+Printed rule: The good times go on till late! Tap this card then one of your property cards. (Rent level jumps to +1 for you; drops -1 for your neighbours)
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: PROPERTY_RENT_INCREASE, PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_09 In The Money
+Status: COMPLETE
+Printed rule: Spend your lottery millions! Swap another player's property with one of yours. Pick another player. Tap this card then you each tap one of your property cards to swap. Exchange cards too!
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: SELECT_PLAYER, SELECT_PROPERTY, AFFECT_PROPERTY, SPECIAL_RULE
+Requires Player Scan: True
+Requires Property Scan: True
+
+EVT_10 It's A Boy!
+Status: NEEDS_REVIEW
+Printed rule: Your new arrival wakes up the whole street! Tap this card then one of your property cards. (Rent level jumps to +1 for you; drops -1 for your neighbours)
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: PROPERTY_RENT_INCREASE, PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_11 Love Is In The Air
+Status: COMPLETE
+Printed rule: Meet someone special right up your street! Pick another player. Tap this card then both your Bank cards to collect M200.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MONEY_GAIN, SELECT_PLAYER, AFFECT_ALL_PLAYERS
+Requires Player Scan: True
+Requires Property Scan: False
+
+EVT_12 On The Map
+Status: COMPLETE
+Printed rule: The new railway station gets the go-ahead! Tap this card then one of your property cards. (Colour set rent level jumps +1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_INCREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_13 On The Run
+Status: NEEDS_REVIEW
+Printed rule: The summer marathon shuts down the roads! Tap this card. (Players pay level 1 rent only for the next two rent payments)
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: SPECIAL_RULE, AFFECT_ALL_PLAYERS
+Requires Player Scan: False
+Requires Property Scan: False
+
+EVT_14 Pick Your Own
+Status: COMPLETE
+Printed rule: Catch someone stealing your prize tomatoes! Tap this card and send another player to Jail.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: GO_TO_JAIL, SELECT_PLAYER
+Requires Player Scan: True
+Requires Property Scan: False
+
+EVT_15 Pong! What A Stinker
+Status: NEEDS_REVIEW
+Printed rule: The local sewer springs a leak! Tap this card then one of your property cards. (Rent level drops -1 for that side of the board)
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_MULTIPLE_PROPERTIES
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_16 Rover's Revenge
+Status: COMPLETE
+Printed rule: Your pet pooch poops on someone's patio! Tap this card then any property card. (Rent level resets to 1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_17 Stargazing
+Status: COMPLETE
+Printed rule: The hottest A-list celebrity moves in next door! Tap this card then one of your property cards. (Colour set rent level jumps +1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_INCREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_18 Stop The Presses
+Status: COMPLETE
+Printed rule: Get the lowdown on a hot property! Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MOVE_PLAYER, SELECT_PROPERTY, SPECIAL_RULE
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_19 'Tis The Season
+Status: COMPLETE
+Printed rule: You've caught that nasty cough going around! Tap this card then one of your property cards. (Colour set rent level drops -1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_20 Tornado Alley
+Status: COMPLETE
+Printed rule: Hey, where did the roof go? Tap this card then any property card. (Rent level resets to 1)
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: PROPERTY_RENT_DECREASE, SELECT_PROPERTY, AFFECT_PROPERTY
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_21 Total Gridlock
+Status: NEEDS_REVIEW
+Printed rule: Faulty traffic lights get the street in a jam! Tap this card and all players move directly to Free Parking. Do not pass GO! If you are in Jail, stay there!
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: MOVE_PLAYER, AFFECT_ALL_PLAYERS, SPECIAL_RULE
+Requires Player Scan: False
+Requires Property Scan: False
+
+EVT_22 What A Ride!
+Status: NEEDS_REVIEW
+Printed rule: Your local theme park builds the world's craziest roller-coaster! Tap this card then one of your property cards. (Rent level jumps +1 for that side of the board)
+Printed rule: RESOLVED
+Engine implementation: NEEDS_REVIEW
+Classification: PROPERTY_RENT_INCREASE, SELECT_PROPERTY, AFFECT_MULTIPLE_PROPERTIES
+Requires Player Scan: False
+Requires Property Scan: True
+
+EVT_23 Wibble Wobble
+Status: COMPLETE
+Printed rule: Sit in a bath of jelly with a friend for charity! Pick another player. Tap this card then both your Bank cards to collect M200.
+Printed rule: RESOLVED
+Engine implementation: COMPLETE
+Classification: MONEY_GAIN, SELECT_PLAYER, AFFECT_ALL_PLAYERS
+Requires Player Scan: True
+Requires Property Scan: False
+
+Issues:
+- EVT_08: Printed rule confirmed. Engine semantics for 'neighbours' not yet defined.
+- EVT_08: parsed effect action not confirmed
+- EVT_10: Printed rule confirmed. Engine semantics for 'neighbours' not yet defined.
+- EVT_10: parsed effect action not confirmed
+- EVT_13: Printed rule confirmed. Engine tracking for 'next two rent payments' not yet defined.
+- EVT_15: Printed rule confirmed. Engine semantics for 'that side of the board' not yet defined.
+- EVT_15: parsed effect action not confirmed
+- EVT_21: Printed rule confirmed. Version 1: physical board/tokens remain authoritative for position; app displays instruction, blocks GO payment, preserves Jail state, and players manually move eligible tokens to Free Parking. No digital board movement.
+- EVT_22: Printed rule confirmed. Engine semantics for 'that side of the board' not yet defined.
+- EVT_22: parsed effect action not confirmed

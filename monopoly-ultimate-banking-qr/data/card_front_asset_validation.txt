@@ -1,0 +1,25 @@
+CARD FRONT VALIDATION
+Workspace root: C:\Personal\Monopoly
+Project root:   C:\Personal\Monopoly\monopoly-ultimate-banking-qr
+
+USER
+USR_01 Car         LANDSCAPE PASS
+USR_02 Helicopter  LANDSCAPE PASS
+USR_03 Ship        LANDSCAPE PASS
+USR_04 Aeroplane   LANDSCAPE PASS
+
+User fronts:     4 / 4 PASS
+Property fronts: 22 / 22 PASS
+Event fronts:    23 / 23 PASS
+Total:           49 / 49 PASS
+game-core image dependencies: 0
+
+RESULT: PASS
+- All runtime assets exist
+- USER fronts remain landscape without rotation
+- EVENT/PROPERTY fronts use portrait canonical orientation
+- JPG User-card sources accepted
+- No Back/Back_QR front mappings
+- cardId mappings unique
+- Source Resources images unchanged (sync tool copies only)
+- game-core contains no image dependencies

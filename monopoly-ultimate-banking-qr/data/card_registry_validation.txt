@@ -1,0 +1,34 @@
+CARD REGISTRY VALIDATION
+========================
+
+User Cards
+Expected: 4
+Found:    4
+
+Event Cards
+Expected: 23
+Found:    23
+
+Property Cards
+Expected: 22
+Found:    22
+
+Total Active QR Cards
+Expected: 49
+Found:    49
+
+QR Decode
+Successful: 49
+Failed:     0
+
+Unique QR Payloads
+Expected: 49
+Found:    49
+
+Missing Front Assets: 0
+Missing QR Assets:    0
+
+Duplicate Card IDs:     0
+Duplicate QR Payloads:  0
+
+RESULT: PASS

@@ -1,0 +1,35 @@
+ANDROID FOUNDATION VALIDATION
+=============================
+
+Checks passed: 26/26
+
+RESULT:
+PASS
+
+DETAILS:
+- [PASS] android-app exists
+- [PASS] :app exists
+- [PASS] :game-core exists
+- [PASS] settings includes :app
+- [PASS] settings includes :game-core
+- [PASS] app depends on game-core
+- [PASS] game-core does not depend on app
+- [PASS] game-core has no Android imports
+- [PASS] asset exists: cards.json
+- [PASS] root source exists: cards.json
+- [PASS] asset exists: properties.json
+- [PASS] root source exists: properties.json
+- [PASS] asset exists: events.json
+- [PASS] root source exists: events.json
+- [PASS] asset exists: game_rules.json
+- [PASS] root source exists: game_rules.json
+- [PASS] asset exists: event_engine_rules.json
+- [PASS] root source exists: event_engine_rules.json
+- [PASS] asset exists: board_relationships.json
+- [PASS] root source exists: board_relationships.json
+- [PASS] MainActivity exists
+- [PASS] HomeScreen exists
+- [PASS] PlayerSetupScreen exists
+- [PASS] GameScreen exists
+- [PASS] ANDROID_ARCHITECTURE.md exists
+- [PASS] sync_android_assets.py exists

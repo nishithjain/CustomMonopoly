@@ -1,0 +1,25 @@
+package com.boardbanker.core.model
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+enum class TransactionType {
+    GAME_START,
+    PROPERTY_PURCHASE,
+    RENT_PAYMENT,
+    BANK_CREDIT,
+    BANK_DEBIT,
+    PROPERTY_RENT_LEVEL_CHANGE,
+    PROPERTY_OWNERSHIP_CHANGE,
+    PROPERTY_SWAP,
+    COLOR_SET_COMPLETION_BONUS,
+    LOCATION_FEE,
+    AUCTION_WIN,
+    AUCTION_PURCHASE,
+    EVENT_APPLIED,
+    TEMPORARY_EFFECT_CREATED,
+    TEMPORARY_EFFECT_CONSUMED,
+    JAIL_STATUS_CHANGE,
+    BANKRUPTCY,
+    UNDO,
+}

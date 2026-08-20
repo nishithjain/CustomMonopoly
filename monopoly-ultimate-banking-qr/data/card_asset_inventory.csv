@@ -1,0 +1,162 @@
+category,sequence,canonical_name,asset_role,filename,relative_path,preferred,notes
+USER,1,Car,QR,01_Car_Back_QR.png,Resources/UserCards/01_Car_Back_QR.png,true,
+USER,2,Helicopter,QR,02_Helicopter_Back_QR.png,Resources/UserCards/02_Helicopter_Back_QR.png,true,
+USER,3,Ship,QR,03_Ship_Back_QR.png,Resources/UserCards/03_Ship_Back_QR.png,true,
+USER,4,Aeroplane,QR,04_Aeroplane_Back_QR.png,Resources/UserCards/04_Aeroplane_Back_QR.png,true,
+USER,,,LEGACY_BACK,Aeroplane_Back.png,Resources/UserCards/Aeroplane_Back.png,false,Ignored legacy hardware barcode
+USER,4,Aeroplane,FRONT,Aeroplane_Front.jpg,Resources/UserCards/Aeroplane_Front.jpg,true,Preferred front display asset
+USER,,,LEGACY_BACK,Car_Back.png,Resources/UserCards/Car_Back.png,false,Ignored legacy hardware barcode
+USER,1,Car,FRONT,Car_Front.jpg,Resources/UserCards/Car_Front.jpg,true,Preferred front display asset
+USER,,,LEGACY_BACK,Helicopter_Back.png,Resources/UserCards/Helicopter_Back.png,false,Ignored legacy hardware barcode
+USER,2,Helicopter,FRONT,Helicopter_Front.jpg,Resources/UserCards/Helicopter_Front.jpg,true,Preferred front display asset
+USER,,,LEGACY_BACK,Ship_Back.png,Resources/UserCards/Ship_Back.png,false,Ignored legacy hardware barcode
+USER,3,Ship,FRONT,Ship_Front.jpg,Resources/UserCards/Ship_Front.jpg,true,Preferred front display asset
+USER,,,OTHER,Template.jpg,Resources/UserCards/Template.jpg,false,Non-card asset
+EVENT,,,LEGACY_BACK,Boom_Town_Back.png,Resources/EventCards/Boom_Town_Back.png,false,Ignored legacy hardware barcode
+EVENT,1,Boom Town,FRONT,Boom_Town_Front.png,Resources/EventCards/Boom_Town_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Crime_Down_Back.png,Resources/EventCards/Crime_Down_Back.png,false,Ignored legacy hardware barcode
+EVENT,2,Crime Down,FRONT,Crime_Down_Front.png,Resources/EventCards/Crime_Down_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Deal_Of_The_Week_Back.png,Resources/EventCards/Deal_Of_The_Week_Back.png,false,Ignored legacy hardware barcode
+EVENT,3,Deal Of The Week,FRONT,Deal_Of_The_Week_Front.png,Resources/EventCards/Deal_Of_The_Week_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Demolished_Back.png,Resources/EventCards/Demolished_Back.png,false,Ignored legacy hardware barcode
+EVENT,4,Demolished,FRONT,Demolished_Front.png,Resources/EventCards/Demolished_Front.png,true,Preferred front display asset
+EVENT,1,Boom Town,QR,E01_Boom_Town_Back_QR.png,Resources/EventCards/E01_Boom_Town_Back_QR.png,true,
+EVENT,2,Crime Down,QR,E02_Crime_Down_Back_QR.png,Resources/EventCards/E02_Crime_Down_Back_QR.png,true,
+EVENT,3,Deal Of The Week,QR,E03_Deal_Of_The_Week_Back_QR.png,Resources/EventCards/E03_Deal_Of_The_Week_Back_QR.png,true,
+EVENT,4,Demolished,QR,E04_Demolished_Back_QR.png,Resources/EventCards/E04_Demolished_Back_QR.png,true,
+EVENT,5,Grand Designs,QR,E05_Grand_Designs_Back_QR.png,Resources/EventCards/E05_Grand_Designs_Back_QR.png,true,
+EVENT,6,Haunted House,QR,E06_Haunted_House_Back_QR.png,Resources/EventCards/E06_Haunted_House_Back_QR.png,true,
+EVENT,7,Highway Tax,QR,E07_Highway_Tax_Back_QR.png,Resources/EventCards/E07_Highway_Tax_Back_QR.png,true,
+EVENT,8,House Party,QR,E08_House_Party_Back_QR.png,Resources/EventCards/E08_House_Party_Back_QR.png,true,
+EVENT,9,In The Money,QR,E09_In_The_Money_Back_QR.png,Resources/EventCards/E09_In_The_Money_Back_QR.png,true,
+EVENT,10,It's A Boy!,QR,E10_Its_A_Boy_Back_QR.png,Resources/EventCards/E10_Its_A_Boy_Back_QR.png,true,
+EVENT,11,Love Is In The Air,QR,E11_Love_Is_In_The_Air_Back_QR.png,Resources/EventCards/E11_Love_Is_In_The_Air_Back_QR.png,true,
+EVENT,12,On The Map,QR,E12_On_The_Map_Back_QR.png,Resources/EventCards/E12_On_The_Map_Back_QR.png,true,
+EVENT,13,On The Run,QR,E13_On_The_Run_Back_QR.png,Resources/EventCards/E13_On_The_Run_Back_QR.png,true,
+EVENT,14,Pick Your Own,QR,E14_Pick_Your_Own_Back_QR.png,Resources/EventCards/E14_Pick_Your_Own_Back_QR.png,true,
+EVENT,15,Pong! What A Stinker,QR,E15_Pong_What_A_Stinker_Back_QR.png,Resources/EventCards/E15_Pong_What_A_Stinker_Back_QR.png,true,
+EVENT,16,Rover's Revenge,QR,E16_Rovers_Revenge_Back_QR.png,Resources/EventCards/E16_Rovers_Revenge_Back_QR.png,true,
+EVENT,17,Stargazing,QR,E17_Stargazing_Back_QR.png,Resources/EventCards/E17_Stargazing_Back_QR.png,true,
+EVENT,18,Stop The Presses,QR,E18_Stop_The_Presses_Back_QR.png,Resources/EventCards/E18_Stop_The_Presses_Back_QR.png,true,
+EVENT,19,'Tis The Season,QR,E19_Tis_The_Season_Back_QR.png,Resources/EventCards/E19_Tis_The_Season_Back_QR.png,true,
+EVENT,20,Tornado Alley,QR,E20_Tornado_Alley_Back_QR.png,Resources/EventCards/E20_Tornado_Alley_Back_QR.png,true,
+EVENT,21,Total Gridlock,QR,E21_Total_Gridlock_Back_QR.png,Resources/EventCards/E21_Total_Gridlock_Back_QR.png,true,
+EVENT,22,What A Ride!,QR,E22_What_A_Ride_Back_QR.png,Resources/EventCards/E22_What_A_Ride_Back_QR.png,true,
+EVENT,23,Wibble Wobble,QR,E23_Wibble_Wobble_Back_QR.png,Resources/EventCards/E23_Wibble_Wobble_Back_QR.png,true,
+EVENT,,,OTHER,EventCards.zip,Resources/EventCards/EventCards.zip,false,Non-card asset
+EVENT,,,LEGACY_BACK,Grand_Designs_Back.png,Resources/EventCards/Grand_Designs_Back.png,false,Ignored legacy hardware barcode
+EVENT,5,Grand Designs,FRONT,Grand_Designs_Front.png,Resources/EventCards/Grand_Designs_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Haunted_House_Back.png,Resources/EventCards/Haunted_House_Back.png,false,Ignored legacy hardware barcode
+EVENT,6,Haunted House,FRONT,Haunted_House_Front.png,Resources/EventCards/Haunted_House_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Highway_Tax_Back.png,Resources/EventCards/Highway_Tax_Back.png,false,Ignored legacy hardware barcode
+EVENT,7,Highway Tax,FRONT,Highway_Tax_Front.png,Resources/EventCards/Highway_Tax_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,House_Party_Back.png,Resources/EventCards/House_Party_Back.png,false,Ignored legacy hardware barcode
+EVENT,8,House Party,FRONT,House_Party_Front.png,Resources/EventCards/House_Party_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,In_The_Money_Back.png,Resources/EventCards/In_The_Money_Back.png,false,Ignored legacy hardware barcode
+EVENT,9,In The Money,FRONT,In_The_Money_Front.png,Resources/EventCards/In_The_Money_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Its_A_Boy_Back.png,Resources/EventCards/Its_A_Boy_Back.png,false,Ignored legacy hardware barcode
+EVENT,10,It's A Boy!,FRONT,Its_A_Boy_Front.png,Resources/EventCards/Its_A_Boy_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Love_Is_In_The_Air_Back.png,Resources/EventCards/Love_Is_In_The_Air_Back.png,false,Ignored legacy hardware barcode
+EVENT,11,Love Is In The Air,FRONT,Love_Is_In_The_Air_Front.png,Resources/EventCards/Love_Is_In_The_Air_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,On_The_Map_Back.png,Resources/EventCards/On_The_Map_Back.png,false,Ignored legacy hardware barcode
+EVENT,12,On The Map,FRONT,On_The_Map_Front.png,Resources/EventCards/On_The_Map_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,On_The_Run_Back.png,Resources/EventCards/On_The_Run_Back.png,false,Ignored legacy hardware barcode
+EVENT,13,On The Run,FRONT,On_The_Run_Front.png,Resources/EventCards/On_The_Run_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Pick_Your_Own_Back.png,Resources/EventCards/Pick_Your_Own_Back.png,false,Ignored legacy hardware barcode
+EVENT,14,Pick Your Own,FRONT,Pick_Your_Own_Front.png,Resources/EventCards/Pick_Your_Own_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Pong_What_A_Stinker_Back.png,Resources/EventCards/Pong_What_A_Stinker_Back.png,false,Ignored legacy hardware barcode
+EVENT,15,Pong! What A Stinker,FRONT,Pong_What_A_Stinker_Front.png,Resources/EventCards/Pong_What_A_Stinker_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Rovers_Revenge_Back.png,Resources/EventCards/Rovers_Revenge_Back.png,false,Ignored legacy hardware barcode
+EVENT,16,Rover's Revenge,FRONT,Rovers_Revenge_Front.png,Resources/EventCards/Rovers_Revenge_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Stargazing_Back.png,Resources/EventCards/Stargazing_Back.png,false,Ignored legacy hardware barcode
+EVENT,17,Stargazing,FRONT,Stargazing_Front.png,Resources/EventCards/Stargazing_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Stop_The_Presses_Back.png,Resources/EventCards/Stop_The_Presses_Back.png,false,Ignored legacy hardware barcode
+EVENT,18,Stop The Presses,FRONT,Stop_The_Presses_Front.png,Resources/EventCards/Stop_The_Presses_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Tis_The_Season_Back.png,Resources/EventCards/Tis_The_Season_Back.png,false,Ignored legacy hardware barcode
+EVENT,19,'Tis The Season,FRONT,Tis_The_Season_Front.png,Resources/EventCards/Tis_The_Season_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Tornado_Alley_Back.png,Resources/EventCards/Tornado_Alley_Back.png,false,Ignored legacy hardware barcode
+EVENT,20,Tornado Alley,FRONT,Tornado_Alley_Front.png,Resources/EventCards/Tornado_Alley_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Total_Gridlock_Back.png,Resources/EventCards/Total_Gridlock_Back.png,false,Ignored legacy hardware barcode
+EVENT,21,Total Gridlock,FRONT,Total_Gridlock_Front.png,Resources/EventCards/Total_Gridlock_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,What_A_Ride_Back.png,Resources/EventCards/What_A_Ride_Back.png,false,Ignored legacy hardware barcode
+EVENT,22,What A Ride!,FRONT,What_A_Ride_Front.png,Resources/EventCards/What_A_Ride_Front.png,true,Preferred front display asset
+EVENT,,,LEGACY_BACK,Wibble_Wobble_Back.png,Resources/EventCards/Wibble_Wobble_Back.png,false,Ignored legacy hardware barcode
+EVENT,23,Wibble Wobble,FRONT,Wibble_Wobble_Front.png,Resources/EventCards/Wibble_Wobble_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,01_Old_Kent_Road_Back.png,Resources/PropertyCards/01_Old_Kent_Road_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,1,Old Kent Road,QR,01_Old_Kent_Road_Back_QR.png,Resources/PropertyCards/01_Old_Kent_Road_Back_QR.png,true,
+PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front.png,Resources/PropertyCards/01_Old_Kent_Road_Front.png,false,Alternate front artwork variant
+PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front_New.png,Resources/PropertyCards/01_Old_Kent_Road_Front_New.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,02_Whitechapel_Road_Back.png,Resources/PropertyCards/02_Whitechapel_Road_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,2,Whitechapel Road,QR,02_Whitechapel_Road_Back_QR.png,Resources/PropertyCards/02_Whitechapel_Road_Back_QR.png,true,
+PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front.png,Resources/PropertyCards/02_Whitechapel_Road_Front.png,false,Alternate front artwork variant
+PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front_New.png,Resources/PropertyCards/02_Whitechapel_Road_Front_New.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,03_The_Angel_Islington_Back.png,Resources/PropertyCards/03_The_Angel_Islington_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,3,"The Angel, Islington",QR,03_The_Angel_Islington_Back_QR.png,Resources/PropertyCards/03_The_Angel_Islington_Back_QR.png,true,
+PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front.png,Resources/PropertyCards/03_The_Angel_Islington_Front.png,false,Alternate front artwork variant
+PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front_New.png,Resources/PropertyCards/03_The_Angel_Islington_Front_New.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,04_Euston_Road_Back.png,Resources/PropertyCards/04_Euston_Road_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,4,Euston Road,QR,04_Euston_Road_Back_QR.png,Resources/PropertyCards/04_Euston_Road_Back_QR.png,true,
+PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front.png,Resources/PropertyCards/04_Euston_Road_Front.png,false,Alternate front artwork variant
+PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front_new.jpeg,Resources/PropertyCards/04_Euston_Road_Front_new.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,05_Pentonville_Road_Back.png,Resources/PropertyCards/05_Pentonville_Road_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,5,Pentonville Road,QR,05_Pentonville_Road_Back_QR.png,Resources/PropertyCards/05_Pentonville_Road_Back_QR.png,true,
+PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front.png,Resources/PropertyCards/05_Pentonville_Road_Front.png,false,Alternate front artwork variant
+PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front_New.jpeg,Resources/PropertyCards/05_Pentonville_Road_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,06_Pall_Mall_Back.png,Resources/PropertyCards/06_Pall_Mall_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,6,Pall Mall,QR,06_Pall_Mall_Back_QR.png,Resources/PropertyCards/06_Pall_Mall_Back_QR.png,true,
+PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front.png,Resources/PropertyCards/06_Pall_Mall_Front.png,false,Alternate front artwork variant
+PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front_New.jpeg,Resources/PropertyCards/06_Pall_Mall_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,07_Whitehall_Back.png,Resources/PropertyCards/07_Whitehall_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,7,Whitehall,QR,07_Whitehall_Back_QR.png,Resources/PropertyCards/07_Whitehall_Back_QR.png,true,
+PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front.png,Resources/PropertyCards/07_Whitehall_Front.png,false,Alternate front artwork variant
+PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front_New.jpeg,Resources/PropertyCards/07_Whitehall_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,08_Northumberland_Avenue_Back.png,Resources/PropertyCards/08_Northumberland_Avenue_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,8,Northumberland Avenue,QR,08_Northumberland_Avenue_Back_QR.png,Resources/PropertyCards/08_Northumberland_Avenue_Back_QR.png,true,
+PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front.png,Resources/PropertyCards/08_Northumberland_Avenue_Front.png,false,Alternate front artwork variant
+PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front_New.jpeg,Resources/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,09_Bow_Street_Back.png,Resources/PropertyCards/09_Bow_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,9,Bow Street,QR,09_Bow_Street_Back_QR.png,Resources/PropertyCards/09_Bow_Street_Back_QR.png,true,
+PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front.png,Resources/PropertyCards/09_Bow_Street_Front.png,false,Alternate front artwork variant
+PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front_New.jpeg,Resources/PropertyCards/09_Bow_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,10_Marlborough_Street_Back.png,Resources/PropertyCards/10_Marlborough_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,10,Marlborough Street,QR,10_Marlborough_Street_Back_QR.png,Resources/PropertyCards/10_Marlborough_Street_Back_QR.png,true,
+PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front.png,Resources/PropertyCards/10_Marlborough_Street_Front.png,false,Alternate front artwork variant
+PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front_New.jpeg,Resources/PropertyCards/10_Marlborough_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,11_Vine_Street_Back.png,Resources/PropertyCards/11_Vine_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,11,Vine Street,QR,11_Vine_Street_Back_QR.png,Resources/PropertyCards/11_Vine_Street_Back_QR.png,true,
+PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front.png,Resources/PropertyCards/11_Vine_Street_Front.png,false,Alternate front artwork variant
+PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front_New.jpeg,Resources/PropertyCards/11_Vine_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,12_Strand_Back.png,Resources/PropertyCards/12_Strand_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,12,Strand,QR,12_Strand_Back_QR.png,Resources/PropertyCards/12_Strand_Back_QR.png,true,
+PROPERTY,12,Strand,FRONT,12_Strand_Front.png,Resources/PropertyCards/12_Strand_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,13_Fleet_Street_Back.png,Resources/PropertyCards/13_Fleet_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,13,Fleet Street,QR,13_Fleet_Street_Back_QR.png,Resources/PropertyCards/13_Fleet_Street_Back_QR.png,true,
+PROPERTY,13,Fleet Street,FRONT,13_Fleet_Street_Front.png,Resources/PropertyCards/13_Fleet_Street_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,14_Trafalgar_Square_Back.png,Resources/PropertyCards/14_Trafalgar_Square_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,14,Trafalgar Square,QR,14_Trafalgar_Square_Back_QR.png,Resources/PropertyCards/14_Trafalgar_Square_Back_QR.png,true,
+PROPERTY,14,Trafalgar Square,FRONT,14_Trafalgar_Square_Front.png,Resources/PropertyCards/14_Trafalgar_Square_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,15_Leicester_Square_Back.png,Resources/PropertyCards/15_Leicester_Square_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,15,Leicester Square,QR,15_Leicester_Square_Back_QR.png,Resources/PropertyCards/15_Leicester_Square_Back_QR.png,true,
+PROPERTY,15,Leicester Square,FRONT,15_Leicester_Square_Front.png,Resources/PropertyCards/15_Leicester_Square_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,16_Coventry_Street_Back.png,Resources/PropertyCards/16_Coventry_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,16,Coventry Street,QR,16_Coventry_Street_Back_QR.png,Resources/PropertyCards/16_Coventry_Street_Back_QR.png,true,
+PROPERTY,16,Coventry Street,FRONT,16_Coventry_Street_Front.png,Resources/PropertyCards/16_Coventry_Street_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,17_Piccadilly_Back.png,Resources/PropertyCards/17_Piccadilly_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,17,Piccadilly,QR,17_Piccadilly_Back_QR.png,Resources/PropertyCards/17_Piccadilly_Back_QR.png,true,
+PROPERTY,17,Piccadilly,FRONT,17_Piccadilly_Front.png,Resources/PropertyCards/17_Piccadilly_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,18_Regent_Street_Back.png,Resources/PropertyCards/18_Regent_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,18,Regent Street,QR,18_Regent_Street_Back_QR.png,Resources/PropertyCards/18_Regent_Street_Back_QR.png,true,
+PROPERTY,18,Regent Street,FRONT,18_Regent_Street_Front.png,Resources/PropertyCards/18_Regent_Street_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,19_Oxford_Street_Back.png,Resources/PropertyCards/19_Oxford_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,19,Oxford Street,QR,19_Oxford_Street_Back_QR.png,Resources/PropertyCards/19_Oxford_Street_Back_QR.png,true,
+PROPERTY,19,Oxford Street,FRONT,19_Oxford_Street_Front.png,Resources/PropertyCards/19_Oxford_Street_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,20_Bond_Street_Back.png,Resources/PropertyCards/20_Bond_Street_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,20,Bond Street,QR,20_Bond_Street_Back_QR.png,Resources/PropertyCards/20_Bond_Street_Back_QR.png,true,
+PROPERTY,20,Bond Street,FRONT,20_Bond_Street_Front.png,Resources/PropertyCards/20_Bond_Street_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,21_Park_Lane_Back.png,Resources/PropertyCards/21_Park_Lane_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,21,Park Lane,QR,21_Park_Lane_Back_QR.png,Resources/PropertyCards/21_Park_Lane_Back_QR.png,true,
+PROPERTY,21,Park Lane,FRONT,21_Park_Lane_Front.png,Resources/PropertyCards/21_Park_Lane_Front.png,true,Preferred front display asset
+PROPERTY,,,LEGACY_BACK,22_Mayfair_Back.png,Resources/PropertyCards/22_Mayfair_Back.png,false,Ignored legacy hardware barcode
+PROPERTY,22,Mayfair,QR,22_Mayfair_Back_QR.png,Resources/PropertyCards/22_Mayfair_Back_QR.png,true,
+PROPERTY,22,Mayfair,FRONT,22_Mayfair_Front.png,Resources/PropertyCards/22_Mayfair_Front.png,true,Preferred front display asset
+PROPERTY,,,OTHER,PropertyCards.zip,Resources/PropertyCards/PropertyCards.zip,false,Non-card asset

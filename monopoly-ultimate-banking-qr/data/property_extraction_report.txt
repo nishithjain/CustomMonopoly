@@ -1,0 +1,166 @@
+PROPERTY EXTRACTION REPORT
+==========================
+
+Expected properties: 22
+Processed: 22
+
+COMPLETE: 22
+NEEDS_REVIEW: 0
+UNREADABLE: 0
+
+PRP_01 Old Kent Road
+Status: COMPLETE
+Purchase Price: 60
+Initial Rent Level: 1
+Rent Levels: L1=70, L2=130, L3=220, L4=370, L5=750
+Color Group: BROWN (Brown)
+
+PRP_02 Whitechapel Road
+Status: COMPLETE
+Purchase Price: 60
+Initial Rent Level: 1
+Rent Levels: L1=70, L2=130, L3=220, L4=370, L5=750
+Color Group: BROWN (Brown)
+
+PRP_03 The Angel, Islington
+Status: COMPLETE
+Purchase Price: 100
+Initial Rent Level: 1
+Rent Levels: L1=80, L2=140, L3=240, L4=410, L5=800
+Color Group: LIGHT_BLUE (Light Blue)
+
+PRP_04 Euston Road
+Status: COMPLETE
+Purchase Price: 100
+Initial Rent Level: 1
+Rent Levels: L1=80, L2=140, L3=240, L4=410, L5=800
+Color Group: LIGHT_BLUE (Light Blue)
+
+PRP_05 Pentonville Road
+Status: COMPLETE
+Purchase Price: 120
+Initial Rent Level: 1
+Rent Levels: L1=100, L2=160, L3=260, L4=440, L5=860
+Color Group: LIGHT_BLUE (Light Blue)
+
+PRP_06 Pall Mall
+Status: COMPLETE
+Purchase Price: 140
+Initial Rent Level: 1
+Rent Levels: L1=110, L2=180, L3=290, L4=460, L5=900
+Color Group: PINK (Pink)
+
+PRP_07 Whitehall
+Status: COMPLETE
+Purchase Price: 140
+Initial Rent Level: 1
+Rent Levels: L1=110, L2=180, L3=290, L4=460, L5=900
+Color Group: PINK (Pink)
+
+PRP_08 Northumberland Avenue
+Status: COMPLETE
+Purchase Price: 160
+Initial Rent Level: 1
+Rent Levels: L1=130, L2=200, L3=310, L4=490, L5=980
+Color Group: PINK (Pink)
+
+PRP_09 Bow Street
+Status: COMPLETE
+Purchase Price: 180
+Initial Rent Level: 1
+Rent Levels: L1=140, L2=210, L3=330, L4=520, L5=1000
+Color Group: ORANGE (Orange)
+
+PRP_10 Marlborough Street
+Status: COMPLETE
+Purchase Price: 180
+Initial Rent Level: 1
+Rent Levels: L1=140, L2=210, L3=330, L4=520, L5=1000
+Color Group: ORANGE (Orange)
+
+PRP_11 Vine Street
+Status: COMPLETE
+Purchase Price: 200
+Initial Rent Level: 1
+Rent Levels: L1=160, L2=230, L3=350, L4=550, L5=1100
+Color Group: ORANGE (Orange)
+
+PRP_12 Strand
+Status: COMPLETE
+Purchase Price: 220
+Initial Rent Level: 1
+Rent Levels: L1=170, L2=250, L3=380, L4=580, L5=1160
+Color Group: RED (Red)
+
+PRP_13 Fleet Street
+Status: COMPLETE
+Purchase Price: 220
+Initial Rent Level: 1
+Rent Levels: L1=170, L2=250, L3=380, L4=580, L5=1160
+Color Group: RED (Red)
+
+PRP_14 Trafalgar Square
+Status: COMPLETE
+Purchase Price: 240
+Initial Rent Level: 1
+Rent Levels: L1=190, L2=270, L3=400, L4=610, L5=1200
+Color Group: RED (Red)
+
+PRP_15 Leicester Square
+Status: COMPLETE
+Purchase Price: 260
+Initial Rent Level: 1
+Rent Levels: L1=200, L2=280, L3=420, L4=640, L5=1300
+Color Group: YELLOW (Yellow)
+
+PRP_16 Coventry Street
+Status: COMPLETE
+Purchase Price: 260
+Initial Rent Level: 1
+Rent Levels: L1=200, L2=280, L3=420, L4=640, L5=1300
+Color Group: YELLOW (Yellow)
+
+PRP_17 Piccadilly
+Status: COMPLETE
+Purchase Price: 280
+Initial Rent Level: 1
+Rent Levels: L1=220, L2=300, L3=440, L4=670, L5=1340
+Color Group: YELLOW (Yellow)
+
+PRP_18 Regent Street
+Status: COMPLETE
+Purchase Price: 300
+Initial Rent Level: 1
+Rent Levels: L1=230, L2=320, L3=460, L4=700, L5=1400
+Color Group: GREEN (Green)
+
+PRP_19 Oxford Street
+Status: COMPLETE
+Purchase Price: 300
+Initial Rent Level: 1
+Rent Levels: L1=230, L2=320, L3=460, L4=700, L5=1400
+Color Group: GREEN (Green)
+
+PRP_20 Bond Street
+Status: COMPLETE
+Purchase Price: 320
+Initial Rent Level: 1
+Rent Levels: L1=250, L2=340, L3=480, L4=730, L5=1440
+Color Group: GREEN (Green)
+
+PRP_21 Park Lane
+Status: COMPLETE
+Purchase Price: 350
+Initial Rent Level: 1
+Rent Levels: L1=270, L2=360, L3=510, L4=740, L5=1500
+Color Group: DARK_BLUE (Dark Blue)
+
+PRP_22 Mayfair
+Status: COMPLETE
+Purchase Price: 400
+Initial Rent Level: 1
+Rent Levels: L1=300, L2=400, L3=560, L4=810, L5=1600
+Color Group: DARK_BLUE (Dark Blue)
+
+Issues:
+- None

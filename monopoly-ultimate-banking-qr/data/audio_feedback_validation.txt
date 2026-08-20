@@ -1,0 +1,24 @@
+AUDIO FEEDBACK VALIDATION
+=========================
+
+Card directories found
+Expected: 3
+Found:    3
+
+User sound sources
+Expected: 4
+Found:    4
+
+Other sound sources
+Expected: 18
+Found:    18
+
+Android raw resources
+Expected: 22
+Found:    22
+
+Audio outside game-core
+Expected: YES
+Found:    YES
+
+RESULT: PASS

@@ -1,0 +1,28 @@
+ADVANCED BANKING VALIDATION
+Result: PASS (25/25)
+
+[PASS] GO workflow exists
+[PASS] Location workflow exists
+[PASS] Jail workflow exists
+[PASS] Auction workflow exists
+[PASS] Debt UI exists
+[PASS] Bankruptcy result exists
+[PASS] Winner screen exists
+[PASS] Undo UI exists
+[PASS] Game Engine commands used
+[PASS] Room persistence used
+[PASS] no virtual dice
+[PASS] no virtual board position
+[PASS] no generic trading
+[PASS] Auction bid increment M20
+[PASS] Jail bid restriction respected
+[PASS] GO amount not hard-coded in Compose
+[PASS] Location fee uses domain config
+[PASS] Jail fee uses domain config
+[PASS] finished games block normal gameplay
+[PASS] transaction history exists
+[PASS] advanced banking tests exist
+[PASS] auction navigation wired
+[PASS] debt auto navigation wired
+[PASS] docs exist
+[PASS] game-core remains Android-free

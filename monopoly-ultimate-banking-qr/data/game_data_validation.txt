@@ -1,0 +1,41 @@
+GAME DATA VALIDATION
+====================
+
+STRUCTURAL VALIDATION
+
+Properties
+Expected: 22
+Found:    22
+
+Events
+Expected: 23
+Found:    23
+
+Property IDs valid: PASS
+Event IDs valid: PASS
+QR mappings valid: PASS
+Asset references valid: PASS
+
+STRUCTURAL RESULT: PASS
+
+
+CONTENT COMPLETENESS
+
+Properties complete:     22
+Properties needs review: 0
+Properties unreadable:   0
+
+Events complete:         17
+Events needs review:     6
+Events unreadable:       0
+
+Event engine behaviour complete:     17
+Event engine behaviour needs review: 6
+
+Properties with purchasePrice: 22 / 22
+Properties with initialRentLevel: 22 / 22
+Properties with rentLevels:    22 / 22
+Properties with colorGroup:    22 / 22
+
+CONTENT RESULT:
+REVIEW REQUIRED

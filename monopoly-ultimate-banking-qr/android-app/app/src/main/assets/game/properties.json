@@ -1,0 +1,841 @@
+{
+  "schemaVersion": 1,
+  "properties": [
+    {
+      "propertyId": "PRP_01",
+      "name": "Old Kent Road",
+      "sequence": 1,
+      "qrPayload": "MUB:P:01",
+      "frontAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+      "qrAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png",
+      "colorGroup": "BROWN",
+      "colorGroupLabel": "Brown",
+      "purchasePrice": 60,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 70
+        },
+        {
+          "level": 2,
+          "amount": 130
+        },
+        {
+          "level": 3,
+          "amount": 220
+        },
+        {
+          "level": 4,
+          "amount": 370
+        },
+        {
+          "level": 5,
+          "amount": 750
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "OLD KENT ROAD. RENT LEVEL 1-5. RENT: 70, 130, 220, 370, 750. Sequence: 1. © 1935, 2015 Hasbro.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_02",
+      "name": "Whitechapel Road",
+      "sequence": 2,
+      "qrPayload": "MUB:P:02",
+      "frontAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front_New.png",
+      "qrAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png",
+      "colorGroup": "BROWN",
+      "colorGroupLabel": "Brown",
+      "purchasePrice": 60,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 70
+        },
+        {
+          "level": 2,
+          "amount": 130
+        },
+        {
+          "level": 3,
+          "amount": 220
+        },
+        {
+          "level": 4,
+          "amount": 370
+        },
+        {
+          "level": 5,
+          "amount": 750
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "WHITECHAPEL ROAD. RENT LEVEL 1-5. RENT: 70, 130, 220, 370, 750. Sequence: 2.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_03",
+      "name": "The Angel, Islington",
+      "sequence": 3,
+      "qrPayload": "MUB:P:03",
+      "frontAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front_New.png",
+      "qrAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 100,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 80
+        },
+        {
+          "level": 2,
+          "amount": 140
+        },
+        {
+          "level": 3,
+          "amount": 240
+        },
+        {
+          "level": 4,
+          "amount": 410
+        },
+        {
+          "level": 5,
+          "amount": 800
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "THE ANGEL, ISLINGTON. RENT LEVEL 1-5. RENT: 80, 140, 240, 410, 800. Sequence: 3.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_04",
+      "name": "Euston Road",
+      "sequence": 4,
+      "qrPayload": "MUB:P:04",
+      "frontAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Front_new.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 100,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 80
+        },
+        {
+          "level": 2,
+          "amount": 140
+        },
+        {
+          "level": 3,
+          "amount": 240
+        },
+        {
+          "level": 4,
+          "amount": 410
+        },
+        {
+          "level": 5,
+          "amount": 800
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "EUSTON ROAD. RENT LEVEL 1-5. RENT: 80, 140, 240, 410, 800. Sequence: 4.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_05",
+      "name": "Pentonville Road",
+      "sequence": 5,
+      "qrPayload": "MUB:P:05",
+      "frontAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 120,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 100
+        },
+        {
+          "level": 2,
+          "amount": 160
+        },
+        {
+          "level": 3,
+          "amount": 260
+        },
+        {
+          "level": 4,
+          "amount": 440
+        },
+        {
+          "level": 5,
+          "amount": 860
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "PENTONVILLE ROAD. RENT LEVEL 1-5. RENT: 100, 160, 260, 440, 860. Sequence: 5.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_06",
+      "name": "Pall Mall",
+      "sequence": 6,
+      "qrPayload": "MUB:P:06",
+      "frontAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 140,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 110
+        },
+        {
+          "level": 2,
+          "amount": 180
+        },
+        {
+          "level": 3,
+          "amount": 290
+        },
+        {
+          "level": 4,
+          "amount": 460
+        },
+        {
+          "level": 5,
+          "amount": 900
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "PALL MALL. RENT LEVEL 1-5. RENT: 110, 180, 290, 460, 900. Sequence: 6.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_07",
+      "name": "Whitehall",
+      "sequence": 7,
+      "qrPayload": "MUB:P:07",
+      "frontAsset": "Resources/Cards/PropertyCards/07_Whitehall_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 140,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 110
+        },
+        {
+          "level": 2,
+          "amount": 180
+        },
+        {
+          "level": 3,
+          "amount": 290
+        },
+        {
+          "level": 4,
+          "amount": 460
+        },
+        {
+          "level": 5,
+          "amount": 900
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "WHITEHALL. RENT LEVEL 1-5. RENT: 110, 180, 290, 460, 900. Sequence: 7.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_08",
+      "name": "Northumberland Avenue",
+      "sequence": 8,
+      "qrPayload": "MUB:P:08",
+      "frontAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 160,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 130
+        },
+        {
+          "level": 2,
+          "amount": 200
+        },
+        {
+          "level": 3,
+          "amount": 310
+        },
+        {
+          "level": 4,
+          "amount": 490
+        },
+        {
+          "level": 5,
+          "amount": 980
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "NORTHUMBERLAND AVENUE. RENT LEVEL 1-5. RENT: 130, 200, 310, 490, 980. Sequence: 8.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_09",
+      "name": "Bow Street",
+      "sequence": 9,
+      "qrPayload": "MUB:P:09",
+      "frontAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 180,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 140
+        },
+        {
+          "level": 2,
+          "amount": 210
+        },
+        {
+          "level": 3,
+          "amount": 330
+        },
+        {
+          "level": 4,
+          "amount": 520
+        },
+        {
+          "level": 5,
+          "amount": 1000
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "BOW STREET. RENT LEVEL 1-5. RENT: 140, 210, 330, 520, 1000. Sequence: 9.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_10",
+      "name": "Marlborough Street",
+      "sequence": 10,
+      "qrPayload": "MUB:P:10",
+      "frontAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 180,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 140
+        },
+        {
+          "level": 2,
+          "amount": 210
+        },
+        {
+          "level": 3,
+          "amount": 330
+        },
+        {
+          "level": 4,
+          "amount": 520
+        },
+        {
+          "level": 5,
+          "amount": 1000
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "MARLBOROUGH STREET. RENT LEVEL 1-5. RENT: 140, 210, 330, 520, 1000. Sequence: 10.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_11",
+      "name": "Vine Street",
+      "sequence": 11,
+      "qrPayload": "MUB:P:11",
+      "frontAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Front_New.jpeg",
+      "qrAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 200,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 160
+        },
+        {
+          "level": 2,
+          "amount": 230
+        },
+        {
+          "level": 3,
+          "amount": 350
+        },
+        {
+          "level": 4,
+          "amount": 550
+        },
+        {
+          "level": 5,
+          "amount": 1100
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "VINE STREET. RENT LEVEL 1-5. RENT: 160, 230, 350, 550, 1100. Sequence: 11.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_12",
+      "name": "Strand",
+      "sequence": 12,
+      "qrPayload": "MUB:P:12",
+      "frontAsset": "Resources/Cards/PropertyCards/12_Strand_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/12_Strand_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 220,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 170
+        },
+        {
+          "level": 2,
+          "amount": 250
+        },
+        {
+          "level": 3,
+          "amount": 380
+        },
+        {
+          "level": 4,
+          "amount": 580
+        },
+        {
+          "level": 5,
+          "amount": 1160
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "STRAND. RENT LEVEL 1-5. RENT: 170, 250, 380, 580, 1160. Sequence: 12.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_13",
+      "name": "Fleet Street",
+      "sequence": 13,
+      "qrPayload": "MUB:P:13",
+      "frontAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 220,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 170
+        },
+        {
+          "level": 2,
+          "amount": 250
+        },
+        {
+          "level": 3,
+          "amount": 380
+        },
+        {
+          "level": 4,
+          "amount": 580
+        },
+        {
+          "level": 5,
+          "amount": 1160
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "FLEET STREET. RENT LEVEL 1-5. RENT: 170, 250, 380, 580, 1160. Sequence: 13.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_14",
+      "name": "Trafalgar Square",
+      "sequence": 14,
+      "qrPayload": "MUB:P:14",
+      "frontAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 240,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 190
+        },
+        {
+          "level": 2,
+          "amount": 270
+        },
+        {
+          "level": 3,
+          "amount": 400
+        },
+        {
+          "level": 4,
+          "amount": 610
+        },
+        {
+          "level": 5,
+          "amount": 1200
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "TRAFALGAR SQUARE. RENT LEVEL 1-5. RENT: 190, 270, 400, 610, 1200. Sequence: 14.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_15",
+      "name": "Leicester Square",
+      "sequence": 15,
+      "qrPayload": "MUB:P:15",
+      "frontAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 260,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 200
+        },
+        {
+          "level": 2,
+          "amount": 280
+        },
+        {
+          "level": 3,
+          "amount": 420
+        },
+        {
+          "level": 4,
+          "amount": 640
+        },
+        {
+          "level": 5,
+          "amount": 1300
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "LEICESTER SQUARE. RENT LEVEL 1-5. RENT: 200, 280, 420, 640, 1300. Sequence: 15.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_16",
+      "name": "Coventry Street",
+      "sequence": 16,
+      "qrPayload": "MUB:P:16",
+      "frontAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 260,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 200
+        },
+        {
+          "level": 2,
+          "amount": 280
+        },
+        {
+          "level": 3,
+          "amount": 420
+        },
+        {
+          "level": 4,
+          "amount": 640
+        },
+        {
+          "level": 5,
+          "amount": 1300
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "COVENTRY STREET. RENT LEVEL 1-5. RENT: 200, 280, 420, 640, 1300. Sequence: 16.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_17",
+      "name": "Piccadilly",
+      "sequence": 17,
+      "qrPayload": "MUB:P:17",
+      "frontAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 280,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 220
+        },
+        {
+          "level": 2,
+          "amount": 300
+        },
+        {
+          "level": 3,
+          "amount": 440
+        },
+        {
+          "level": 4,
+          "amount": 670
+        },
+        {
+          "level": 5,
+          "amount": 1340
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "PICCADILLY. RENT LEVEL 1-5. RENT: 220, 300, 440, 670, 1340. Sequence: 17.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_18",
+      "name": "Regent Street",
+      "sequence": 18,
+      "qrPayload": "MUB:P:18",
+      "frontAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 300,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 230
+        },
+        {
+          "level": 2,
+          "amount": 320
+        },
+        {
+          "level": 3,
+          "amount": 460
+        },
+        {
+          "level": 4,
+          "amount": 700
+        },
+        {
+          "level": 5,
+          "amount": 1400
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "REGENT STREET. RENT LEVEL 1-5. RENT: 230, 320, 460, 700, 1400. Sequence: 18.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_19",
+      "name": "Oxford Street",
+      "sequence": 19,
+      "qrPayload": "MUB:P:19",
+      "frontAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 300,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 230
+        },
+        {
+          "level": 2,
+          "amount": 320
+        },
+        {
+          "level": 3,
+          "amount": 460
+        },
+        {
+          "level": 4,
+          "amount": 700
+        },
+        {
+          "level": 5,
+          "amount": 1400
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "OXFORD STREET. RENT LEVEL 1-5. RENT: 230, 320, 460, 700, 1400. Sequence: 19.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_20",
+      "name": "Bond Street",
+      "sequence": 20,
+      "qrPayload": "MUB:P:20",
+      "frontAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 320,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 250
+        },
+        {
+          "level": 2,
+          "amount": 340
+        },
+        {
+          "level": 3,
+          "amount": 480
+        },
+        {
+          "level": 4,
+          "amount": 730
+        },
+        {
+          "level": 5,
+          "amount": 1440
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "BOND STREET. RENT LEVEL 1-5. RENT: 250, 340, 480, 730, 1440. Sequence: 20.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_21",
+      "name": "Park Lane",
+      "sequence": 21,
+      "qrPayload": "MUB:P:21",
+      "frontAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Back_QR.png",
+      "colorGroup": "DARK_BLUE",
+      "colorGroupLabel": "Dark Blue",
+      "purchasePrice": 350,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 270
+        },
+        {
+          "level": 2,
+          "amount": 360
+        },
+        {
+          "level": 3,
+          "amount": 510
+        },
+        {
+          "level": 4,
+          "amount": 740
+        },
+        {
+          "level": 5,
+          "amount": 1500
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "PARK LANE. RENT LEVEL 1-5. RENT: 270, 360, 510, 740, 1500. Sequence: 21.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    },
+    {
+      "propertyId": "PRP_22",
+      "name": "Mayfair",
+      "sequence": 22,
+      "qrPayload": "MUB:P:22",
+      "frontAsset": "Resources/Cards/PropertyCards/22_Mayfair_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/22_Mayfair_Back_QR.png",
+      "colorGroup": "DARK_BLUE",
+      "colorGroupLabel": "Dark Blue",
+      "purchasePrice": 400,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 300
+        },
+        {
+          "level": 2,
+          "amount": 400
+        },
+        {
+          "level": 3,
+          "amount": 560
+        },
+        {
+          "level": 4,
+          "amount": 810
+        },
+        {
+          "level": 5,
+          "amount": 1600
+        }
+      ],
+      "maximumRentLevel": 5,
+      "rawVisibleText": "MAYFAIR. RENT LEVEL 1-5. RENT: 300, 400, 560, 810, 1600. Sequence: 22.",
+      "extractionStatus": "COMPLETE",
+      "notes": "Master values confirmed from provided game data."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+package com.boardbanker.app.ui.screens.game
+
+import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
+import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+
+data class ActiveGameActionVisibility(
+    val showBuy: Boolean = false,
+    val showAuction: Boolean = false,
+    val showContinue: Boolean = false,
+    val showScanPlayer: Boolean = false,
+    val showDone: Boolean = false,
+    val showCancel: Boolean = false,
+)
+
+object ActiveGameCardUiPolicy {
+    fun displayCardId(
+        workflowState: GameplayWorkflowState,
+        result: GameplayResultUiModel?,
+    ): String? {
+        result?.displayCardId?.let { return it }
+        return when (val workflow = workflowState) {
+            is GameplayWorkflowState.PropertySummary -> workflow.propertyId
+            is GameplayWorkflowState.UnownedPropertyDecision -> workflow.propertyId
+            is GameplayWorkflowState.WaitingForPurchasingPlayer -> workflow.propertyId
+            is GameplayWorkflowState.WaitingForRentPayer -> workflow.propertyId
+            is GameplayWorkflowState.WaitingForAuctionStarter -> workflow.propertyId
+            is GameplayWorkflowState.EventIntro -> workflow.eventId
+            is GameplayWorkflowState.EventCollectingTargets -> workflow.eventId
+            is GameplayWorkflowState.EventConfirm -> workflow.eventId
+            is GameplayWorkflowState.EventPropertyChoice -> workflow.propertyId
+            is GameplayWorkflowState.PlayerInfo -> workflow.playerId
+            else -> null
+        }
+    }
+
+    fun actionVisibility(
+        workflowState: GameplayWorkflowState,
+        result: GameplayResultUiModel?,
+        gameplayLocked: Boolean,
+    ): ActiveGameActionVisibility {
+        if (gameplayLocked) {
+            return ActiveGameActionVisibility(showDone = result != null)
+        }
+        if (result != null) {
+            return ActiveGameActionVisibility(showDone = true)
+        }
+        return when (workflowState) {
+            is GameplayWorkflowState.UnownedPropertyDecision -> ActiveGameActionVisibility(
+                showBuy = true,
+                showAuction = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.WaitingForRentPayer -> ActiveGameActionVisibility(
+                showScanPlayer = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.EventIntro -> ActiveGameActionVisibility(
+                showContinue = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.EventCollectingTargets,
+            is GameplayWorkflowState.EventConfirm,
+            is GameplayWorkflowState.WaitingForPurchasingPlayer,
+            is GameplayWorkflowState.WaitingForAuctionStarter,
+            -> ActiveGameActionVisibility(showCancel = true)
+            is GameplayWorkflowState.PlayerInfo -> ActiveGameActionVisibility(showDone = true)
+            is GameplayWorkflowState.EventPropertyChoice -> ActiveGameActionVisibility(
+                showBuy = true,
+                showAuction = true,
+                showCancel = true,
+            )
+            else -> ActiveGameActionVisibility()
+        }
+    }
+
+    fun showCardInteraction(
+        workflowState: GameplayWorkflowState,
+        result: GameplayResultUiModel?,
+    ): Boolean = displayCardId(workflowState, result) != null
+}

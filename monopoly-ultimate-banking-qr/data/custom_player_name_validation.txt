@@ -1,0 +1,14 @@
+CUSTOM PLAYER NAME VALIDATION
+Status: PASS
+
+Checks:
+- PlayerState contains custom name
+- RegisterPlayer accepts playerName
+- RenamePlayer exists for setup editing
+- Max length and empty-name validation in game-core
+- PlayerIdentity uses playerName with playerId icons
+- Setup flow stages name entry before registration
+- Schema version 2 with backward-compatible load policy
+- Custom name serialization tests present
+- Documentation present
+- QR/token mapping unchanged

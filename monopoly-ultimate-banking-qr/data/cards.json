@@ -1,0 +1,544 @@
+{
+  "schemaVersion": 1,
+  "cards": [
+    {
+      "cardId": "USR_01",
+      "cardType": "USER",
+      "sequence": 1,
+      "name": "Car",
+      "qrPayload": "MUB:PL:CAR",
+      "assets": {
+        "front": "Resources/Cards/UserCards/Car_Front.jpg",
+        "qr": "Resources/Cards/UserCards/01_Car_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_02",
+      "cardType": "USER",
+      "sequence": 2,
+      "name": "Helicopter",
+      "qrPayload": "MUB:PL:HELICOPTER",
+      "assets": {
+        "front": "Resources/Cards/UserCards/Helicopter_Front.jpg",
+        "qr": "Resources/Cards/UserCards/02_Helicopter_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_03",
+      "cardType": "USER",
+      "sequence": 3,
+      "name": "Ship",
+      "qrPayload": "MUB:PL:SHIP",
+      "assets": {
+        "front": "Resources/Cards/UserCards/Ship_Front.jpg",
+        "qr": "Resources/Cards/UserCards/03_Ship_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_04",
+      "cardType": "USER",
+      "sequence": 4,
+      "name": "Aeroplane",
+      "qrPayload": "MUB:PL:AEROPLANE",
+      "assets": {
+        "front": "Resources/Cards/UserCards/Aeroplane_Front.jpg",
+        "qr": "Resources/Cards/UserCards/04_Aeroplane_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_01",
+      "cardType": "EVENT",
+      "sequence": 1,
+      "name": "Boom Town",
+      "qrPayload": "MUB:E:E01",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Boom_Town_Front.png",
+        "qr": "Resources/Cards/EventCards/E01_Boom_Town_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_02",
+      "cardType": "EVENT",
+      "sequence": 2,
+      "name": "Crime Down",
+      "qrPayload": "MUB:E:E02",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Crime_Down_Front.png",
+        "qr": "Resources/Cards/EventCards/E02_Crime_Down_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_03",
+      "cardType": "EVENT",
+      "sequence": 3,
+      "name": "Deal Of The Week",
+      "qrPayload": "MUB:E:E03",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Deal_Of_The_Week_Front.png",
+        "qr": "Resources/Cards/EventCards/E03_Deal_Of_The_Week_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_04",
+      "cardType": "EVENT",
+      "sequence": 4,
+      "name": "Demolished",
+      "qrPayload": "MUB:E:E04",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Demolished_Front.png",
+        "qr": "Resources/Cards/EventCards/E04_Demolished_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_05",
+      "cardType": "EVENT",
+      "sequence": 5,
+      "name": "Grand Designs",
+      "qrPayload": "MUB:E:E05",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Grand_Designs_Front.png",
+        "qr": "Resources/Cards/EventCards/E05_Grand_Designs_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_06",
+      "cardType": "EVENT",
+      "sequence": 6,
+      "name": "Haunted House",
+      "qrPayload": "MUB:E:E06",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Haunted_House_Front.png",
+        "qr": "Resources/Cards/EventCards/E06_Haunted_House_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_07",
+      "cardType": "EVENT",
+      "sequence": 7,
+      "name": "Highway Tax",
+      "qrPayload": "MUB:E:E07",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Highway_Tax_Front.png",
+        "qr": "Resources/Cards/EventCards/E07_Highway_Tax_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_08",
+      "cardType": "EVENT",
+      "sequence": 8,
+      "name": "House Party",
+      "qrPayload": "MUB:E:E08",
+      "assets": {
+        "front": "Resources/Cards/EventCards/House_Party_Front.png",
+        "qr": "Resources/Cards/EventCards/E08_House_Party_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_09",
+      "cardType": "EVENT",
+      "sequence": 9,
+      "name": "In The Money",
+      "qrPayload": "MUB:E:E09",
+      "assets": {
+        "front": "Resources/Cards/EventCards/In_The_Money_Front.png",
+        "qr": "Resources/Cards/EventCards/E09_In_The_Money_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_10",
+      "cardType": "EVENT",
+      "sequence": 10,
+      "name": "It's A Boy!",
+      "qrPayload": "MUB:E:E10",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Its_A_Boy_Front.png",
+        "qr": "Resources/Cards/EventCards/E10_Its_A_Boy_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_11",
+      "cardType": "EVENT",
+      "sequence": 11,
+      "name": "Love Is In The Air",
+      "qrPayload": "MUB:E:E11",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Love_Is_In_The_Air_Front.png",
+        "qr": "Resources/Cards/EventCards/E11_Love_Is_In_The_Air_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_12",
+      "cardType": "EVENT",
+      "sequence": 12,
+      "name": "On The Map",
+      "qrPayload": "MUB:E:E12",
+      "assets": {
+        "front": "Resources/Cards/EventCards/On_The_Map_Front.png",
+        "qr": "Resources/Cards/EventCards/E12_On_The_Map_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_13",
+      "cardType": "EVENT",
+      "sequence": 13,
+      "name": "On The Run",
+      "qrPayload": "MUB:E:E13",
+      "assets": {
+        "front": "Resources/Cards/EventCards/On_The_Run_Front.png",
+        "qr": "Resources/Cards/EventCards/E13_On_The_Run_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_14",
+      "cardType": "EVENT",
+      "sequence": 14,
+      "name": "Pick Your Own",
+      "qrPayload": "MUB:E:E14",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Pick_Your_Own_Front.png",
+        "qr": "Resources/Cards/EventCards/E14_Pick_Your_Own_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_15",
+      "cardType": "EVENT",
+      "sequence": 15,
+      "name": "Pong! What A Stinker",
+      "qrPayload": "MUB:E:E15",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Pong_What_A_Stinker_Front.png",
+        "qr": "Resources/Cards/EventCards/E15_Pong_What_A_Stinker_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_16",
+      "cardType": "EVENT",
+      "sequence": 16,
+      "name": "Rover's Revenge",
+      "qrPayload": "MUB:E:E16",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Rovers_Revenge_Front.png",
+        "qr": "Resources/Cards/EventCards/E16_Rovers_Revenge_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_17",
+      "cardType": "EVENT",
+      "sequence": 17,
+      "name": "Stargazing",
+      "qrPayload": "MUB:E:E17",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Stargazing_Front.png",
+        "qr": "Resources/Cards/EventCards/E17_Stargazing_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_18",
+      "cardType": "EVENT",
+      "sequence": 18,
+      "name": "Stop The Presses",
+      "qrPayload": "MUB:E:E18",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Stop_The_Presses_Front.png",
+        "qr": "Resources/Cards/EventCards/E18_Stop_The_Presses_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_19",
+      "cardType": "EVENT",
+      "sequence": 19,
+      "name": "'Tis The Season",
+      "qrPayload": "MUB:E:E19",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Tis_The_Season_Front.png",
+        "qr": "Resources/Cards/EventCards/E19_Tis_The_Season_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_20",
+      "cardType": "EVENT",
+      "sequence": 20,
+      "name": "Tornado Alley",
+      "qrPayload": "MUB:E:E20",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Tornado_Alley_Front.png",
+        "qr": "Resources/Cards/EventCards/E20_Tornado_Alley_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_21",
+      "cardType": "EVENT",
+      "sequence": 21,
+      "name": "Total Gridlock",
+      "qrPayload": "MUB:E:E21",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Total_Gridlock_Front.png",
+        "qr": "Resources/Cards/EventCards/E21_Total_Gridlock_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_22",
+      "cardType": "EVENT",
+      "sequence": 22,
+      "name": "What A Ride!",
+      "qrPayload": "MUB:E:E22",
+      "assets": {
+        "front": "Resources/Cards/EventCards/What_A_Ride_Front.png",
+        "qr": "Resources/Cards/EventCards/E22_What_A_Ride_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_23",
+      "cardType": "EVENT",
+      "sequence": 23,
+      "name": "Wibble Wobble",
+      "qrPayload": "MUB:E:E23",
+      "assets": {
+        "front": "Resources/Cards/EventCards/Wibble_Wobble_Front.png",
+        "qr": "Resources/Cards/EventCards/E23_Wibble_Wobble_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_01",
+      "cardType": "PROPERTY",
+      "sequence": 1,
+      "name": "Old Kent Road",
+      "qrPayload": "MUB:P:01",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+        "qr": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_02",
+      "cardType": "PROPERTY",
+      "sequence": 2,
+      "name": "Whitechapel Road",
+      "qrPayload": "MUB:P:02",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front_New.png",
+        "qr": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_03",
+      "cardType": "PROPERTY",
+      "sequence": 3,
+      "name": "The Angel, Islington",
+      "qrPayload": "MUB:P:03",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front_New.png",
+        "qr": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_04",
+      "cardType": "PROPERTY",
+      "sequence": 4,
+      "name": "Euston Road",
+      "qrPayload": "MUB:P:04",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/04_Euston_Road_Front_new.jpeg",
+        "qr": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_05",
+      "cardType": "PROPERTY",
+      "sequence": 5,
+      "name": "Pentonville Road",
+      "qrPayload": "MUB:P:05",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_06",
+      "cardType": "PROPERTY",
+      "sequence": 6,
+      "name": "Pall Mall",
+      "qrPayload": "MUB:P:06",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/06_Pall_Mall_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_07",
+      "cardType": "PROPERTY",
+      "sequence": 7,
+      "name": "Whitehall",
+      "qrPayload": "MUB:P:07",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/07_Whitehall_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_08",
+      "cardType": "PROPERTY",
+      "sequence": 8,
+      "name": "Northumberland Avenue",
+      "qrPayload": "MUB:P:08",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_09",
+      "cardType": "PROPERTY",
+      "sequence": 9,
+      "name": "Bow Street",
+      "qrPayload": "MUB:P:09",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/09_Bow_Street_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_10",
+      "cardType": "PROPERTY",
+      "sequence": 10,
+      "name": "Marlborough Street",
+      "qrPayload": "MUB:P:10",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_11",
+      "cardType": "PROPERTY",
+      "sequence": 11,
+      "name": "Vine Street",
+      "qrPayload": "MUB:P:11",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/11_Vine_Street_Front_New.jpeg",
+        "qr": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_12",
+      "cardType": "PROPERTY",
+      "sequence": 12,
+      "name": "Strand",
+      "qrPayload": "MUB:P:12",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/12_Strand_Front.png",
+        "qr": "Resources/Cards/PropertyCards/12_Strand_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_13",
+      "cardType": "PROPERTY",
+      "sequence": 13,
+      "name": "Fleet Street",
+      "qrPayload": "MUB:P:13",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/13_Fleet_Street_Front.png",
+        "qr": "Resources/Cards/PropertyCards/13_Fleet_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_14",
+      "cardType": "PROPERTY",
+      "sequence": 14,
+      "name": "Trafalgar Square",
+      "qrPayload": "MUB:P:14",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Front.png",
+        "qr": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_15",
+      "cardType": "PROPERTY",
+      "sequence": 15,
+      "name": "Leicester Square",
+      "qrPayload": "MUB:P:15",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/15_Leicester_Square_Front.png",
+        "qr": "Resources/Cards/PropertyCards/15_Leicester_Square_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_16",
+      "cardType": "PROPERTY",
+      "sequence": 16,
+      "name": "Coventry Street",
+      "qrPayload": "MUB:P:16",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/16_Coventry_Street_Front.png",
+        "qr": "Resources/Cards/PropertyCards/16_Coventry_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_17",
+      "cardType": "PROPERTY",
+      "sequence": 17,
+      "name": "Piccadilly",
+      "qrPayload": "MUB:P:17",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/17_Piccadilly_Front.png",
+        "qr": "Resources/Cards/PropertyCards/17_Piccadilly_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_18",
+      "cardType": "PROPERTY",
+      "sequence": 18,
+      "name": "Regent Street",
+      "qrPayload": "MUB:P:18",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/18_Regent_Street_Front.png",
+        "qr": "Resources/Cards/PropertyCards/18_Regent_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_19",
+      "cardType": "PROPERTY",
+      "sequence": 19,
+      "name": "Oxford Street",
+      "qrPayload": "MUB:P:19",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/19_Oxford_Street_Front.png",
+        "qr": "Resources/Cards/PropertyCards/19_Oxford_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_20",
+      "cardType": "PROPERTY",
+      "sequence": 20,
+      "name": "Bond Street",
+      "qrPayload": "MUB:P:20",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/20_Bond_Street_Front.png",
+        "qr": "Resources/Cards/PropertyCards/20_Bond_Street_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_21",
+      "cardType": "PROPERTY",
+      "sequence": 21,
+      "name": "Park Lane",
+      "qrPayload": "MUB:P:21",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/21_Park_Lane_Front.png",
+        "qr": "Resources/Cards/PropertyCards/21_Park_Lane_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "PRP_22",
+      "cardType": "PROPERTY",
+      "sequence": 22,
+      "name": "Mayfair",
+      "qrPayload": "MUB:P:22",
+      "assets": {
+        "front": "Resources/Cards/PropertyCards/22_Mayfair_Front.png",
+        "qr": "Resources/Cards/PropertyCards/22_Mayfair_Back_QR.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Player Setup Integration Validation
+=================================
+Passed: 19 / 19
+
+[PASS] real PlayerSetupScreen exists
+[PASS] placeholder text removed
+[PASS] GameSetupViewModel exists
+[PASS] RegisterPlayer through Game Engine
+[PASS] StartGame through Game Engine
+[PASS] ActiveGameSessionManager exists
+[PASS] CardResolver used in scanner
+[PASS] expected USER type enforced
+[PASS] ScanGate remains in flow
+[PASS] successful registration persists
+[PASS] successful StartGame persists
+[PASS] Game Dashboard renders balances
+[PASS] Resume uses Room session
+[PASS] no Property GameCommands in setup UI
+[PASS] no Event GameCommands in setup UI
+[PASS] player setup workflow doc exists
+[PASS] player setup integration tests exist
+[PASS] game-core remains Android-free
+[PASS] game-core does not depend on app

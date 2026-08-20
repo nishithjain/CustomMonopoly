@@ -1,0 +1,25 @@
+QR Scanner Validation
+=====================
+Passed: 21 / 21
+
+[PASS] CAMERA permission exists
+[PASS] no INTERNET permission
+[PASS] CameraX dependency exists
+[PASS] ML Kit Barcode dependency exists
+[PASS] QR-only scanner configuration exists
+[PASS] scanner package exists
+[PASS] CardResolver exists
+[PASS] ScanGate exists
+[PASS] ScannerScreen exists
+[PASS] scanner ViewModel/controller exists
+[PASS] QrCodeSource abstraction exists
+[PASS] AndroidGameDataLoader exists
+[PASS] 49-card resolver test exists
+[PASS] ScanGate tests exist
+[PASS] Fake QR source test exists
+[PASS] Room not in game-core
+[PASS] scanner does not depend on Room
+[PASS] game-core does not depend on app
+[PASS] game-core still has no Android imports
+[PASS] QR scanner architecture doc exists
+[PASS] physical QR checklist exists

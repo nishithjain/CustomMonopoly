@@ -1,0 +1,8 @@
+BANKING BUTTON UI VALIDATION
+============================
+
+Screens using BankingActionBar: 5
+Auction M/BID control: YES
+Global middle M on hub screens: NO
+
+RESULT: PASS
