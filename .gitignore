@@ -64,3 +64,4 @@ signing.properties
 # Cursor local state
 .cursor/projects/
 *.code-workspace
+monopoly-ultimate-banking-qr/PrintCards/Events.pdf
