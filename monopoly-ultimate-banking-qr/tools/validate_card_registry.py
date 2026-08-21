@@ -36,7 +36,7 @@ REQUIRED_FIELDS = [
 
 
 def load_cards() -> list[dict]:
-    cards_path = DATA_DIR / "cards.json"
+    cards_path = DATA_DIR / "common" / "card_registry.json"
     with cards_path.open(encoding="utf-8") as handle:
         payload = json.load(handle)
     return payload["cards"]
@@ -99,25 +99,26 @@ def validate(cards: list[dict], decode_rows: list[dict]) -> tuple[list[str], dic
             if field not in card or card[field] in (None, ""):
                 problems.append(f"{card.get('cardId', 'UNKNOWN')}: missing required field '{field}'")
 
-        assets = card.get("assets", {})
-        front = assets.get("front", "")
-        qr = assets.get("qr", "")
-        if not front:
-            stats["missing_front"] += 1
-            problems.append(f"{card['cardId']}: missing front asset")
-        elif not (WORKSPACE_ROOT / front).exists():
-            stats["missing_front"] += 1
-            problems.append(f"{card['cardId']}: front asset not found: {front}")
+        if card["cardType"] == "USER":
+            assets = card.get("assets", {})
+            front = assets.get("front", "")
+            qr = assets.get("qr", "")
+            if not front:
+                stats["missing_front"] += 1
+                problems.append(f"{card['cardId']}: missing front asset")
+            elif not (WORKSPACE_ROOT / front).exists():
+                stats["missing_front"] += 1
+                problems.append(f"{card['cardId']}: front asset not found: {front}")
 
-        if not qr:
-            stats["missing_qr"] += 1
-            problems.append(f"{card['cardId']}: missing QR asset")
-        elif not (WORKSPACE_ROOT / qr).exists():
-            stats["missing_qr"] += 1
-            problems.append(f"{card['cardId']}: QR asset not found: {qr}")
+            if not qr:
+                stats["missing_qr"] += 1
+                problems.append(f"{card['cardId']}: missing QR asset")
+            elif not (WORKSPACE_ROOT / qr).exists():
+                stats["missing_qr"] += 1
+                problems.append(f"{card['cardId']}: QR asset not found: {qr}")
 
-        if "legacy" in front.lower() or "_Back.png" in front and "_Back_QR" not in front:
-            problems.append(f"{card['cardId']}: legacy back asset referenced as front")
+            if "legacy" in front.lower() or ("_Back.png" in front and "_Back_QR" not in front):
+                problems.append(f"{card['cardId']}: legacy back asset referenced as front")
 
         payload = card.get("qrPayload", "")
         if payload:

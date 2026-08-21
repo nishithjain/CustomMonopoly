@@ -224,7 +224,7 @@ Status values: `RESOLVED`, `NEEDS_CONFIRMATION`, `NOT_APPLICABLE`, `BOARD_LAYOUT
 | Field | Value |
 | ----- | ----- |
 | **Status** | RESOLVED |
-| **Definition** | PRP_01–PRP_22 circular chain; see `data/board_relationships.json` |
+| **Definition** | PRP_01–PRP_22 circular chain; see `data/editions/uk/board_relationships.json` |
 | **Rule** | EVT_08/10: selected owned +1; owned neighbours -1; unowned neighbours unchanged |
 
 ### GR-RENT-012 — Board Side Rent Adjustment
@@ -233,7 +233,7 @@ Status values: `RESOLVED`, `NEEDS_CONFIRMATION`, `NOT_APPLICABLE`, `BOARD_LAYOUT
 | ----- | ----- |
 | **Status** | RESOLVED |
 | **Rule** | EVT_15: -1 owned properties on same physical side, min 1; EVT_22: +1, max 5 |
-| **Source** | `data/board_relationships.json` boardSides (confirmed physical board layout) |
+| **Source** | `data/editions/uk/board_relationships.json` boardSides (confirmed physical board layout) |
 
 ### GR-RENT-013 — RESET_PROPERTY_RENT_LEVEL
 
@@ -454,4 +454,4 @@ Status values: `RESOLVED`, `NEEDS_CONFIRMATION`, `NOT_APPLICABLE`, `BOARD_LAYOUT
 - [GAME_ENGINE_DESIGN.md](GAME_ENGINE_DESIGN.md)
 - [RULE_GAPS.md](RULE_GAPS.md)
 - [RULE_TEST_SCENARIOS.md](RULE_TEST_SCENARIOS.md)
-- [data/game_rules.json](../data/game_rules.json)
+- [data/common/game_rules.json](../data/common/game_rules.json)

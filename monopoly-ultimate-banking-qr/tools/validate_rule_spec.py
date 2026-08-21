@@ -303,11 +303,11 @@ def main() -> int:
     errors.extend(validate_docs_exist())
     errors.extend(validate_game_rules_doc())
 
-    properties = load_json(DATA_DIR / "properties.json")["properties"]
-    events = load_json(DATA_DIR / "events.json")["events"]
-    engine_data = load_json(DATA_DIR / "event_engine_rules.json")
-    game_rules = load_json(DATA_DIR / "game_rules.json")
-    board_relationships = load_json(DATA_DIR / "board_relationships.json")
+    properties = load_json(DATA_DIR / "editions" / "uk" / "properties.json")["properties"]
+    events = load_json(DATA_DIR / "editions" / "uk" / "events.json")["events"]
+    engine_data = load_json(DATA_DIR / "common" / "event_engine_rules.json")
+    game_rules = load_json(DATA_DIR / "common" / "game_rules.json")
+    board_relationships = load_json(DATA_DIR / "editions" / "uk" / "board_relationships.json")
 
     property_count = len(properties)
     event_count = len(events)

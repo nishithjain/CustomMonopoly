@@ -1,6 +1,6 @@
 """Manually verified game data extracted from physical card front images (Step 3).
 
-Source: preferred front assets listed in data/cards.json.
+Source: preferred front assets listed in data/common/card_registry.json.
 Purchase prices confirmed separately from game board data (not printed on card fronts).
 """
 

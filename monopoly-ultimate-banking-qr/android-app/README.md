@@ -14,7 +14,7 @@ This directory contains the Android implementation. The pure Kotlin game engine 
 ## Source of Truth for Master Data
 
 ```text
-ROOT data/*.json
+ROOT data/common/*.json and data/editions/<id>/*.json
         =
 game master data source of truth
 ```

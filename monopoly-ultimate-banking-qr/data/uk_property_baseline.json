@@ -1,0 +1,644 @@
+{
+  "schemaVersion": 1,
+  "editionId": "uk",
+  "properties": [
+    {
+      "propertyId": "PRP_01",
+      "name": "Old Kent Road",
+      "sequence": 1,
+      "colorGroup": "BROWN",
+      "purchasePrice": 60,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 70
+        },
+        {
+          "level": 2,
+          "amount": 130
+        },
+        {
+          "level": 3,
+          "amount": 220
+        },
+        {
+          "level": 4,
+          "amount": 370
+        },
+        {
+          "level": 5,
+          "amount": 750
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_02",
+      "name": "Whitechapel Road",
+      "sequence": 2,
+      "colorGroup": "BROWN",
+      "purchasePrice": 60,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 70
+        },
+        {
+          "level": 2,
+          "amount": 130
+        },
+        {
+          "level": 3,
+          "amount": 220
+        },
+        {
+          "level": 4,
+          "amount": 370
+        },
+        {
+          "level": 5,
+          "amount": 750
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_03",
+      "name": "The Angel, Islington",
+      "sequence": 3,
+      "colorGroup": "LIGHT_BLUE",
+      "purchasePrice": 100,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 80
+        },
+        {
+          "level": 2,
+          "amount": 140
+        },
+        {
+          "level": 3,
+          "amount": 240
+        },
+        {
+          "level": 4,
+          "amount": 410
+        },
+        {
+          "level": 5,
+          "amount": 800
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_04",
+      "name": "Euston Road",
+      "sequence": 4,
+      "colorGroup": "LIGHT_BLUE",
+      "purchasePrice": 100,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 80
+        },
+        {
+          "level": 2,
+          "amount": 140
+        },
+        {
+          "level": 3,
+          "amount": 240
+        },
+        {
+          "level": 4,
+          "amount": 410
+        },
+        {
+          "level": 5,
+          "amount": 800
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_05",
+      "name": "Pentonville Road",
+      "sequence": 5,
+      "colorGroup": "LIGHT_BLUE",
+      "purchasePrice": 120,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 100
+        },
+        {
+          "level": 2,
+          "amount": 160
+        },
+        {
+          "level": 3,
+          "amount": 260
+        },
+        {
+          "level": 4,
+          "amount": 440
+        },
+        {
+          "level": 5,
+          "amount": 860
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_06",
+      "name": "Pall Mall",
+      "sequence": 6,
+      "colorGroup": "PINK",
+      "purchasePrice": 140,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 110
+        },
+        {
+          "level": 2,
+          "amount": 180
+        },
+        {
+          "level": 3,
+          "amount": 290
+        },
+        {
+          "level": 4,
+          "amount": 460
+        },
+        {
+          "level": 5,
+          "amount": 900
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_07",
+      "name": "Whitehall",
+      "sequence": 7,
+      "colorGroup": "PINK",
+      "purchasePrice": 140,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 110
+        },
+        {
+          "level": 2,
+          "amount": 180
+        },
+        {
+          "level": 3,
+          "amount": 290
+        },
+        {
+          "level": 4,
+          "amount": 460
+        },
+        {
+          "level": 5,
+          "amount": 900
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_08",
+      "name": "Northumberland Avenue",
+      "sequence": 8,
+      "colorGroup": "PINK",
+      "purchasePrice": 160,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 130
+        },
+        {
+          "level": 2,
+          "amount": 200
+        },
+        {
+          "level": 3,
+          "amount": 310
+        },
+        {
+          "level": 4,
+          "amount": 490
+        },
+        {
+          "level": 5,
+          "amount": 980
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_09",
+      "name": "Bow Street",
+      "sequence": 9,
+      "colorGroup": "ORANGE",
+      "purchasePrice": 180,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 140
+        },
+        {
+          "level": 2,
+          "amount": 210
+        },
+        {
+          "level": 3,
+          "amount": 330
+        },
+        {
+          "level": 4,
+          "amount": 520
+        },
+        {
+          "level": 5,
+          "amount": 1000
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_10",
+      "name": "Marlborough Street",
+      "sequence": 10,
+      "colorGroup": "ORANGE",
+      "purchasePrice": 180,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 140
+        },
+        {
+          "level": 2,
+          "amount": 210
+        },
+        {
+          "level": 3,
+          "amount": 330
+        },
+        {
+          "level": 4,
+          "amount": 520
+        },
+        {
+          "level": 5,
+          "amount": 1000
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_11",
+      "name": "Vine Street",
+      "sequence": 11,
+      "colorGroup": "ORANGE",
+      "purchasePrice": 200,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 160
+        },
+        {
+          "level": 2,
+          "amount": 230
+        },
+        {
+          "level": 3,
+          "amount": 350
+        },
+        {
+          "level": 4,
+          "amount": 550
+        },
+        {
+          "level": 5,
+          "amount": 1100
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_12",
+      "name": "Strand",
+      "sequence": 12,
+      "colorGroup": "RED",
+      "purchasePrice": 220,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 170
+        },
+        {
+          "level": 2,
+          "amount": 250
+        },
+        {
+          "level": 3,
+          "amount": 380
+        },
+        {
+          "level": 4,
+          "amount": 580
+        },
+        {
+          "level": 5,
+          "amount": 1160
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_13",
+      "name": "Fleet Street",
+      "sequence": 13,
+      "colorGroup": "RED",
+      "purchasePrice": 220,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 170
+        },
+        {
+          "level": 2,
+          "amount": 250
+        },
+        {
+          "level": 3,
+          "amount": 380
+        },
+        {
+          "level": 4,
+          "amount": 580
+        },
+        {
+          "level": 5,
+          "amount": 1160
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_14",
+      "name": "Trafalgar Square",
+      "sequence": 14,
+      "colorGroup": "RED",
+      "purchasePrice": 240,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 190
+        },
+        {
+          "level": 2,
+          "amount": 270
+        },
+        {
+          "level": 3,
+          "amount": 400
+        },
+        {
+          "level": 4,
+          "amount": 610
+        },
+        {
+          "level": 5,
+          "amount": 1200
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_15",
+      "name": "Leicester Square",
+      "sequence": 15,
+      "colorGroup": "YELLOW",
+      "purchasePrice": 260,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 200
+        },
+        {
+          "level": 2,
+          "amount": 280
+        },
+        {
+          "level": 3,
+          "amount": 420
+        },
+        {
+          "level": 4,
+          "amount": 640
+        },
+        {
+          "level": 5,
+          "amount": 1300
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_16",
+      "name": "Coventry Street",
+      "sequence": 16,
+      "colorGroup": "YELLOW",
+      "purchasePrice": 260,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 200
+        },
+        {
+          "level": 2,
+          "amount": 280
+        },
+        {
+          "level": 3,
+          "amount": 420
+        },
+        {
+          "level": 4,
+          "amount": 640
+        },
+        {
+          "level": 5,
+          "amount": 1300
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_17",
+      "name": "Piccadilly",
+      "sequence": 17,
+      "colorGroup": "YELLOW",
+      "purchasePrice": 280,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 220
+        },
+        {
+          "level": 2,
+          "amount": 300
+        },
+        {
+          "level": 3,
+          "amount": 440
+        },
+        {
+          "level": 4,
+          "amount": 670
+        },
+        {
+          "level": 5,
+          "amount": 1340
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_18",
+      "name": "Regent Street",
+      "sequence": 18,
+      "colorGroup": "GREEN",
+      "purchasePrice": 300,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 230
+        },
+        {
+          "level": 2,
+          "amount": 320
+        },
+        {
+          "level": 3,
+          "amount": 460
+        },
+        {
+          "level": 4,
+          "amount": 700
+        },
+        {
+          "level": 5,
+          "amount": 1400
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_19",
+      "name": "Oxford Street",
+      "sequence": 19,
+      "colorGroup": "GREEN",
+      "purchasePrice": 300,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 230
+        },
+        {
+          "level": 2,
+          "amount": 320
+        },
+        {
+          "level": 3,
+          "amount": 460
+        },
+        {
+          "level": 4,
+          "amount": 700
+        },
+        {
+          "level": 5,
+          "amount": 1400
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_20",
+      "name": "Bond Street",
+      "sequence": 20,
+      "colorGroup": "GREEN",
+      "purchasePrice": 320,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 250
+        },
+        {
+          "level": 2,
+          "amount": 340
+        },
+        {
+          "level": 3,
+          "amount": 480
+        },
+        {
+          "level": 4,
+          "amount": 730
+        },
+        {
+          "level": 5,
+          "amount": 1440
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_21",
+      "name": "Park Lane",
+      "sequence": 21,
+      "colorGroup": "DARK_BLUE",
+      "purchasePrice": 350,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 270
+        },
+        {
+          "level": 2,
+          "amount": 360
+        },
+        {
+          "level": 3,
+          "amount": 510
+        },
+        {
+          "level": 4,
+          "amount": 740
+        },
+        {
+          "level": 5,
+          "amount": 1500
+        }
+      ]
+    },
+    {
+      "propertyId": "PRP_22",
+      "name": "Mayfair",
+      "sequence": 22,
+      "colorGroup": "DARK_BLUE",
+      "purchasePrice": 400,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 300
+        },
+        {
+          "level": 2,
+          "amount": 400
+        },
+        {
+          "level": 3,
+          "amount": 560
+        },
+        {
+          "level": 4,
+          "amount": 810
+        },
+        {
+          "level": 5,
+          "amount": 1600
+        }
+      ]
+    }
+  ]
+}

@@ -7,10 +7,9 @@ This document describes how physical card front artwork is generated, mapped, an
 Authoritative card artwork lives outside the Android project:
 
 ```text
-Resources/Cards/
-├── EventCards/
-├── PropertyCards/
-└── UserCards/
+Resources/Common/UserCards/
+Resources/Editions/uk/PropertyCards/
+Resources/Editions/uk/EventCards/
 ```
 
 These source files are never modified by tooling or the app.
@@ -18,10 +17,10 @@ These source files are never modified by tooling or the app.
 User banking-card fronts are JPG landscape artwork, for example:
 
 ```text
-Resources/Cards/UserCards/Car_Front.jpg
-Resources/Cards/UserCards/Helicopter_Front.jpg
-Resources/Cards/UserCards/Ship_Front.jpg
-Resources/Cards/UserCards/Aeroplane_Front.jpg
+Resources/Common/UserCards/Car_Front.jpg
+Resources/Common/UserCards/Helicopter_Front.jpg
+Resources/Common/UserCards/Ship_Front.jpg
+Resources/Common/UserCards/Aeroplane_Front.jpg
 ```
 
 ## Canonical front selection
@@ -29,7 +28,7 @@ Resources/Cards/UserCards/Aeroplane_Front.jpg
 Stable card IDs and canonical front paths come from the master registry:
 
 ```text
-data/cards.json
+data/common/card_registry.json
 ```
 
 Each card entry includes `assets.front` (never `*_Back*` or `*_Back_QR*`).
@@ -41,7 +40,7 @@ The sync tool applies orientation rules **by card type**. Do not rotate every ho
 ### USER CARD FRONTS
 
 ```text
-Source: Resources/Cards/UserCards/*_Front.jpg
+Source: Resources/Common/UserCards/*_Front.jpg
 Display: LANDSCAPE
 Rotation: none
 ```
@@ -72,8 +71,8 @@ python tools/sync_android_card_images.py
 
 The sync tool:
 
-1. Reads `data/cards.json`
-2. Verifies each canonical front exists under `Resources/Cards/`
+1. Reads `data/common/card_registry.json`
+2. Verifies each canonical front exists under `Resources/Common/` or `Resources/Editions/uk/`
 3. Accepts `*_Front.png`, `*_Front.jpg`, and `*_Front.jpeg`
 4. Preserves **USER** landscape orientation without rotation
 5. Converts **EVENT/PROPERTY** landscape sources to portrait using the existing 90° CCW rule

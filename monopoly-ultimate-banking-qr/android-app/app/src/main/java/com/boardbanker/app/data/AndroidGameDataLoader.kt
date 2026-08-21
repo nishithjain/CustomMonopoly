@@ -1,8 +1,23 @@
 package com.boardbanker.app.data
 
 import android.content.Context
+import com.boardbanker.core.edition.EditionFileSource
+import com.boardbanker.core.edition.EditionRepository
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameDefinitions
-import com.boardbanker.core.validation.GameDefinitionLoader
+
+class AndroidEditionFileSource(
+    private val context: Context,
+) : EditionFileSource {
+    override fun readCommon(fileName: String): String =
+        readAsset("game/common/$fileName")
+
+    override fun readEdition(editionId: String, fileName: String): String =
+        readAsset("game/editions/$editionId/$fileName")
+
+    private fun readAsset(path: String): String =
+        context.assets.open(path).bufferedReader().use { it.readText() }
+}
 
 /**
  * Reads generated runtime assets and delegates parsing to :game-core.
@@ -10,17 +25,7 @@ import com.boardbanker.core.validation.GameDefinitionLoader
 class AndroidGameDataLoader(
     private val context: Context,
 ) {
-    fun load(): GameDefinitions {
-        val loader = GameDefinitionLoader()
-        val assets = context.assets
-        return loader.loadAll(
-            cardsJson = assets.open("game/cards.json").bufferedReader().use { it.readText() },
-            propertiesJson = assets.open("game/properties.json").bufferedReader().use { it.readText() },
-            eventsJson = assets.open("game/events.json").bufferedReader().use { it.readText() },
-            eventEngineRulesJson = assets.open("game/event_engine_rules.json").bufferedReader().use { it.readText() },
-            boardRelationshipsJson = assets.open("game/board_relationships.json").bufferedReader().use { it.readText() },
-            gameRulesJson = assets.open("game/game_rules.json").bufferedReader().use { it.readText() },
-            bankingValuesJson = assets.open("game/banking_values.json").bufferedReader().use { it.readText() },
-        )
-    }
+    private val repository = EditionRepository(AndroidEditionFileSource(context))
+
+    fun load(editionId: String = EditionIds.DEFAULT): GameDefinitions = repository.load(editionId)
 }

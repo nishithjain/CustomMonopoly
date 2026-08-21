@@ -1,0 +1,24 @@
+EDITION VALIDATION
+==================
+
+COMMON
+card_registry: PASS
+game_rules: PASS
+cards: 49
+
+UK
+edition.json: PASS
+properties: 22 / 22
+events: 23 / 23
+property artwork fronts: 22 / 22
+event artwork fronts: 23 / 23
+
+INDIA
+edition.json: PASS
+properties: 22 / 22
+events: 23 / 23
+property artwork: INCOMPLETE (0/22)
+event artwork: INCOMPLETE (0/23)
+exposed in New Game: NO
+
+RESULT: PASS

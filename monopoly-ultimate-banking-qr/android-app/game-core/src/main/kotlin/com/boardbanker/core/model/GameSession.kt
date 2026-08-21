@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GameSession(
     val gameId: String,
+    val editionId: String = EditionIds.DEFAULT,
     val status: GameStatus = GameStatus.SETUP,
     val players: Map<String, PlayerState> = emptyMap(),
     val properties: Map<String, PropertyState> = emptyMap(),

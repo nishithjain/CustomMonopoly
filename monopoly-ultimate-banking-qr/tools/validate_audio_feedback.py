@@ -15,37 +15,37 @@ OLD_PATH_PATTERNS = [
 ]
 
 EXPECTED_CARD_DIRS = [
-    "Resources/Cards/UserCards",
-    "Resources/Cards/PropertyCards",
-    "Resources/Cards/EventCards",
+    "Resources/Common/UserCards",
+    "Resources/Editions/uk/PropertyCards",
+    "Resources/Editions/uk/EventCards",
 ]
 
 USER_SOUND_SOURCES = {
-    "USR_01": ("Resources/Sounds/UserCardSounds/Car.mp3", "user_car.mp3"),
-    "USR_02": ("Resources/Sounds/UserCardSounds/Helicopter.mp3", "user_helicopter.mp3"),
-    "USR_03": ("Resources/Sounds/UserCardSounds/Ship.mp3", "user_ship.mp3"),
-    "USR_04": ("Resources/Sounds/UserCardSounds/Aeroplane.mp3", "user_aeroplane.mp3"),
+    "USR_01": ("Resources/Common/Sounds/UserCardSounds/Car.mp3", "user_car.mp3"),
+    "USR_02": ("Resources/Common/Sounds/UserCardSounds/Helicopter.mp3", "user_helicopter.mp3"),
+    "USR_03": ("Resources/Common/Sounds/UserCardSounds/Ship.mp3", "user_ship.mp3"),
+    "USR_04": ("Resources/Common/Sounds/UserCardSounds/Aeroplane.mp3", "user_aeroplane.mp3"),
 }
 
 OTHER_SOUND_SOURCES = {
-    "AUCTION_BEGINS": ("Resources/Sounds/Other/AuctionBegins.mp3", "auction_begins.mp3"),
-    "AUCTION_ENDING": ("Resources/Sounds/Other/AuctionEnding.mp3", "auction_ending.mp3"),
-    "ERROR": ("Resources/Sounds/Other/Error.mp3", "error.mp3"),
-    "GAME_STARTS": ("Resources/Sounds/Other/GameStarts.mp3", "game_starts.mp3"),
-    "GO": ("Resources/Sounds/Other/Go.mp3", "go.mp3"),
-    "GO_TO_JAIL": ("Resources/Sounds/Other/GoToJail.mp3", "go_to_jail.mp3"),
-    "JAIL": ("Resources/Sounds/Other/Jail.mp3", "jail.mp3"),
-    "KA_CHING": ("Resources/Sounds/Other/KaChing.mp3", "ka_ching.mp3"),
-    "LOST_GAME": ("Resources/Sounds/Other/LostGame.mp3", "lost_game.mp3"),
-    "PROPERTY_PURCHASED": ("Resources/Sounds/Other/PropertyPurchased.mp3", "property_purchased.mp3"),
-    "RENT_LEVEL_DECREASED": ("Resources/Sounds/Other/RentLevelDecreased.mp3", "rent_level_decreased.mp3"),
-    "RENT_LEVEL_INCREASED": ("Resources/Sounds/Other/RentLevelIncreased.mp3", "rent_level_increased.mp3"),
-    "RENT_TRANSFER": ("Resources/Sounds/Other/RentTransfer.mp3", "rent_transfer.mp3"),
-    "SCAN_CARD": ("Resources/Sounds/Other/ScanCard.mp3", "scan_card.mp3"),
-    "MONEY_LOST": ("Resources/Sounds/Other/SomeoneJustTookYourMoney.mp3", "someone_just_took_your_money.mp3"),
-    "UNDO": ("Resources/Sounds/Other/Undo.mp3", "undo.mp3"),
-    "WINNER": ("Resources/Sounds/Other/Winner.mp3", "winner.mp3"),
-    "COLOR_SET_COMPLETE": ("Resources/Sounds/Other/ColorSetComplete.mp3", "color_set_complete.mp3"),
+    "AUCTION_BEGINS": ("Resources/Common/Sounds/Other/AuctionBegins.mp3", "auction_begins.mp3"),
+    "AUCTION_ENDING": ("Resources/Common/Sounds/Other/AuctionEnding.mp3", "auction_ending.mp3"),
+    "ERROR": ("Resources/Common/Sounds/Other/Error.mp3", "error.mp3"),
+    "GAME_STARTS": ("Resources/Common/Sounds/Other/GameStarts.mp3", "game_starts.mp3"),
+    "GO": ("Resources/Common/Sounds/Other/Go.mp3", "go.mp3"),
+    "GO_TO_JAIL": ("Resources/Common/Sounds/Other/GoToJail.mp3", "go_to_jail.mp3"),
+    "JAIL": ("Resources/Common/Sounds/Other/Jail.mp3", "jail.mp3"),
+    "KA_CHING": ("Resources/Common/Sounds/Other/KaChing.mp3", "ka_ching.mp3"),
+    "LOST_GAME": ("Resources/Common/Sounds/Other/LostGame.mp3", "lost_game.mp3"),
+    "PROPERTY_PURCHASED": ("Resources/Common/Sounds/Other/PropertyPurchased.mp3", "property_purchased.mp3"),
+    "RENT_LEVEL_DECREASED": ("Resources/Common/Sounds/Other/RentLevelDecreased.mp3", "rent_level_decreased.mp3"),
+    "RENT_LEVEL_INCREASED": ("Resources/Common/Sounds/Other/RentLevelIncreased.mp3", "rent_level_increased.mp3"),
+    "RENT_TRANSFER": ("Resources/Common/Sounds/Other/RentTransfer.mp3", "rent_transfer.mp3"),
+    "SCAN_CARD": ("Resources/Common/Sounds/Other/ScanCard.mp3", "scan_card.mp3"),
+    "MONEY_LOST": ("Resources/Common/Sounds/Other/SomeoneJustTookYourMoney.mp3", "someone_just_took_your_money.mp3"),
+    "UNDO": ("Resources/Common/Sounds/Other/Undo.mp3", "undo.mp3"),
+    "WINNER": ("Resources/Common/Sounds/Other/Winner.mp3", "winner.mp3"),
+    "COLOR_SET_COMPLETE": ("Resources/Common/Sounds/Other/ColorSetComplete.mp3", "color_set_complete.mp3"),
 }
 
 REQUIRED_GAMEPLAY_METHODS = [
@@ -108,7 +108,7 @@ def active_tool_files(project_root: Path) -> list[Path]:
 
 def check_old_paths_in_active_tools(project_root: Path) -> list[str]:
     problems: list[str] = []
-    skip_files = {"validate_audio_feedback.py"}
+    skip_files = {"validate_audio_feedback.py", "migrate_to_edition_layout.py"}
     for path in active_tool_files(project_root):
         if path.name in skip_files:
             continue
@@ -116,7 +116,7 @@ def check_old_paths_in_active_tools(project_root: Path) -> list[str]:
         for pattern in OLD_PATH_PATTERNS:
             if pattern.search(text):
                 problems.append(f"Active tool still references old path in {path.name}: {pattern.pattern}")
-    cards_json = read_text(project_root / "data" / "cards.json")
+    cards_json = read_text(project_root / "data" / "common" / "card_registry.json")
     for pattern in OLD_PATH_PATTERNS:
         if pattern.search(cards_json):
             problems.append(f"cards.json still references old path: {pattern.pattern}")

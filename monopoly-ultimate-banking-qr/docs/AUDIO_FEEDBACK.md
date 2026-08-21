@@ -113,8 +113,8 @@ No rent-level sound when engine leaves level unchanged (e.g. Level 5 +1 stays Le
 Authoritative sources:
 
 ```text
-Resources/Sounds/UserCardSounds/  (4 files)
-Resources/Sounds/Other/           (18 files)
+Resources/Common/Sounds/UserCardSounds/  (4 files)
+Resources/Common/Sounds/Other/           (18 files)
 TOTAL: 22
 ```
 

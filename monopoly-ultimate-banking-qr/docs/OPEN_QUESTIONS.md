@@ -8,10 +8,10 @@ See [RULE_GAPS.md](RULE_GAPS.md) and [data/rule_spec_validation.txt](../data/rul
 
 ## Player Setup
 
-- [x] Exact starting player balance — **M1500**; GR-SETUP-004; `data/game_rules.json`
+- [x] Exact starting player balance — **M1500**; GR-SETUP-004; `data/common/game_rules.json`
 - [x] Minimum players — **2**; GR-SETUP-002
 - [x] Maximum players — **4**; GR-SETUP-003
-- [x] Player card QR mapping — Step 2; `data/cards.json`
+- [x] Player card QR mapping — Step 2; `data/common/card_registry.json`
 - [x] Duplicate player rejection — GR-SETUP-005
 
 ## Property Cards
@@ -31,10 +31,10 @@ See [RULE_GAPS.md](RULE_GAPS.md) and [data/rule_spec_validation.txt](../data/rul
 
 - [x] All Event QR mappings and printed text — Step 3
 - [x] Game Engine specification — Step 4; **23/23 RESOLVED**
-- [x] EVT_08 / EVT_10 neighbours — circular PRP chain; `data/board_relationships.json`
+- [x] EVT_08 / EVT_10 neighbours — circular PRP chain; `data/editions/uk/board_relationships.json`
 - [x] EVT_13 temporary effect — global FORCE_LEVEL_1_RENT, 2 uses; GR-EVENT-003
 - [x] EVT_21 Total Gridlock — GR-EVENT-004
-- [x] EVT_15 / EVT_22 board sides — confirmed from supplied physical board layout; `data/board_relationships.json`
+- [x] EVT_15 / EVT_22 board sides — confirmed from supplied physical board layout; `data/editions/uk/board_relationships.json`
 - [x] Owned-properties-only Event rule — GR-EVENT-002
 - [x] Scan requirements — Step 3 `requiresPlayerScan` / `requiresPropertyScan`
 
@@ -45,7 +45,7 @@ See [RULE_GAPS.md](RULE_GAPS.md) and [data/rule_spec_validation.txt](../data/rul
 - [x] Jail banking — GR-JAIL-001–004
 - [x] Jail rent exception — GR-RENT-001, GR-JAIL-003
 - [x] Location space M100 — GR-LOCATION-001
-- [x] Board neighbours — `data/board_relationships.json`
+- [x] Board neighbours — `data/editions/uk/board_relationships.json`
 
 ## Transactions and Disputes
 
@@ -75,4 +75,4 @@ See [RULE_GAPS.md](RULE_GAPS.md) and [data/rule_spec_validation.txt](../data/rul
 
 ---
 
-When an item is confirmed, update `GAME_RULES.md`, `data/game_rules.json`, and check the box here.
+When an item is confirmed, update `GAME_RULES.md`, `data/common/game_rules.json`, and check the box here.

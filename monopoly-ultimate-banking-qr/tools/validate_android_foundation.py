@@ -61,13 +61,19 @@ def main() -> int:
 
     asset_dir = app_dir / "src" / "main" / "assets" / "game"
     asset_files = [
-        "cards.json",
-        "properties.json",
-        "events.json",
-        "game_rules.json",
-        "event_engine_rules.json",
-        "board_relationships.json",
-        "banking_values.json",
+        "common/card_registry.json",
+        "common/game_rules.json",
+        "common/event_engine_rules.json",
+        "editions/uk/edition.json",
+        "editions/uk/properties.json",
+        "editions/uk/events.json",
+        "editions/uk/banking_values.json",
+        "editions/uk/board_relationships.json",
+        "editions/india/edition.json",
+        "editions/india/properties.json",
+        "editions/india/events.json",
+        "editions/india/banking_values.json",
+        "editions/india/board_relationships.json",
     ]
     for filename in asset_files:
         record(f"asset exists: {filename}", (asset_dir / filename).is_file())

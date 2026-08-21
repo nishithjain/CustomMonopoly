@@ -1,7 +1,7 @@
 ANDROID FOUNDATION VALIDATION
 =============================
 
-Checks passed: 28/28
+Checks passed: 40/40
 
 RESULT:
 PASS
@@ -15,20 +15,32 @@ DETAILS:
 - [PASS] app depends on game-core
 - [PASS] game-core does not depend on app
 - [PASS] game-core has no Android imports
-- [PASS] asset exists: cards.json
-- [PASS] root source exists: cards.json
-- [PASS] asset exists: properties.json
-- [PASS] root source exists: properties.json
-- [PASS] asset exists: events.json
-- [PASS] root source exists: events.json
-- [PASS] asset exists: game_rules.json
-- [PASS] root source exists: game_rules.json
-- [PASS] asset exists: event_engine_rules.json
-- [PASS] root source exists: event_engine_rules.json
-- [PASS] asset exists: board_relationships.json
-- [PASS] root source exists: board_relationships.json
-- [PASS] asset exists: banking_values.json
-- [PASS] root source exists: banking_values.json
+- [PASS] asset exists: common/card_registry.json
+- [PASS] root source exists: common/card_registry.json
+- [PASS] asset exists: common/game_rules.json
+- [PASS] root source exists: common/game_rules.json
+- [PASS] asset exists: common/event_engine_rules.json
+- [PASS] root source exists: common/event_engine_rules.json
+- [PASS] asset exists: editions/uk/edition.json
+- [PASS] root source exists: editions/uk/edition.json
+- [PASS] asset exists: editions/uk/properties.json
+- [PASS] root source exists: editions/uk/properties.json
+- [PASS] asset exists: editions/uk/events.json
+- [PASS] root source exists: editions/uk/events.json
+- [PASS] asset exists: editions/uk/banking_values.json
+- [PASS] root source exists: editions/uk/banking_values.json
+- [PASS] asset exists: editions/uk/board_relationships.json
+- [PASS] root source exists: editions/uk/board_relationships.json
+- [PASS] asset exists: editions/india/edition.json
+- [PASS] root source exists: editions/india/edition.json
+- [PASS] asset exists: editions/india/properties.json
+- [PASS] root source exists: editions/india/properties.json
+- [PASS] asset exists: editions/india/events.json
+- [PASS] root source exists: editions/india/events.json
+- [PASS] asset exists: editions/india/banking_values.json
+- [PASS] root source exists: editions/india/banking_values.json
+- [PASS] asset exists: editions/india/board_relationships.json
+- [PASS] root source exists: editions/india/board_relationships.json
 - [PASS] MainActivity exists
 - [PASS] HomeScreen exists
 - [PASS] PlayerSetupScreen exists

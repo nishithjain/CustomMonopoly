@@ -333,7 +333,7 @@ def build_registry(decode_results: list[dict]) -> tuple[list[dict], list[dict]]:
 
 
 def write_cards_json(cards: list[dict]) -> None:
-    output = DATA_DIR / "cards.json"
+    output = DATA_DIR / "common" / "card_registry.json"
     payload = {"schemaVersion": 1, "cards": cards}
     with output.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)

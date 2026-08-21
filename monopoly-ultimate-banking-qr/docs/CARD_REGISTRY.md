@@ -79,7 +79,7 @@ QR payload → Card Registry → cardId
 
 ### Legacy barcode backs are excluded
 
-Files matching `*_Back.png` (without `_QR`) contain the original hardware unit barcodes. They are inventoried for audit purposes in `data/card_asset_inventory.csv` but are **not** registered in `data/cards.json`.
+Files matching `*_Back.png` (without `_QR`) contain the original hardware unit barcodes. They are inventoried for audit purposes in `data/card_asset_inventory.csv` but are **not** registered in `data/common/card_registry.json`.
 
 ### Static identity vs runtime state
 
@@ -120,7 +120,7 @@ It does **not** hold game state such as owner, balance, or rent level. Those bel
 | … | … | … | … |
 | PRP_22 | 22 | Mayfair | `MUB:P:P22` |
 
-Full mappings are in `data/cards.json` and `data/card_registry.csv`.
+Full mappings are in `data/common/card_registry.json` and `data/card_registry.csv`.
 
 ---
 
@@ -128,7 +128,7 @@ Full mappings are in `data/cards.json` and `data/card_registry.csv`.
 
 | File | Purpose |
 | ---- | ------- |
-| `data/cards.json` | Machine-readable card registry (primary source for app loading) |
+| `data/common/card_registry.json` | Machine-readable card registry (primary source for app loading) |
 | `data/card_registry.csv` | Human-readable registry for inspection and editing |
 | `data/qr_decode_results.csv` | QR decode audit log with status per card |
 | `data/card_asset_inventory.csv` | Complete asset inventory including legacy backs and front variants |
@@ -140,7 +140,7 @@ Full mappings are in `data/cards.json` and `data/card_registry.csv`.
 
 Asset paths in the registry are relative to the workspace root (`Resources/...`).
 
-Property front artwork uses the canonical `{NN}_Property_Front.png` filename under `Resources/Cards/PropertyCards/` (QR backs are `{NN}_Property_Back_QR.png`). Display names stay in registry data, not in the filename.
+Property front artwork uses the canonical `{NN}_Property_Front.png` filename under `Resources/Editions/uk/PropertyCards/` (QR backs are `{NN}_Property_Back_QR.png`). Display names stay in registry data, not in the filename.
 
 Example:
 
@@ -152,8 +152,8 @@ Example:
   "name": "Old Kent Road",
   "qrPayload": "MUB:P:01",
   "assets": {
-    "front": "Resources/Cards/PropertyCards/01_Property_Front.png",
-    "qr": "Resources/Cards/PropertyCards/01_Property_Back_QR.png"
+    "front": "Resources/Editions/uk/PropertyCards/01_Property_Front.png",
+    "qr": "Resources/Editions/uk/PropertyCards/01_Property_Back_QR.png"
   }
 }
 ```

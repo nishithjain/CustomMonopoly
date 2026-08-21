@@ -1,8 +1,8 @@
 BANKING VALUES VALIDATION
 =========================
 
-Source: data/banking_values.json
-Runtime copy: android-app/app/src/main/assets/game/banking_values.json
+Source: data/editions/uk/banking_values.json
+Runtime copy: android-app/app/src/main/assets/game/editions/uk/banking_values.json
 
 RESULT: PASS
 

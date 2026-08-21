@@ -19,7 +19,7 @@ The script reads only these property fields:
 Each generated HTML file keeps the attached template structure and replaces
 CARD_DATA plus the color palette for that property's colorGroup.
 
-PNG artwork under Resources/Cards/PropertyCards/ uses stable names that do
+PNG artwork under Resources/Editions/<editionId>/PropertyCards/ uses stable names that do
 not include the property display name, so India-edition (and other) titles
 can change without renaming files:
 
@@ -348,7 +348,7 @@ def property_image_filenames(sequence: int) -> tuple[str, str]:
 def canonicalize_property_assets(prop: dict[str, Any]) -> None:
     """Keep frontAsset/qrAsset on the generic numbered filenames when present."""
     front_name, qr_name = property_image_filenames(prop["sequence"])
-    asset_dir = "Resources/Cards/PropertyCards"
+    asset_dir = "Resources/Editions/india/PropertyCards"
     if "frontAsset" in prop:
         prop["frontAsset"] = f"{asset_dir}/{front_name}"
     if "qrAsset" in prop:

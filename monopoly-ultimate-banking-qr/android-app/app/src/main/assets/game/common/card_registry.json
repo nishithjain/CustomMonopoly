@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 1,
+  "cards": [
+    {
+      "cardId": "USR_01",
+      "cardType": "USER",
+      "sequence": 1,
+      "name": "Car",
+      "qrPayload": "MUB:PL:CAR",
+      "assets": {
+        "front": "Resources/Common/UserCards/Car_Front.jpg",
+        "qr": "Resources/Common/UserCards/01_Car_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_02",
+      "cardType": "USER",
+      "sequence": 2,
+      "name": "Helicopter",
+      "qrPayload": "MUB:PL:HELICOPTER",
+      "assets": {
+        "front": "Resources/Common/UserCards/Helicopter_Front.jpg",
+        "qr": "Resources/Common/UserCards/02_Helicopter_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_03",
+      "cardType": "USER",
+      "sequence": 3,
+      "name": "Ship",
+      "qrPayload": "MUB:PL:SHIP",
+      "assets": {
+        "front": "Resources/Common/UserCards/Ship_Front.jpg",
+        "qr": "Resources/Common/UserCards/03_Ship_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_04",
+      "cardType": "USER",
+      "sequence": 4,
+      "name": "Aeroplane",
+      "qrPayload": "MUB:PL:AEROPLANE",
+      "assets": {
+        "front": "Resources/Common/UserCards/Aeroplane_Front.jpg",
+        "qr": "Resources/Common/UserCards/04_Aeroplane_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "EVT_01",
+      "cardType": "EVENT",
+      "sequence": 1,
+      "name": "Boom Town",
+      "qrPayload": "MUB:E:E01"
+    },
+    {
+      "cardId": "EVT_02",
+      "cardType": "EVENT",
+      "sequence": 2,
+      "name": "Crime Down",
+      "qrPayload": "MUB:E:E02"
+    },
+    {
+      "cardId": "EVT_03",
+      "cardType": "EVENT",
+      "sequence": 3,
+      "name": "Deal Of The Week",
+      "qrPayload": "MUB:E:E03"
+    },
+    {
+      "cardId": "EVT_04",
+      "cardType": "EVENT",
+      "sequence": 4,
+      "name": "Demolished",
+      "qrPayload": "MUB:E:E04"
+    },
+    {
+      "cardId": "EVT_05",
+      "cardType": "EVENT",
+      "sequence": 5,
+      "name": "Grand Designs",
+      "qrPayload": "MUB:E:E05"
+    },
+    {
+      "cardId": "EVT_06",
+      "cardType": "EVENT",
+      "sequence": 6,
+      "name": "Haunted House",
+      "qrPayload": "MUB:E:E06"
+    },
+    {
+      "cardId": "EVT_07",
+      "cardType": "EVENT",
+      "sequence": 7,
+      "name": "Highway Tax",
+      "qrPayload": "MUB:E:E07"
+    },
+    {
+      "cardId": "EVT_08",
+      "cardType": "EVENT",
+      "sequence": 8,
+      "name": "House Party",
+      "qrPayload": "MUB:E:E08"
+    },
+    {
+      "cardId": "EVT_09",
+      "cardType": "EVENT",
+      "sequence": 9,
+      "name": "In The Money",
+      "qrPayload": "MUB:E:E09"
+    },
+    {
+      "cardId": "EVT_10",
+      "cardType": "EVENT",
+      "sequence": 10,
+      "name": "It's A Boy!",
+      "qrPayload": "MUB:E:E10"
+    },
+    {
+      "cardId": "EVT_11",
+      "cardType": "EVENT",
+      "sequence": 11,
+      "name": "Love Is In The Air",
+      "qrPayload": "MUB:E:E11"
+    },
+    {
+      "cardId": "EVT_12",
+      "cardType": "EVENT",
+      "sequence": 12,
+      "name": "On The Map",
+      "qrPayload": "MUB:E:E12"
+    },
+    {
+      "cardId": "EVT_13",
+      "cardType": "EVENT",
+      "sequence": 13,
+      "name": "On The Run",
+      "qrPayload": "MUB:E:E13"
+    },
+    {
+      "cardId": "EVT_14",
+      "cardType": "EVENT",
+      "sequence": 14,
+      "name": "Pick Your Own",
+      "qrPayload": "MUB:E:E14"
+    },
+    {
+      "cardId": "EVT_15",
+      "cardType": "EVENT",
+      "sequence": 15,
+      "name": "Pong! What A Stinker",
+      "qrPayload": "MUB:E:E15"
+    },
+    {
+      "cardId": "EVT_16",
+      "cardType": "EVENT",
+      "sequence": 16,
+      "name": "Rover's Revenge",
+      "qrPayload": "MUB:E:E16"
+    },
+    {
+      "cardId": "EVT_17",
+      "cardType": "EVENT",
+      "sequence": 17,
+      "name": "Stargazing",
+      "qrPayload": "MUB:E:E17"
+    },
+    {
+      "cardId": "EVT_18",
+      "cardType": "EVENT",
+      "sequence": 18,
+      "name": "Stop The Presses",
+      "qrPayload": "MUB:E:E18"
+    },
+    {
+      "cardId": "EVT_19",
+      "cardType": "EVENT",
+      "sequence": 19,
+      "name": "'Tis The Season",
+      "qrPayload": "MUB:E:E19"
+    },
+    {
+      "cardId": "EVT_20",
+      "cardType": "EVENT",
+      "sequence": 20,
+      "name": "Tornado Alley",
+      "qrPayload": "MUB:E:E20"
+    },
+    {
+      "cardId": "EVT_21",
+      "cardType": "EVENT",
+      "sequence": 21,
+      "name": "Total Gridlock",
+      "qrPayload": "MUB:E:E21"
+    },
+    {
+      "cardId": "EVT_22",
+      "cardType": "EVENT",
+      "sequence": 22,
+      "name": "What A Ride!",
+      "qrPayload": "MUB:E:E22"
+    },
+    {
+      "cardId": "EVT_23",
+      "cardType": "EVENT",
+      "sequence": 23,
+      "name": "Wibble Wobble",
+      "qrPayload": "MUB:E:E23"
+    },
+    {
+      "cardId": "PRP_01",
+      "cardType": "PROPERTY",
+      "sequence": 1,
+      "name": "Old Kent Road",
+      "qrPayload": "MUB:P:01"
+    },
+    {
+      "cardId": "PRP_02",
+      "cardType": "PROPERTY",
+      "sequence": 2,
+      "name": "Whitechapel Road",
+      "qrPayload": "MUB:P:02"
+    },
+    {
+      "cardId": "PRP_03",
+      "cardType": "PROPERTY",
+      "sequence": 3,
+      "name": "The Angel, Islington",
+      "qrPayload": "MUB:P:03"
+    },
+    {
+      "cardId": "PRP_04",
+      "cardType": "PROPERTY",
+      "sequence": 4,
+      "name": "Euston Road",
+      "qrPayload": "MUB:P:04"
+    },
+    {
+      "cardId": "PRP_05",
+      "cardType": "PROPERTY",
+      "sequence": 5,
+      "name": "Pentonville Road",
+      "qrPayload": "MUB:P:05"
+    },
+    {
+      "cardId": "PRP_06",
+      "cardType": "PROPERTY",
+      "sequence": 6,
+      "name": "Pall Mall",
+      "qrPayload": "MUB:P:06"
+    },
+    {
+      "cardId": "PRP_07",
+      "cardType": "PROPERTY",
+      "sequence": 7,
+      "name": "Whitehall",
+      "qrPayload": "MUB:P:07"
+    },
+    {
+      "cardId": "PRP_08",
+      "cardType": "PROPERTY",
+      "sequence": 8,
+      "name": "Northumberland Avenue",
+      "qrPayload": "MUB:P:08"
+    },
+    {
+      "cardId": "PRP_09",
+      "cardType": "PROPERTY",
+      "sequence": 9,
+      "name": "Bow Street",
+      "qrPayload": "MUB:P:09"
+    },
+    {
+      "cardId": "PRP_10",
+      "cardType": "PROPERTY",
+      "sequence": 10,
+      "name": "Marlborough Street",
+      "qrPayload": "MUB:P:10"
+    },
+    {
+      "cardId": "PRP_11",
+      "cardType": "PROPERTY",
+      "sequence": 11,
+      "name": "Vine Street",
+      "qrPayload": "MUB:P:11"
+    },
+    {
+      "cardId": "PRP_12",
+      "cardType": "PROPERTY",
+      "sequence": 12,
+      "name": "Strand",
+      "qrPayload": "MUB:P:12"
+    },
+    {
+      "cardId": "PRP_13",
+      "cardType": "PROPERTY",
+      "sequence": 13,
+      "name": "Fleet Street",
+      "qrPayload": "MUB:P:13"
+    },
+    {
+      "cardId": "PRP_14",
+      "cardType": "PROPERTY",
+      "sequence": 14,
+      "name": "Trafalgar Square",
+      "qrPayload": "MUB:P:14"
+    },
+    {
+      "cardId": "PRP_15",
+      "cardType": "PROPERTY",
+      "sequence": 15,
+      "name": "Leicester Square",
+      "qrPayload": "MUB:P:15"
+    },
+    {
+      "cardId": "PRP_16",
+      "cardType": "PROPERTY",
+      "sequence": 16,
+      "name": "Coventry Street",
+      "qrPayload": "MUB:P:16"
+    },
+    {
+      "cardId": "PRP_17",
+      "cardType": "PROPERTY",
+      "sequence": 17,
+      "name": "Piccadilly",
+      "qrPayload": "MUB:P:17"
+    },
+    {
+      "cardId": "PRP_18",
+      "cardType": "PROPERTY",
+      "sequence": 18,
+      "name": "Regent Street",
+      "qrPayload": "MUB:P:18"
+    },
+    {
+      "cardId": "PRP_19",
+      "cardType": "PROPERTY",
+      "sequence": 19,
+      "name": "Oxford Street",
+      "qrPayload": "MUB:P:19"
+    },
+    {
+      "cardId": "PRP_20",
+      "cardType": "PROPERTY",
+      "sequence": 20,
+      "name": "Bond Street",
+      "qrPayload": "MUB:P:20"
+    },
+    {
+      "cardId": "PRP_21",
+      "cardType": "PROPERTY",
+      "sequence": 21,
+      "name": "Park Lane",
+      "qrPayload": "MUB:P:21"
+    },
+    {
+      "cardId": "PRP_22",
+      "cardType": "PROPERTY",
+      "sequence": 22,
+      "name": "Mayfair",
+      "qrPayload": "MUB:P:22"
+    }
+  ]
+}

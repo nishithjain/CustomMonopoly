@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "currency": {
+    "code": "M",
+    "symbol": "M",
+    "scale": 1
+  },
+  "startingBalance": 1500,
+  "goSalary": 200,
+  "locationFee": 100,
+  "jailReleaseFee": 100,
+  "auctionBidIncrement": 20,
+  "eventAmounts": {
+    "M50": 50,
+    "M200": 200
+  }
+}

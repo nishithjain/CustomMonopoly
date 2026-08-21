@@ -13,7 +13,7 @@ REPORT_NAME = "custom_player_name_validation.txt"
 def find_workspace_root() -> Path:
     tools_dir = Path(__file__).resolve().parent
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
-        icons = candidate / "Resources" / "Icons"
+        icons = candidate / "Resources" / "Common" / "Icons"
         android = candidate / "monopoly-ultimate-banking-qr" / "android-app"
         if icons.is_dir() and android.is_dir():
             return candidate
@@ -129,7 +129,7 @@ def main() -> int:
     if not docs.is_file():
         problems.append("docs/CUSTOM_PLAYER_NAMES.md missing")
 
-    cards_json = project_root / "data" / "cards.json"
+    cards_json = project_root / "data" / "common" / "card_registry.json"
     if cards_json.is_file():
         cards_doc = json.loads(read(cards_json))
         cards_list = cards_doc.get("cards", [])

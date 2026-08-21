@@ -5,28 +5,28 @@
     "USR_01": {
       "playerId": "USR_01",
       "name": "Car",
-      "sourceIconPath": "Resources/Icons/Car.png",
+      "sourceIconPath": "Resources/Common/Icons/Car.png",
       "drawableResource": "player_car",
       "runtimePath": "res/drawable/player_car.png"
     },
     "USR_02": {
       "playerId": "USR_02",
       "name": "Helicopter",
-      "sourceIconPath": "Resources/Icons/Helicopter.png",
+      "sourceIconPath": "Resources/Common/Icons/Helicopter.png",
       "drawableResource": "player_helicopter",
       "runtimePath": "res/drawable/player_helicopter.png"
     },
     "USR_03": {
       "playerId": "USR_03",
       "name": "Ship",
-      "sourceIconPath": "Resources/Icons/Ship.png",
+      "sourceIconPath": "Resources/Common/Icons/Ship.png",
       "drawableResource": "player_ship",
       "runtimePath": "res/drawable/player_ship.png"
     },
     "USR_04": {
       "playerId": "USR_04",
       "name": "Aeroplane",
-      "sourceIconPath": "Resources/Icons/Aeroplane.png",
+      "sourceIconPath": "Resources/Common/Icons/Aeroplane.png",
       "drawableResource": "player_aeroplane",
       "runtimePath": "res/drawable/player_aeroplane.png"
     }

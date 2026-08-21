@@ -2,7 +2,7 @@
 
 Per-Event Game Engine specification for all 23 Event cards (`EVT_01`–`EVT_23`).
 
-Machine-readable source: `data/event_engine_rules.json`
+Machine-readable source: `data/common/event_engine_rules.json`
 
 ---
 
@@ -45,7 +45,7 @@ Machine-readable source: `data/event_engine_rules.json`
 | targetType | NEIGHBOURS_OF_SELECTED_PROPERTY |
 | parameters | selected +1; neighbours -1; ownedOnly: true |
 
-Neighbours = property immediately before/after in PRP_01–PRP_22 circular chain (`data/board_relationships.json`). Unowned neighbours unchanged.
+Neighbours = property immediately before/after in PRP_01–PRP_22 circular chain (`data/editions/uk/board_relationships.json`). Unowned neighbours unchanged.
 
 ---
 
@@ -81,7 +81,7 @@ Same engine pattern as EVT_08.
 | actionType | DECREASE_BOARD_SIDE_RENT_LEVEL |
 | engineStatus | RESOLVED |
 
-Determine physical board side of scanned property. Apply -1 to every **owned** property on that side. Unowned properties ignored. Clamp minimum level 1. Side groups confirmed from supplied physical board layout (`data/board_relationships.json`).
+Determine physical board side of scanned property. Apply -1 to every **owned** property on that side. Unowned properties ignored. Clamp minimum level 1. Side groups confirmed from supplied physical board layout (`data/editions/uk/board_relationships.json`).
 
 ---
 

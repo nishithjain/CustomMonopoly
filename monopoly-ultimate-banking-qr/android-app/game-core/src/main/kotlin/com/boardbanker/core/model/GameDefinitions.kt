@@ -3,6 +3,8 @@ package com.boardbanker.core.model
 import com.boardbanker.core.card.CardDefinition
 
 data class GameDefinitions(
+    val editionId: String = EditionIds.DEFAULT,
+    val edition: EditionDefinition? = null,
     val cards: Map<String, CardDefinition>,
     val cardsByQrPayload: Map<String, CardDefinition>,
     val players: Map<String, PlayerDefinition>,

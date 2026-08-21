@@ -28,7 +28,7 @@ FRONT_SUFFIXES = (".png", ".jpg", ".jpeg")
 
 def find_workspace_root(tools_dir: Path) -> Path:
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
-        resources = candidate / "Resources" / "Cards"
+        resources = candidate / "Resources" / "Common"
         android = candidate / "monopoly-ultimate-banking-qr" / "android-app"
         if resources.is_dir() and android.is_dir():
             return candidate
@@ -36,7 +36,7 @@ def find_workspace_root(tools_dir: Path) -> Path:
         if resources.is_dir() and project.is_dir():
             return candidate
     raise FileNotFoundError(
-        "Could not locate workspace root containing Resources/Cards and android-app/",
+        "Could not locate workspace root containing Resources/Common and android-app/",
     )
 
 
@@ -50,10 +50,39 @@ def find_project_root(workspace_root: Path) -> Path:
 
 
 def load_cards(project_root: Path) -> list[dict]:
-    cards_path = project_root / "data" / "cards.json"
-    with cards_path.open(encoding="utf-8") as handle:
+    registry_path = project_root / "data" / "common" / "card_registry.json"
+    with registry_path.open(encoding="utf-8") as handle:
         payload = json.load(handle)
-    return payload["cards"]
+    cards = payload["cards"]
+    uk_properties = json.loads(
+        (project_root / "data" / "editions" / "uk" / "properties.json").read_text(encoding="utf-8")
+    )["properties"]
+    uk_events = json.loads(
+        (project_root / "data" / "editions" / "uk" / "events.json").read_text(encoding="utf-8")
+    )["events"]
+    property_fronts = {item["propertyId"]: item.get("frontAsset") for item in uk_properties}
+    event_fronts = {item["eventId"]: item.get("frontAsset") for item in uk_events}
+    merged = []
+    for card in cards:
+        card_type = card["cardType"]
+        item = dict(card)
+        if card_type == "USER":
+            merged.append(item)
+            continue
+        assets = dict(item.get("assets") or {})
+        if card_type == "PROPERTY":
+            assets["front"] = property_fronts.get(card["cardId"])
+        elif card_type == "EVENT":
+            assets["front"] = event_fronts.get(card["cardId"])
+        item["assets"] = assets
+        if card_type == "PROPERTY":
+            name = next((p["name"] for p in uk_properties if p["propertyId"] == card["cardId"]), card.get("name"))
+            item["name"] = name
+        if card_type == "EVENT":
+            name = next((e["name"] for e in uk_events if e["eventId"] == card["cardId"]), card.get("name"))
+            item["name"] = name
+        merged.append(item)
+    return merged
 
 
 def validate_front_path(front_rel: str) -> None:
@@ -174,7 +203,7 @@ def main() -> int:
         assets = card.get("assets") or {}
         front_rel = assets.get("front")
         if not front_rel:
-            problems.append(f"{card_id}: missing assets.front in cards.json")
+            problems.append(f"{card_id}: missing assets.front in card registry/edition data")
             continue
         try:
             validate_front_path(front_rel)

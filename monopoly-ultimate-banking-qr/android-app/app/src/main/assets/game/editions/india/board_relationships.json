@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "colorGroups": {
+    "BROWN": [
+      "PRP_01",
+      "PRP_02"
+    ],
+    "LIGHT_BLUE": [
+      "PRP_03",
+      "PRP_04",
+      "PRP_05"
+    ],
+    "PINK": [
+      "PRP_06",
+      "PRP_07",
+      "PRP_08"
+    ],
+    "ORANGE": [
+      "PRP_09",
+      "PRP_10",
+      "PRP_11"
+    ],
+    "RED": [
+      "PRP_12",
+      "PRP_13",
+      "PRP_14"
+    ],
+    "YELLOW": [
+      "PRP_15",
+      "PRP_16",
+      "PRP_17"
+    ],
+    "GREEN": [
+      "PRP_18",
+      "PRP_19",
+      "PRP_20"
+    ],
+    "DARK_BLUE": [
+      "PRP_21",
+      "PRP_22"
+    ]
+  },
+  "neighbours": {
+    "status": "RESOLVED",
+    "definition": "The two property spaces immediately before and after the selected property in property-number order (PRP_01–PRP_22 circular chain). Non-property board spaces between them do not break the neighbour relationship.",
+    "basis": "Original Ultimate Banking manual",
+    "ownedOnlyForEventEffects": true,
+    "mappings": {
+      "PRP_01": [
+        "PRP_22",
+        "PRP_02"
+      ],
+      "PRP_02": [
+        "PRP_01",
+        "PRP_03"
+      ],
+      "PRP_03": [
+        "PRP_02",
+        "PRP_04"
+      ],
+      "PRP_04": [
+        "PRP_03",
+        "PRP_05"
+      ],
+      "PRP_05": [
+        "PRP_04",
+        "PRP_06"
+      ],
+      "PRP_06": [
+        "PRP_05",
+        "PRP_07"
+      ],
+      "PRP_07": [
+        "PRP_06",
+        "PRP_08"
+      ],
+      "PRP_08": [
+        "PRP_07",
+        "PRP_09"
+      ],
+      "PRP_09": [
+        "PRP_08",
+        "PRP_10"
+      ],
+      "PRP_10": [
+        "PRP_09",
+        "PRP_11"
+      ],
+      "PRP_11": [
+        "PRP_10",
+        "PRP_12"
+      ],
+      "PRP_12": [
+        "PRP_11",
+        "PRP_13"
+      ],
+      "PRP_13": [
+        "PRP_12",
+        "PRP_14"
+      ],
+      "PRP_14": [
+        "PRP_13",
+        "PRP_15"
+      ],
+      "PRP_15": [
+        "PRP_14",
+        "PRP_16"
+      ],
+      "PRP_16": [
+        "PRP_15",
+        "PRP_17"
+      ],
+      "PRP_17": [
+        "PRP_16",
+        "PRP_18"
+      ],
+      "PRP_18": [
+        "PRP_17",
+        "PRP_19"
+      ],
+      "PRP_19": [
+        "PRP_18",
+        "PRP_20"
+      ],
+      "PRP_20": [
+        "PRP_19",
+        "PRP_21"
+      ],
+      "PRP_21": [
+        "PRP_20",
+        "PRP_22"
+      ],
+      "PRP_22": [
+        "PRP_21",
+        "PRP_01"
+      ]
+    }
+  },
+  "boardSides": {
+    "status": "RESOLVED",
+    "definition": "The physical edge of the square board containing the selected/tapped property, bounded by the four corner spaces.",
+    "basis": "Supplied physical Ultimate Banking board layout",
+    "ownedOnlyForEventEffects": true,
+    "mappings": {
+      "SIDE_1_GO_TO_JAIL": [
+        "PRP_01",
+        "PRP_02",
+        "PRP_03",
+        "PRP_04",
+        "PRP_05"
+      ],
+      "SIDE_2_JAIL_TO_FREE_PARKING": [
+        "PRP_06",
+        "PRP_07",
+        "PRP_08",
+        "PRP_09",
+        "PRP_10",
+        "PRP_11"
+      ],
+      "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL": [
+        "PRP_12",
+        "PRP_13",
+        "PRP_14",
+        "PRP_15",
+        "PRP_16",
+        "PRP_17"
+      ],
+      "SIDE_4_GO_TO_JAIL_TO_GO": [
+        "PRP_18",
+        "PRP_19",
+        "PRP_20",
+        "PRP_21",
+        "PRP_22"
+      ]
+    },
+    "propertyToSide": {
+      "PRP_01": "SIDE_1_GO_TO_JAIL",
+      "PRP_02": "SIDE_1_GO_TO_JAIL",
+      "PRP_03": "SIDE_1_GO_TO_JAIL",
+      "PRP_04": "SIDE_1_GO_TO_JAIL",
+      "PRP_05": "SIDE_1_GO_TO_JAIL",
+      "PRP_06": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_07": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_08": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_09": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_10": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_11": "SIDE_2_JAIL_TO_FREE_PARKING",
+      "PRP_12": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_13": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_14": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_15": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_16": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_17": "SIDE_3_FREE_PARKING_TO_GO_TO_JAIL",
+      "PRP_18": "SIDE_4_GO_TO_JAIL_TO_GO",
+      "PRP_19": "SIDE_4_GO_TO_JAIL_TO_GO",
+      "PRP_20": "SIDE_4_GO_TO_JAIL_TO_GO",
+      "PRP_21": "SIDE_4_GO_TO_JAIL_TO_GO",
+      "PRP_22": "SIDE_4_GO_TO_JAIL_TO_GO"
+    },
+    "eventRules": {
+      "EVT_15": {
+        "action": "DECREASE_BOARD_SIDE_RENT_LEVEL",
+        "delta": -1,
+        "ownedOnly": true,
+        "minimumRentLevel": 1
+      },
+      "EVT_22": {
+        "action": "INCREASE_BOARD_SIDE_RENT_LEVEL",
+        "delta": 1,
+        "ownedOnly": true,
+        "maximumRentLevel": 5
+      }
+    }
+  }
+}
