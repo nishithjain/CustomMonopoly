@@ -49,6 +49,7 @@ Copied files:
 - `game_rules.json`
 - `event_engine_rules.json`
 - `board_relationships.json`
+- `banking_values.json`
 
 ## Build
 

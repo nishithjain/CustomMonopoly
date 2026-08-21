@@ -4,6 +4,7 @@ import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.error.GameError
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
@@ -230,7 +231,7 @@ class GameplayResultMapper(
         val physical = result.physicalActions.map { it.instruction }
         val gridlockMessage = if (eventId == "EVT_21") {
             "TOTAL GRIDLOCK\n\nMove all players who are not in Jail directly to Free Parking.\n\n" +
-                "Do not collect M200 for passing GO.\n\nPlayers already in Jail remain there."
+                "Do not collect ${formatMoney(definitions.bankingValues.goSalary, definitions)} for passing GO.\n\nPlayers already in Jail remain there."
         } else {
             null
         }

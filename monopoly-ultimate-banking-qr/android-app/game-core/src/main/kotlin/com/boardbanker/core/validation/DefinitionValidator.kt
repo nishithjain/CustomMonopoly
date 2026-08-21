@@ -60,6 +60,44 @@ class DefinitionValidator {
             }
         }
 
+        problems += validateBankingValues(definitions)
+
+        return problems
+    }
+
+    private fun validateBankingValues(definitions: GameDefinitions): List<String> {
+        val problems = mutableListOf<String>()
+        val banking = definitions.bankingValues
+        if (banking.schemaVersion < 1) {
+            problems += "bankingValues.schemaVersion is missing or invalid"
+        }
+        if (banking.currency.code.isBlank() || banking.currency.symbol.isBlank()) {
+            problems += "bankingValues.currency is missing code or symbol"
+        }
+        if (banking.currency.scale < 1) {
+            problems += "bankingValues.currency.scale must be >= 1"
+        }
+        if (banking.startingBalance <= 0) {
+            problems += "bankingValues.startingBalance must be > 0"
+        }
+        if (banking.goSalary <= 0) {
+            problems += "bankingValues.goSalary must be > 0"
+        }
+        if (banking.locationFee <= 0) {
+            problems += "bankingValues.locationFee must be > 0"
+        }
+        if (banking.jailReleaseFee <= 0) {
+            problems += "bankingValues.jailReleaseFee must be > 0"
+        }
+        if (banking.auctionBidIncrement <= 0) {
+            problems += "bankingValues.auctionBidIncrement must be > 0"
+        }
+        if (banking.eventAmounts.m50 <= 0) {
+            problems += "bankingValues.eventAmounts.M50 must be > 0"
+        }
+        if (banking.eventAmounts.m200 <= 0) {
+            problems += "bankingValues.eventAmounts.M200 must be > 0"
+        }
         return problems
     }
 

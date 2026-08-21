@@ -23,11 +23,6 @@ data class GameRulesConfig(
 ) {
     val minimumPlayers: Int get() = setup.intValue("minimumPlayers", 2)
     val maximumPlayers: Int get() = setup.intValue("maximumPlayers", 4)
-    val startingBalance: Int get() = setup.intValue("startingBalance", 1500)
-    val goSalary: Int get() = go.intValue("goSalary", 200)
-    val jailPaymentAmount: Int get() = jail.intValue("jailPaymentAmount", 100)
-    val locationFee: Int get() = locationSpaces.intValue("locationFee", 100)
-    val auctionBidIncrement: Int get() = auction.intValue("bidIncrement", 20)
     val singleOwnerColorBonus: Int get() = colorSetBonus.intValue("singleOwnerBonus", 2)
     val multiOwnerColorBonus: Int get() = colorSetBonus.intValue("multiOwnerBonus", 1)
     val maximumRentLevel: Int get() = rent.intValue("maximumRentLevel", 5)

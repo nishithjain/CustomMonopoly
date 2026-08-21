@@ -68,7 +68,7 @@ The Android app must **never** identify cards by image filename at runtime:
 
 ```text
 # BAD — do not do this
-if filename == "01_Old_Kent_Road_Back_QR.png"
+if filename == "01_Property_Back_QR.png"
 ```
 
 The scanner returns only the decoded string. Lookup is always:
@@ -140,7 +140,7 @@ Full mappings are in `data/cards.json` and `data/card_registry.csv`.
 
 Asset paths in the registry are relative to the workspace root (`Resources/...`).
 
-Property front artwork uses the canonical `_Front.png` filename under `Resources/Cards/PropertyCards/`.
+Property front artwork uses the canonical `{NN}_Property_Front.png` filename under `Resources/Cards/PropertyCards/` (QR backs are `{NN}_Property_Back_QR.png`). Display names stay in registry data, not in the filename.
 
 Example:
 
@@ -152,8 +152,8 @@ Example:
   "name": "Old Kent Road",
   "qrPayload": "MUB:P:01",
   "assets": {
-    "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
-    "qr": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png"
+    "front": "Resources/Cards/PropertyCards/01_Property_Front.png",
+    "qr": "Resources/Cards/PropertyCards/01_Property_Back_QR.png"
   }
 }
 ```

@@ -83,69 +83,69 @@ EVENT,22,What A Ride!,FRONT,What_A_Ride_Front.png,Resources/EventCards/What_A_Ri
 EVENT,,,LEGACY_BACK,Wibble_Wobble_Back.png,Resources/EventCards/Wibble_Wobble_Back.png,false,Ignored legacy hardware barcode
 EVENT,23,Wibble Wobble,FRONT,Wibble_Wobble_Front.png,Resources/EventCards/Wibble_Wobble_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,01_Old_Kent_Road_Back.png,Resources/PropertyCards/01_Old_Kent_Road_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,1,Old Kent Road,QR,01_Old_Kent_Road_Back_QR.png,Resources/PropertyCards/01_Old_Kent_Road_Back_QR.png,true,
-PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front.png,Resources/PropertyCards/01_Old_Kent_Road_Front.png,true,Preferred front display asset
+PROPERTY,1,Old Kent Road,QR,01_Property_Back_QR.png,Resources/PropertyCards/01_Property_Back_QR.png,true,
+PROPERTY,1,Old Kent Road,FRONT,01_Property_Front.png,Resources/PropertyCards/01_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,02_Whitechapel_Road_Back.png,Resources/PropertyCards/02_Whitechapel_Road_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,2,Whitechapel Road,QR,02_Whitechapel_Road_Back_QR.png,Resources/PropertyCards/02_Whitechapel_Road_Back_QR.png,true,
-PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front.png,Resources/PropertyCards/02_Whitechapel_Road_Front.png,true,Preferred front display asset
+PROPERTY,2,Whitechapel Road,QR,02_Property_Back_QR.png,Resources/PropertyCards/02_Property_Back_QR.png,true,
+PROPERTY,2,Whitechapel Road,FRONT,02_Property_Front.png,Resources/PropertyCards/02_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,03_The_Angel_Islington_Back.png,Resources/PropertyCards/03_The_Angel_Islington_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,3,"The Angel, Islington",QR,03_The_Angel_Islington_Back_QR.png,Resources/PropertyCards/03_The_Angel_Islington_Back_QR.png,true,
-PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front.png,Resources/PropertyCards/03_The_Angel_Islington_Front.png,true,Preferred front display asset
+PROPERTY,3,"The Angel, Islington",QR,03_Property_Back_QR.png,Resources/PropertyCards/03_Property_Back_QR.png,true,
+PROPERTY,3,"The Angel, Islington",FRONT,03_Property_Front.png,Resources/PropertyCards/03_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,04_Euston_Road_Back.png,Resources/PropertyCards/04_Euston_Road_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,4,Euston Road,QR,04_Euston_Road_Back_QR.png,Resources/PropertyCards/04_Euston_Road_Back_QR.png,true,
-PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front.png,Resources/PropertyCards/04_Euston_Road_Front.png,true,Preferred front display asset
+PROPERTY,4,Euston Road,QR,04_Property_Back_QR.png,Resources/PropertyCards/04_Property_Back_QR.png,true,
+PROPERTY,4,Euston Road,FRONT,04_Property_Front.png,Resources/PropertyCards/04_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,05_Pentonville_Road_Back.png,Resources/PropertyCards/05_Pentonville_Road_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,5,Pentonville Road,QR,05_Pentonville_Road_Back_QR.png,Resources/PropertyCards/05_Pentonville_Road_Back_QR.png,true,
-PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front.png,Resources/PropertyCards/05_Pentonville_Road_Front.png,true,Preferred front display asset
+PROPERTY,5,Pentonville Road,QR,05_Property_Back_QR.png,Resources/PropertyCards/05_Property_Back_QR.png,true,
+PROPERTY,5,Pentonville Road,FRONT,05_Property_Front.png,Resources/PropertyCards/05_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,06_Pall_Mall_Back.png,Resources/PropertyCards/06_Pall_Mall_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,6,Pall Mall,QR,06_Pall_Mall_Back_QR.png,Resources/PropertyCards/06_Pall_Mall_Back_QR.png,true,
-PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front.png,Resources/PropertyCards/06_Pall_Mall_Front.png,true,Preferred front display asset
+PROPERTY,6,Pall Mall,QR,06_Property_Back_QR.png,Resources/PropertyCards/06_Property_Back_QR.png,true,
+PROPERTY,6,Pall Mall,FRONT,06_Property_Front.png,Resources/PropertyCards/06_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,07_Whitehall_Back.png,Resources/PropertyCards/07_Whitehall_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,7,Whitehall,QR,07_Whitehall_Back_QR.png,Resources/PropertyCards/07_Whitehall_Back_QR.png,true,
-PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front.png,Resources/PropertyCards/07_Whitehall_Front.png,true,Preferred front display asset
+PROPERTY,7,Whitehall,QR,07_Property_Back_QR.png,Resources/PropertyCards/07_Property_Back_QR.png,true,
+PROPERTY,7,Whitehall,FRONT,07_Property_Front.png,Resources/PropertyCards/07_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,08_Northumberland_Avenue_Back.png,Resources/PropertyCards/08_Northumberland_Avenue_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,8,Northumberland Avenue,QR,08_Northumberland_Avenue_Back_QR.png,Resources/PropertyCards/08_Northumberland_Avenue_Back_QR.png,true,
-PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front.png,Resources/PropertyCards/08_Northumberland_Avenue_Front.png,true,Preferred front display asset
+PROPERTY,8,Northumberland Avenue,QR,08_Property_Back_QR.png,Resources/PropertyCards/08_Property_Back_QR.png,true,
+PROPERTY,8,Northumberland Avenue,FRONT,08_Property_Front.png,Resources/PropertyCards/08_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,09_Bow_Street_Back.png,Resources/PropertyCards/09_Bow_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,9,Bow Street,QR,09_Bow_Street_Back_QR.png,Resources/PropertyCards/09_Bow_Street_Back_QR.png,true,
-PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front.png,Resources/PropertyCards/09_Bow_Street_Front.png,true,Preferred front display asset
+PROPERTY,9,Bow Street,QR,09_Property_Back_QR.png,Resources/PropertyCards/09_Property_Back_QR.png,true,
+PROPERTY,9,Bow Street,FRONT,09_Property_Front.png,Resources/PropertyCards/09_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,10_Marlborough_Street_Back.png,Resources/PropertyCards/10_Marlborough_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,10,Marlborough Street,QR,10_Marlborough_Street_Back_QR.png,Resources/PropertyCards/10_Marlborough_Street_Back_QR.png,true,
-PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front.png,Resources/PropertyCards/10_Marlborough_Street_Front.png,true,Preferred front display asset
+PROPERTY,10,Marlborough Street,QR,10_Property_Back_QR.png,Resources/PropertyCards/10_Property_Back_QR.png,true,
+PROPERTY,10,Marlborough Street,FRONT,10_Property_Front.png,Resources/PropertyCards/10_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,11_Vine_Street_Back.png,Resources/PropertyCards/11_Vine_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,11,Vine Street,QR,11_Vine_Street_Back_QR.png,Resources/PropertyCards/11_Vine_Street_Back_QR.png,true,
-PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front.png,Resources/PropertyCards/11_Vine_Street_Front.png,true,Preferred front display asset
+PROPERTY,11,Vine Street,QR,11_Property_Back_QR.png,Resources/PropertyCards/11_Property_Back_QR.png,true,
+PROPERTY,11,Vine Street,FRONT,11_Property_Front.png,Resources/PropertyCards/11_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,12_Strand_Back.png,Resources/PropertyCards/12_Strand_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,12,Strand,QR,12_Strand_Back_QR.png,Resources/PropertyCards/12_Strand_Back_QR.png,true,
-PROPERTY,12,Strand,FRONT,12_Strand_Front.png,Resources/PropertyCards/12_Strand_Front.png,true,Preferred front display asset
+PROPERTY,12,Strand,QR,12_Property_Back_QR.png,Resources/PropertyCards/12_Property_Back_QR.png,true,
+PROPERTY,12,Strand,FRONT,12_Property_Front.png,Resources/PropertyCards/12_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,13_Fleet_Street_Back.png,Resources/PropertyCards/13_Fleet_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,13,Fleet Street,QR,13_Fleet_Street_Back_QR.png,Resources/PropertyCards/13_Fleet_Street_Back_QR.png,true,
-PROPERTY,13,Fleet Street,FRONT,13_Fleet_Street_Front.png,Resources/PropertyCards/13_Fleet_Street_Front.png,true,Preferred front display asset
+PROPERTY,13,Fleet Street,QR,13_Property_Back_QR.png,Resources/PropertyCards/13_Property_Back_QR.png,true,
+PROPERTY,13,Fleet Street,FRONT,13_Property_Front.png,Resources/PropertyCards/13_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,14_Trafalgar_Square_Back.png,Resources/PropertyCards/14_Trafalgar_Square_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,14,Trafalgar Square,QR,14_Trafalgar_Square_Back_QR.png,Resources/PropertyCards/14_Trafalgar_Square_Back_QR.png,true,
-PROPERTY,14,Trafalgar Square,FRONT,14_Trafalgar_Square_Front.png,Resources/PropertyCards/14_Trafalgar_Square_Front.png,true,Preferred front display asset
+PROPERTY,14,Trafalgar Square,QR,14_Property_Back_QR.png,Resources/PropertyCards/14_Property_Back_QR.png,true,
+PROPERTY,14,Trafalgar Square,FRONT,14_Property_Front.png,Resources/PropertyCards/14_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,15_Leicester_Square_Back.png,Resources/PropertyCards/15_Leicester_Square_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,15,Leicester Square,QR,15_Leicester_Square_Back_QR.png,Resources/PropertyCards/15_Leicester_Square_Back_QR.png,true,
-PROPERTY,15,Leicester Square,FRONT,15_Leicester_Square_Front.png,Resources/PropertyCards/15_Leicester_Square_Front.png,true,Preferred front display asset
+PROPERTY,15,Leicester Square,QR,15_Property_Back_QR.png,Resources/PropertyCards/15_Property_Back_QR.png,true,
+PROPERTY,15,Leicester Square,FRONT,15_Property_Front.png,Resources/PropertyCards/15_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,16_Coventry_Street_Back.png,Resources/PropertyCards/16_Coventry_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,16,Coventry Street,QR,16_Coventry_Street_Back_QR.png,Resources/PropertyCards/16_Coventry_Street_Back_QR.png,true,
-PROPERTY,16,Coventry Street,FRONT,16_Coventry_Street_Front.png,Resources/PropertyCards/16_Coventry_Street_Front.png,true,Preferred front display asset
+PROPERTY,16,Coventry Street,QR,16_Property_Back_QR.png,Resources/PropertyCards/16_Property_Back_QR.png,true,
+PROPERTY,16,Coventry Street,FRONT,16_Property_Front.png,Resources/PropertyCards/16_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,17_Piccadilly_Back.png,Resources/PropertyCards/17_Piccadilly_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,17,Piccadilly,QR,17_Piccadilly_Back_QR.png,Resources/PropertyCards/17_Piccadilly_Back_QR.png,true,
-PROPERTY,17,Piccadilly,FRONT,17_Piccadilly_Front.png,Resources/PropertyCards/17_Piccadilly_Front.png,true,Preferred front display asset
+PROPERTY,17,Piccadilly,QR,17_Property_Back_QR.png,Resources/PropertyCards/17_Property_Back_QR.png,true,
+PROPERTY,17,Piccadilly,FRONT,17_Property_Front.png,Resources/PropertyCards/17_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,18_Regent_Street_Back.png,Resources/PropertyCards/18_Regent_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,18,Regent Street,QR,18_Regent_Street_Back_QR.png,Resources/PropertyCards/18_Regent_Street_Back_QR.png,true,
-PROPERTY,18,Regent Street,FRONT,18_Regent_Street_Front.png,Resources/PropertyCards/18_Regent_Street_Front.png,true,Preferred front display asset
+PROPERTY,18,Regent Street,QR,18_Property_Back_QR.png,Resources/PropertyCards/18_Property_Back_QR.png,true,
+PROPERTY,18,Regent Street,FRONT,18_Property_Front.png,Resources/PropertyCards/18_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,19_Oxford_Street_Back.png,Resources/PropertyCards/19_Oxford_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,19,Oxford Street,QR,19_Oxford_Street_Back_QR.png,Resources/PropertyCards/19_Oxford_Street_Back_QR.png,true,
-PROPERTY,19,Oxford Street,FRONT,19_Oxford_Street_Front.png,Resources/PropertyCards/19_Oxford_Street_Front.png,true,Preferred front display asset
+PROPERTY,19,Oxford Street,QR,19_Property_Back_QR.png,Resources/PropertyCards/19_Property_Back_QR.png,true,
+PROPERTY,19,Oxford Street,FRONT,19_Property_Front.png,Resources/PropertyCards/19_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,20_Bond_Street_Back.png,Resources/PropertyCards/20_Bond_Street_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,20,Bond Street,QR,20_Bond_Street_Back_QR.png,Resources/PropertyCards/20_Bond_Street_Back_QR.png,true,
-PROPERTY,20,Bond Street,FRONT,20_Bond_Street_Front.png,Resources/PropertyCards/20_Bond_Street_Front.png,true,Preferred front display asset
+PROPERTY,20,Bond Street,QR,20_Property_Back_QR.png,Resources/PropertyCards/20_Property_Back_QR.png,true,
+PROPERTY,20,Bond Street,FRONT,20_Property_Front.png,Resources/PropertyCards/20_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,21_Park_Lane_Back.png,Resources/PropertyCards/21_Park_Lane_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,21,Park Lane,QR,21_Park_Lane_Back_QR.png,Resources/PropertyCards/21_Park_Lane_Back_QR.png,true,
-PROPERTY,21,Park Lane,FRONT,21_Park_Lane_Front.png,Resources/PropertyCards/21_Park_Lane_Front.png,true,Preferred front display asset
+PROPERTY,21,Park Lane,QR,21_Property_Back_QR.png,Resources/PropertyCards/21_Property_Back_QR.png,true,
+PROPERTY,21,Park Lane,FRONT,21_Property_Front.png,Resources/PropertyCards/21_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,22_Mayfair_Back.png,Resources/PropertyCards/22_Mayfair_Back.png,false,Ignored legacy hardware barcode
-PROPERTY,22,Mayfair,QR,22_Mayfair_Back_QR.png,Resources/PropertyCards/22_Mayfair_Back_QR.png,true,
-PROPERTY,22,Mayfair,FRONT,22_Mayfair_Front.png,Resources/PropertyCards/22_Mayfair_Front.png,true,Preferred front display asset
+PROPERTY,22,Mayfair,QR,22_Property_Back_QR.png,Resources/PropertyCards/22_Property_Back_QR.png,true,
+PROPERTY,22,Mayfair,FRONT,22_Property_Front.png,Resources/PropertyCards/22_Property_Front.png,true,Preferred front display asset
 PROPERTY,,,OTHER,PropertyCards.zip,Resources/PropertyCards/PropertyCards.zip,false,Non-card asset

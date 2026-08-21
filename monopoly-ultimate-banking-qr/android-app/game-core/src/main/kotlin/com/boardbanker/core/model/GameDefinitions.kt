@@ -10,4 +10,5 @@ data class GameDefinitions(
     val events: Map<String, EventDefinition>,
     val boardRelationships: BoardRelationships,
     val rulesConfig: GameRulesConfig,
+    val bankingValues: BankingValues,
 )

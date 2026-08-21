@@ -11,7 +11,7 @@ class JailRules(
     private val definitions: GameDefinitions,
     private val transactionFactory: TransactionFactory,
 ) {
-    private val jailFee = definitions.rulesConfig.jailPaymentAmount
+    private val jailFee = definitions.bankingValues.jailReleaseFee
 
     fun sendToJail(
         session: GameSession,

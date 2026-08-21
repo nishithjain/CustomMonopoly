@@ -35,6 +35,8 @@ class DebtResolutionViewModel(
     private val executor = BankingCommandExecutor(sessionManager)
     private val resultMapper = BankingResultMapper(definitions)
 
+    fun money(amount: Int): String = com.boardbanker.app.util.formatMoney(amount, definitions)
+
     private val _uiState = MutableStateFlow(DebtResolutionUiState())
     val uiState: StateFlow<DebtResolutionUiState> = _uiState.asStateFlow()
 

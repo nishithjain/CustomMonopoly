@@ -1,0 +1,17 @@
+BANKING VALUES VALIDATION
+=========================
+
+Source: data/banking_values.json
+Runtime copy: android-app/app/src/main/assets/game/banking_values.json
+
+RESULT: PASS
+
+startingBalance=1500
+goSalary=200
+locationFee=100
+jailReleaseFee=100
+auctionBidIncrement=20
+eventAmounts.M50=50
+eventAmounts.M200=200
+Android runtime copy present
+No selected engine/UI hard-code fallbacks found

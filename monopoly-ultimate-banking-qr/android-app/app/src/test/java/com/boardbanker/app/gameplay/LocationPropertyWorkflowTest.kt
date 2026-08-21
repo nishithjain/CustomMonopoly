@@ -23,7 +23,7 @@ class LocationPropertyWorkflowTest {
             session,
             GameCommand.PayLocationFee("USR_01", LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID),
         )
-        assertEquals(before - definitions.rulesConfig.locationFee, result.session.players["USR_01"]!!.balance)
+        assertEquals(before - definitions.bankingValues.locationFee, result.session.players["USR_01"]!!.balance)
         assertTrue(result.transactions.any { it.transactionType.name == "LOCATION_FEE" })
     }
 

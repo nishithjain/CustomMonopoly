@@ -67,6 +67,7 @@ def main() -> int:
         "game_rules.json",
         "event_engine_rules.json",
         "board_relationships.json",
+        "banking_values.json",
     ]
     for filename in asset_files:
         record(f"asset exists: {filename}", (asset_dir / filename).is_file())

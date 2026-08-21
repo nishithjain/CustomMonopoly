@@ -2,6 +2,7 @@ package com.boardbanker.core.validation
 
 import com.boardbanker.core.card.CardDefinition
 import com.boardbanker.core.card.CardType
+import com.boardbanker.core.model.BankingValues
 import com.boardbanker.core.model.BoardRelationships
 import com.boardbanker.core.model.EventDefinition
 import com.boardbanker.core.model.EventEngineRule
@@ -20,6 +21,9 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
 
     fun loadGameRulesConfig(jsonString: String): GameRulesConfig =
         json.decodeFromString(GameRulesConfig.serializer(), jsonString)
+
+    fun loadBankingValues(jsonString: String): BankingValues =
+        json.decodeFromString(BankingValues.serializer(), jsonString)
 
     fun loadBoardRelationships(jsonString: String): BoardRelationships {
         val root = json.parseToJsonElement(jsonString).jsonObject
@@ -126,11 +130,13 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         eventEngineRulesJson: String,
         boardRelationshipsJson: String,
         gameRulesJson: String,
+        bankingValuesJson: String,
     ): GameDefinitions {
         val rulesConfig = loadGameRulesConfig(gameRulesJson)
+        val bankingValues = loadBankingValues(bankingValuesJson)
         val engineRules = loadEventEngineRules(eventEngineRulesJson)
         val cards = loadCards(cardsJson)
-        return GameDefinitions(
+        val definitions = GameDefinitions(
             cards = cards.associateBy { it.cardId },
             cardsByQrPayload = cards.associateBy { it.qrPayload },
             players = loadPlayersFromCards(cardsJson).associateBy { it.playerId },
@@ -138,6 +144,14 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
             events = loadEvents(eventsJson, engineRules).associateBy { it.eventId },
             boardRelationships = loadBoardRelationships(boardRelationshipsJson),
             rulesConfig = rulesConfig,
+            bankingValues = bankingValues,
         )
+        val problems = DefinitionValidator().validate(definitions)
+        if (problems.isNotEmpty()) {
+            throw IllegalArgumentException(
+                "GameDefinitions validation FAIL: ${problems.joinToString("; ")}",
+            )
+        }
+        return definitions
     }
 }

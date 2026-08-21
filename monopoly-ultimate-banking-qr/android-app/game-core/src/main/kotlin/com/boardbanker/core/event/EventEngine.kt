@@ -59,10 +59,11 @@ class EventEngine(
                 session, eventId, actingPlayerId, targetPlayerId, propertyId, secondPropertyId, timestamp,
             )
             "PAY_PER_OWNED_PROPERTY" -> handlePayPerOwnedProperty(
-                session, eventId, actingPlayerId, rule.amount ?: 50, timestamp,
+                session, eventId, actingPlayerId, definitions.bankingValues.eventAmounts.m50, timestamp,
             )
             "CREDIT_BOTH_PLAYERS" -> handleCreditBothPlayers(
-                session, eventId, actingPlayerId, targetPlayerId ?: secondPlayerId, rule.amount ?: 200, timestamp,
+                session, eventId, actingPlayerId, targetPlayerId ?: secondPlayerId,
+                definitions.bankingValues.eventAmounts.m200, timestamp,
             )
             "TEMPORARY_RENT_CAP" -> handleTemporaryRentCap(session, eventId, timestamp)
             "SEND_PLAYER_TO_JAIL" -> handleSendToJail(session, eventId, targetPlayerId, timestamp)

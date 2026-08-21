@@ -313,7 +313,7 @@ class AdvancedBankingViewModel(
         _uiState.update {
             it.copy(
                 message = "Track failed doubles physically.\n\n" +
-                    "After 3 failed turns, pay ${com.boardbanker.app.util.formatMoney(definitions.rulesConfig.jailPaymentAmount)} " +
+                    "After 3 failed turns, pay ${com.boardbanker.app.util.formatMoney(definitions.bankingValues.jailReleaseFee, definitions)} " +
                     "to leave Jail and use that roll to move.",
             )
         }
@@ -418,13 +418,13 @@ class AdvancedBankingViewModel(
     }
 
     fun goSalaryText(): String =
-        com.boardbanker.app.util.formatMoney(definitions.rulesConfig.goSalary)
+        com.boardbanker.app.util.formatMoney(definitions.bankingValues.goSalary, definitions)
 
     fun locationFeeText(): String =
-        com.boardbanker.app.util.formatMoney(definitions.rulesConfig.locationFee)
+        com.boardbanker.app.util.formatMoney(definitions.bankingValues.locationFee, definitions)
 
     fun jailFeeText(): String =
-        com.boardbanker.app.util.formatMoney(definitions.rulesConfig.jailPaymentAmount)
+        com.boardbanker.app.util.formatMoney(definitions.bankingValues.jailReleaseFee, definitions)
 }
 
 class AdvancedBankingViewModelFactory(

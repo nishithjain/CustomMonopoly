@@ -41,6 +41,7 @@ class DefaultGameEngine(
     private val eventEngine = EventEngine(definitions, transactionFactory, jailRules, debtRules)
 
     private val rules = definitions.rulesConfig
+    private val banking = definitions.bankingValues
 
     override fun process(session: GameSession, command: GameCommand): GameResult {
         return when (command) {
@@ -99,7 +100,7 @@ class DefaultGameEngine(
                 command.playerId to PlayerState(
                     playerId = command.playerId,
                     playerName = playerName,
-                    balance = rules.startingBalance,
+                    balance = banking.startingBalance,
                 )
             ),
         )
@@ -146,7 +147,7 @@ class DefaultGameEngine(
             ColorGroupState(colorGroup = group)
         }
         val players = session.players.mapValues { (_, player) ->
-            player.copy(balance = rules.startingBalance, active = true, bankrupt = false, jailStatus = false)
+            player.copy(balance = banking.startingBalance, active = true, bankrupt = false, jailStatus = false)
         }
         var updated = session.copy(
             status = GameStatus.ACTIVE,
@@ -325,7 +326,7 @@ class DefaultGameEngine(
     ): GameResult {
         val player = session.players[command.playerId]
             ?: return reject(session, GameError.NotFound("Player", command.playerId))
-        val fee = rules.locationFee
+        val fee = banking.locationFee
         if (player.balance < fee) {
             val debtResult = debtRules.enterDebtResolution(
                 session = session,
@@ -481,11 +482,14 @@ class DefaultGameEngine(
         if (player.jailStatus) {
             return reject(session, GameError.AuctionError("Jailed players cannot bid"))
         }
-        val expectedBid = auction.currentBid + rules.auctionBidIncrement
+        val expectedBid = auction.currentBid + banking.auctionBidIncrement
         if (command.bidAmount != expectedBid) {
             return reject(
                 session,
-                GameError.AuctionError("Bid must be M$expectedBid (M${rules.auctionBidIncrement} increments)"),
+                GameError.AuctionError(
+                    "Bid must be ${com.boardbanker.core.money.MoneyFormatter.format(expectedBid, banking)} " +
+                        "(${com.boardbanker.core.money.MoneyFormatter.format(banking.auctionBidIncrement, banking)} increments)",
+                ),
             )
         }
         if (player.balance < command.bidAmount) {

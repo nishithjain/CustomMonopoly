@@ -61,16 +61,6 @@ def validate_properties(properties: list[dict], cards: list[dict]) -> tuple[list
         problems.append("Duplicate property QR payloads found")
 
     for prop in properties:
-        status = prop.get("extractionStatus")
-        if status not in VALID_STATUSES:
-            problems.append(f"{prop['propertyId']}: invalid extractionStatus '{status}'")
-        elif status == "COMPLETE":
-            stats["complete"] += 1
-        elif status == "NEEDS_REVIEW":
-            stats["needs_review"] += 1
-        elif status == "UNREADABLE":
-            stats["unreadable"] += 1
-
         registry = registry_props.get(prop["propertyId"])
         if not registry:
             problems.append(f"{prop['propertyId']}: not in card registry")
@@ -98,6 +88,13 @@ def validate_properties(properties: list[dict], cards: list[dict]) -> tuple[list
             stats["with_rent_levels"] += 1
         if prop.get("colorGroup") and prop["colorGroup"] != "TO_BE_CONFIRMED":
             stats["with_color_group"] += 1
+        if (
+            prop.get("purchasePrice") is not None
+            and prop.get("rentLevels")
+            and prop.get("colorGroup")
+            and prop["colorGroup"] != "TO_BE_CONFIRMED"
+        ):
+            stats["complete"] += 1
 
     return problems, stats
 

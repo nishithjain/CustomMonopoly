@@ -18,6 +18,15 @@ The script reads only these property fields:
 
 Each generated HTML file keeps the attached template structure and replaces
 CARD_DATA plus the color palette for that property's colorGroup.
+
+PNG artwork under Resources/Cards/PropertyCards/ uses stable names that do
+not include the property display name, so India-edition (and other) titles
+can change without renaming files:
+
+    {NN}_Property_Front.png
+    {NN}_Property_Back_QR.png
+
+HTML output files still include the property name for readability.
 """
 
 from __future__ import annotations
@@ -330,6 +339,22 @@ def safe_filename_component(value: str) -> str:
     return value.strip("_")
 
 
+def property_image_filenames(sequence: int) -> tuple[str, str]:
+    """Return generic Front / Back_QR PNG names for a property sequence."""
+    nn = f"{int(sequence):02d}"
+    return f"{nn}_Property_Front.png", f"{nn}_Property_Back_QR.png"
+
+
+def canonicalize_property_assets(prop: dict[str, Any]) -> None:
+    """Keep frontAsset/qrAsset on the generic numbered filenames when present."""
+    front_name, qr_name = property_image_filenames(prop["sequence"])
+    asset_dir = "Resources/Cards/PropertyCards"
+    if "frontAsset" in prop:
+        prop["frontAsset"] = f"{asset_dir}/{front_name}"
+    if "qrAsset" in prop:
+        prop["qrAsset"] = f"{asset_dir}/{qr_name}"
+
+
 def output_filename(prop: dict[str, Any]) -> str:
     sequence = int(prop["sequence"])
     name = safe_filename_component(prop["name"])
@@ -365,6 +390,10 @@ def load_properties(path: Path) -> list[dict[str, Any]]:
 
     if not isinstance(properties, list):
         raise ValueError("'properties' must be a JSON array.")
+
+    for prop in properties:
+        if isinstance(prop, dict) and "sequence" in prop:
+            canonicalize_property_assets(prop)
 
     return properties
 

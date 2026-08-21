@@ -209,7 +209,7 @@ class PlayerDetailsViewModel(
             it.copy(
                 result = resultMapper.errorResult(
                     "Track failed doubles physically.\n\n" +
-                        "After 3 failed turns, pay ${formatMoney(definitions.rulesConfig.jailPaymentAmount)} " +
+                        "After 3 failed turns, pay ${formatMoney(definitions.bankingValues.jailReleaseFee, definitions)} " +
                         "to leave Jail and use that roll to move.",
                 ),
             )
@@ -228,11 +228,11 @@ class PlayerDetailsViewModel(
         _uiState.update { it.copy(step = PlayerDetailsStep.Hub, result = null) }
     }
 
-    fun goSalaryText(): String = formatMoney(definitions.rulesConfig.goSalary)
+    fun goSalaryText(): String = formatMoney(definitions.bankingValues.goSalary, definitions)
 
-    fun locationFeeText(): String = formatMoney(definitions.rulesConfig.locationFee)
+    fun locationFeeText(): String = formatMoney(definitions.bankingValues.locationFee, definitions)
 
-    fun jailFeeText(): String = formatMoney(definitions.rulesConfig.jailPaymentAmount)
+    fun jailFeeText(): String = formatMoney(definitions.bankingValues.jailReleaseFee, definitions)
 
     private fun refreshFromSession(session: GameSession) {
         val player = session.players[playerId] ?: return
@@ -241,7 +241,7 @@ class PlayerDetailsViewModel(
                 playerId = playerId,
                 playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
                 tokenName = definitions.players[playerId]?.displayName.orEmpty(),
-                balanceText = formatMoney(player.balance),
+                balanceText = formatMoney(player.balance, definitions),
                 jailStatusText = if (player.jailStatus) "IN JAIL" else "No",
                 propertyCount = session.properties.values.count { state -> state.ownerPlayerId == playerId },
                 inJail = player.jailStatus,

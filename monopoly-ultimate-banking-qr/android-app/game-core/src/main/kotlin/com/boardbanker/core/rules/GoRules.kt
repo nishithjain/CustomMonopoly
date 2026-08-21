@@ -11,7 +11,7 @@ class GoRules(
     private val definitions: GameDefinitions,
     private val transactionFactory: TransactionFactory,
 ) {
-  private val goSalary = definitions.rulesConfig.goSalary
+  private val goSalary = definitions.bankingValues.goSalary
 
     fun payGoSalary(
         session: GameSession,

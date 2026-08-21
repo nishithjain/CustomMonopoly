@@ -30,7 +30,6 @@ import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerTransferRow
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.app.util.formatMoney
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,13 +91,13 @@ fun DebtResolutionScreen(
                 )
                 Text(
                     buildString {
-                        append("Amount due:\n${formatMoney(uiState.amountDue)}\n\n")
-                        append("Available cash:\n${formatMoney(uiState.availableCash)}\n\n")
-                        append("Remaining after cash:\n${formatMoney(uiState.remainingAfterCash)}")
+                        append("Amount due:\n${viewModel.money(uiState.amountDue)}\n\n")
+                        append("Available cash:\n${viewModel.money(uiState.availableCash)}\n\n")
+                        append("Remaining after cash:\n${viewModel.money(uiState.remainingAfterCash)}")
                     },
                     style = MaterialTheme.typography.bodyLarge,
                 )
-                Text("Select Properties to cover ${formatMoney(uiState.remainingAfterCash)}:")
+                Text("Select Properties to cover ${viewModel.money(uiState.remainingAfterCash)}:")
                 uiState.properties.forEach { property ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -108,7 +107,7 @@ fun DebtResolutionScreen(
                             checked = property.selected,
                             onCheckedChange = { viewModel.onToggleProperty(property.propertyId) },
                         )
-                        Text("${property.propertyName}       ${formatMoney(property.debtValue)}")
+                        Text("${property.propertyName}       ${viewModel.money(property.debtValue)}")
                     }
                 }
                 Button(onClick = viewModel::onScanPropertyRequested, modifier = Modifier.fillMaxWidth()) {

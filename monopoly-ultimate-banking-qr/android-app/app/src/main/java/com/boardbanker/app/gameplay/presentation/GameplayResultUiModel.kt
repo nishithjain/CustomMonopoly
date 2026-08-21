@@ -20,6 +20,7 @@ data class PlayerRankingUi(
     val playerId: String,
     val playerName: String,
     val wealth: Int,
+    val wealthText: String,
     val bankrupt: Boolean,
 )
 

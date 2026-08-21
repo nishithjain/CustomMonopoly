@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
-import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 
 @Composable
@@ -101,7 +100,7 @@ private fun PlayerRankingRow(
     index: Int,
     ranking: com.boardbanker.app.gameplay.presentation.PlayerRankingUi,
 ) {
-    val label = if (ranking.bankrupt) "BANKRUPT" else formatMoney(ranking.wealth)
+    val label = if (ranking.bankrupt) "BANKRUPT" else ranking.wealthText
     RowWithRanking(
         prefix = "$index.",
         playerId = ranking.playerId,

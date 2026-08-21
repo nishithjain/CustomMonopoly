@@ -17,11 +17,11 @@ object ActiveGameCardPresentationBuilder {
                 cardTypeLabel = "PROPERTY",
                 title = state.propertyName,
                 body = if (state.isUnowned) {
-                    "Purchase Price:\n${formatMoney(state.purchasePrice ?: 0)}\n\nStatus:\nUNOWNED"
+                    "Purchase Price:\n${formatMoney(state.purchasePrice ?: 0, definitions)}\n\nStatus:\nUNOWNED"
                 } else {
                     buildString {
                         append("Current Rent Level: ${state.rentLevel}\n\n")
-                        append("Current Rent: ${formatMoney(state.currentRent ?: 0)}")
+                        append("Current Rent: ${formatMoney(state.currentRent ?: 0, definitions)}")
                     }
                 },
                 buyAmount = state.purchasePrice,
@@ -34,7 +34,7 @@ object ActiveGameCardPresentationBuilder {
             CardPresentationUi(
                 cardTypeLabel = "PROPERTY",
                 title = property.name,
-                body = "Purchase Price:\n${formatMoney(property.purchasePrice)}\n\nStatus:\nUNOWNED",
+                body = "Purchase Price:\n${formatMoney(property.purchasePrice, definitions)}\n\nStatus:\nUNOWNED",
                 buyAmount = property.purchasePrice,
             )
         }
@@ -48,7 +48,7 @@ object ActiveGameCardPresentationBuilder {
                 title = property.name,
                 body = buildString {
                     append("Current Rent Level: $rentLevel\n\n")
-                    append("Current Rent: ${formatMoney(currentRent ?: 0)}\n\n")
+                    append("Current Rent: ${formatMoney(currentRent ?: 0, definitions)}\n\n")
                     append("Scan the Player who landed here.")
                 },
                 ownerPlayerId = state.ownerPlayerId,

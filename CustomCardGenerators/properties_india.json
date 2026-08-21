@@ -6,814 +6,770 @@
       "name": "Cubbon Park",
       "sequence": 1,
       "qrPayload": "MUB:P:01",
-      "frontAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/01_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/01_Property_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
-      "purchasePrice": 60,
+      "purchasePrice": 6000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 70
+          "amount": 7000
         },
         {
           "level": 2,
-          "amount": 130
+          "amount": 13000
         },
         {
           "level": 3,
-          "amount": 220
+          "amount": 22000
         },
         {
           "level": 4,
-          "amount": 370
+          "amount": 37000
         },
         {
           "level": 5,
-          "amount": 750
+          "amount": 75000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_02",
       "name": "Lodhi Garden",
       "sequence": 2,
       "qrPayload": "MUB:P:02",
-      "frontAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/02_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/02_Property_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
-      "purchasePrice": 60,
+      "purchasePrice": 6000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 70
+          "amount": 7000
         },
         {
           "level": 2,
-          "amount": 130
+          "amount": 13000
         },
         {
           "level": 3,
-          "amount": 220
+          "amount": 22000
         },
         {
           "level": 4,
-          "amount": 370
+          "amount": 37000
         },
         {
           "level": 5,
-          "amount": 750
+          "amount": 75000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_03",
       "name": "Rock Garden",
       "sequence": 3,
       "qrPayload": "MUB:P:03",
-      "frontAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/03_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/03_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
-      "purchasePrice": 100,
+      "purchasePrice": 10000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 80
+          "amount": 8000
         },
         {
           "level": 2,
-          "amount": 140
+          "amount": 14000
         },
         {
           "level": 3,
-          "amount": 240
+          "amount": 24000
         },
         {
           "level": 4,
-          "amount": 410
+          "amount": 41000
         },
         {
           "level": 5,
-          "amount": 800
+          "amount": 80000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_04",
       "name": "Marine Drive",
       "sequence": 4,
       "qrPayload": "MUB:P:04",
-      "frontAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/04_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/04_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
-      "purchasePrice": 100,
+      "purchasePrice": 10000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 80
+          "amount": 8000
         },
         {
           "level": 2,
-          "amount": 140
+          "amount": 14000
         },
         {
           "level": 3,
-          "amount": 240
+          "amount": 24000
         },
         {
           "level": 4,
-          "amount": 410
+          "amount": 41000
         },
         {
           "level": 5,
-          "amount": 800
+          "amount": 80000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_05",
       "name": "Juhu Beach",
       "sequence": 5,
       "qrPayload": "MUB:P:05",
-      "frontAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/05_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/05_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
-      "purchasePrice": 120,
+      "purchasePrice": 12000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 100
+          "amount": 10000
         },
         {
           "level": 2,
-          "amount": 160
+          "amount": 16000
         },
         {
           "level": 3,
-          "amount": 260
+          "amount": 26000
         },
         {
           "level": 4,
-          "amount": 440
+          "amount": 44000
         },
         {
           "level": 5,
-          "amount": 860
+          "amount": 86000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_06",
       "name": "Hawa Mahal",
       "sequence": 6,
       "qrPayload": "MUB:P:06",
-      "frontAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/06_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/06_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
-      "purchasePrice": 140,
+      "purchasePrice": 14000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 110
+          "amount": 11000
         },
         {
           "level": 2,
-          "amount": 180
+          "amount": 18000
         },
         {
           "level": 3,
-          "amount": 290
+          "amount": 29000
         },
         {
           "level": 4,
-          "amount": 460
+          "amount": 46000
         },
         {
           "level": 5,
-          "amount": 900
+          "amount": 90000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_07",
       "name": "Victoria Memorial",
       "sequence": 7,
       "qrPayload": "MUB:P:07",
-      "frontAsset": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/07_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/07_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
-      "purchasePrice": 140,
+      "purchasePrice": 14000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 110
+          "amount": 11000
         },
         {
           "level": 2,
-          "amount": 180
+          "amount": 18000
         },
         {
           "level": 3,
-          "amount": 290
+          "amount": 29000
         },
         {
           "level": 4,
-          "amount": 460
+          "amount": 46000
         },
         {
           "level": 5,
-          "amount": 900
+          "amount": 90000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_08",
       "name": "India Gate",
       "sequence": 8,
       "qrPayload": "MUB:P:08",
-      "frontAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/08_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/08_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
-      "purchasePrice": 160,
+      "purchasePrice": 16000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 130
+          "amount": 13000
         },
         {
           "level": 2,
-          "amount": 200
+          "amount": 20000
         },
         {
           "level": 3,
-          "amount": 310
+          "amount": 31000
         },
         {
           "level": 4,
-          "amount": 490
+          "amount": 49000
         },
         {
           "level": 5,
-          "amount": 980
+          "amount": 98000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_09",
       "name": "Gateway of India",
       "sequence": 9,
       "qrPayload": "MUB:P:09",
-      "frontAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/09_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/09_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
-      "purchasePrice": 180,
+      "purchasePrice": 18000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 140
+          "amount": 14000
         },
         {
           "level": 2,
-          "amount": 210
+          "amount": 21000
         },
         {
           "level": 3,
-          "amount": 330
+          "amount": 33000
         },
         {
           "level": 4,
-          "amount": 520
+          "amount": 52000
         },
         {
           "level": 5,
-          "amount": 1000
+          "amount": 100000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_10",
       "name": "Mysore Palace",
       "sequence": 10,
       "qrPayload": "MUB:P:10",
-      "frontAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/10_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/10_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
-      "purchasePrice": 180,
+      "purchasePrice": 18000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 140
+          "amount": 14000
         },
         {
           "level": 2,
-          "amount": 210
+          "amount": 21000
         },
         {
           "level": 3,
-          "amount": 330
+          "amount": 33000
         },
         {
           "level": 4,
-          "amount": 520
+          "amount": 52000
         },
         {
           "level": 5,
-          "amount": 1000
+          "amount": 100000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_11",
       "name": "Red Fort",
       "sequence": 11,
       "qrPayload": "MUB:P:11",
-      "frontAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/11_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/11_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
-      "purchasePrice": 200,
+      "purchasePrice": 20000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 160
+          "amount": 16000
         },
         {
           "level": 2,
-          "amount": 230
+          "amount": 23000
         },
         {
           "level": 3,
-          "amount": 350
+          "amount": 35000
         },
         {
           "level": 4,
-          "amount": 550
+          "amount": 55000
         },
         {
           "level": 5,
-          "amount": 1100
+          "amount": 110000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_12",
       "name": "Qutub Minar",
       "sequence": 12,
       "qrPayload": "MUB:P:12",
-      "frontAsset": "Resources/Cards/PropertyCards/12_Strand_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/12_Strand_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/12_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/12_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
-      "purchasePrice": 220,
+      "purchasePrice": 22000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 170
+          "amount": 17000
         },
         {
           "level": 2,
-          "amount": 250
+          "amount": 25000
         },
         {
           "level": 3,
-          "amount": 380
+          "amount": 38000
         },
         {
           "level": 4,
-          "amount": 580
+          "amount": 58000
         },
         {
           "level": 5,
-          "amount": 1160
+          "amount": 116000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_13",
       "name": "Amer Fort",
       "sequence": 13,
       "qrPayload": "MUB:P:13",
-      "frontAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/13_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/13_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
-      "purchasePrice": 220,
+      "purchasePrice": 22000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 170
+          "amount": 17000
         },
         {
           "level": 2,
-          "amount": 250
+          "amount": 25000
         },
         {
           "level": 3,
-          "amount": 380
+          "amount": 38000
         },
         {
           "level": 4,
-          "amount": 580
+          "amount": 58000
         },
         {
           "level": 5,
-          "amount": 1160
+          "amount": 116000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_14",
       "name": "Mehrangarh Fort",
       "sequence": 14,
       "qrPayload": "MUB:P:14",
-      "frontAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/14_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/14_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
-      "purchasePrice": 240,
+      "purchasePrice": 24000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 190
+          "amount": 19000
         },
         {
           "level": 2,
-          "amount": 270
+          "amount": 27000
         },
         {
           "level": 3,
-          "amount": 400
+          "amount": 40000
         },
         {
           "level": 4,
-          "amount": 610
+          "amount": 61000
         },
         {
           "level": 5,
-          "amount": 1200
+          "amount": 120000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_15",
       "name": "Jaisalmer Fort",
       "sequence": 15,
       "qrPayload": "MUB:P:15",
-      "frontAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/15_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/15_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
-      "purchasePrice": 260,
+      "purchasePrice": 26000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 200
+          "amount": 20000
         },
         {
           "level": 2,
-          "amount": 280
+          "amount": 28000
         },
         {
           "level": 3,
-          "amount": 420
+          "amount": 42000
         },
         {
           "level": 4,
-          "amount": 640
+          "amount": 64000
         },
         {
           "level": 5,
-          "amount": 1300
+          "amount": 130000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_16",
       "name": "Lake Pichola",
       "sequence": 16,
       "qrPayload": "MUB:P:16",
-      "frontAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/16_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/16_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
-      "purchasePrice": 260,
+      "purchasePrice": 26000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 200
+          "amount": 20000
         },
         {
           "level": 2,
-          "amount": 280
+          "amount": 28000
         },
         {
           "level": 3,
-          "amount": 420
+          "amount": 42000
         },
         {
           "level": 4,
-          "amount": 640
+          "amount": 64000
         },
         {
           "level": 5,
-          "amount": 1300
+          "amount": 130000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_17",
       "name": "Dal Lake",
       "sequence": 17,
       "qrPayload": "MUB:P:17",
-      "frontAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/17_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/17_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
-      "purchasePrice": 280,
+      "purchasePrice": 28000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 220
+          "amount": 22000
         },
         {
           "level": 2,
-          "amount": 300
+          "amount": 30000
         },
         {
           "level": 3,
-          "amount": 440
+          "amount": 44000
         },
         {
           "level": 4,
-          "amount": 670
+          "amount": 67000
         },
         {
           "level": 5,
-          "amount": 1340
+          "amount": 134000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_18",
       "name": "Kerala Backwaters",
       "sequence": 18,
       "qrPayload": "MUB:P:18",
-      "frontAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/18_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/18_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
-      "purchasePrice": 300,
+      "purchasePrice": 30000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 230
+          "amount": 23000
         },
         {
           "level": 2,
-          "amount": 320
+          "amount": 32000
         },
         {
           "level": 3,
-          "amount": 460
+          "amount": 46000
         },
         {
           "level": 4,
-          "amount": 700
+          "amount": 70000
         },
         {
           "level": 5,
-          "amount": 1400
+          "amount": 140000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_19",
       "name": "Rann of Kutch",
       "sequence": 19,
       "qrPayload": "MUB:P:19",
-      "frontAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/19_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/19_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
-      "purchasePrice": 300,
+      "purchasePrice": 30000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 230
+          "amount": 23000
         },
         {
           "level": 2,
-          "amount": 320
+          "amount": 32000
         },
         {
           "level": 3,
-          "amount": 460
+          "amount": 46000
         },
         {
           "level": 4,
-          "amount": 700
+          "amount": 70000
         },
         {
           "level": 5,
-          "amount": 1400
+          "amount": 140000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_20",
       "name": "Goa Beaches",
       "sequence": 20,
       "qrPayload": "MUB:P:20",
-      "frontAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/20_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/20_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
-      "purchasePrice": 320,
+      "purchasePrice": 32000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 250
+          "amount": 25000
         },
         {
           "level": 2,
-          "amount": 340
+          "amount": 34000
         },
         {
           "level": 3,
-          "amount": 480
+          "amount": 48000
         },
         {
           "level": 4,
-          "amount": 730
+          "amount": 73000
         },
         {
           "level": 5,
-          "amount": 1440
+          "amount": 144000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_21",
       "name": "Unity Road",
       "sequence": 21,
       "qrPayload": "MUB:P:21",
-      "frontAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/21_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/21_Property_Back_QR.png",
       "colorGroup": "DARK_BLUE",
       "colorGroupLabel": "Dark Blue",
-      "purchasePrice": 350,
+      "purchasePrice": 35000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 270
+          "amount": 27000
         },
         {
           "level": 2,
-          "amount": 360
+          "amount": 36000
         },
         {
           "level": 3,
-          "amount": 510
+          "amount": 51000
         },
         {
           "level": 4,
-          "amount": 740
+          "amount": 74000
         },
         {
           "level": 5,
-          "amount": 1500
+          "amount": 150000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_22",
       "name": "Taj Mohalla",
       "sequence": 22,
       "qrPayload": "MUB:P:22",
-      "frontAsset": "Resources/Cards/PropertyCards/22_Mayfair_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/22_Mayfair_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/22_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/22_Property_Back_QR.png",
       "colorGroup": "DARK_BLUE",
       "colorGroupLabel": "Dark Blue",
-      "purchasePrice": 400,
+      "purchasePrice": 40000,
       "initialRentLevel": 1,
       "rentLevels": [
         {
           "level": 1,
-          "amount": 300
+          "amount": 30000
         },
         {
           "level": 2,
-          "amount": 400
+          "amount": 40000
         },
         {
           "level": 3,
-          "amount": 560
+          "amount": 56000
         },
         {
           "level": 4,
-          "amount": 810
+          "amount": 81000
         },
         {
           "level": 5,
-          "amount": 1600
+          "amount": 160000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     }
   ]
 }

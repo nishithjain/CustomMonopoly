@@ -1,7 +1,7 @@
 ANDROID FOUNDATION VALIDATION
 =============================
 
-Checks passed: 26/26
+Checks passed: 28/28
 
 RESULT:
 PASS
@@ -27,6 +27,8 @@ DETAILS:
 - [PASS] root source exists: event_engine_rules.json
 - [PASS] asset exists: board_relationships.json
 - [PASS] root source exists: board_relationships.json
+- [PASS] asset exists: banking_values.json
+- [PASS] root source exists: banking_values.json
 - [PASS] MainActivity exists
 - [PASS] HomeScreen exists
 - [PASS] PlayerSetupScreen exists

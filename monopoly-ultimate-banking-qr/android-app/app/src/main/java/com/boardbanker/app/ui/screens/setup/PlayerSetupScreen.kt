@@ -39,7 +39,6 @@ import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.validation.PlayerNameRules
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,7 +174,7 @@ fun PlayerSetupScreen(
                             iconSize = PlayerIconSize.Normal,
                         )
                         registered?.let {
-                            Text(formatMoney(it.balance), style = MaterialTheme.typography.bodyMedium)
+                            Text(viewModel.money(it.balance), style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 "Tap to edit name",
                                 style = MaterialTheme.typography.labelSmall,

@@ -138,9 +138,11 @@ class GameViewModel(
         _events.tryEmit(GameEvent.OpenScanner(CardType.PROPERTY))
     }
 
-    fun locationFeeText(): String = formatMoney(definitions.rulesConfig.locationFee)
+    fun locationFeeText(): String = formatMoney(definitions.bankingValues.locationFee, definitions)
 
-    fun goSalaryText(): String = formatMoney(definitions.rulesConfig.goSalary)
+    fun goSalaryText(): String = formatMoney(definitions.bankingValues.goSalary, definitions)
+
+    fun money(amount: Int): String = formatMoney(amount, definitions)
 
     fun playerDisplayName(playerId: String): String =
         PlayerDisplayNames.displayName(sessionManager.currentSession(), playerId, definitions)

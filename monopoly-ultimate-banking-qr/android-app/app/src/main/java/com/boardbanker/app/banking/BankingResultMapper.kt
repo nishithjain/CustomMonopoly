@@ -18,17 +18,19 @@ class BankingResultMapper(
 ) {
     private val winnerCalculator = WinnerCalculator(definitions)
 
+    private fun money(amount: Int): String = formatMoney(amount, definitions)
+
     fun mapGoResult(result: GameResult, playerId: String, balanceBefore: Int): GameplayResultUiModel {
         val playerName = resolvePlayerName(playerId, result.session)
         val balanceAfter = result.session.players[playerId]!!.balance
-        val amount = definitions.rulesConfig.goSalary
+        val amount = definitions.bankingValues.goSalary
         return GameplayResultUiModel(
             title = "GO",
             primaryPlayerId = playerId,
             primaryPlayerName = playerName,
             primaryMessage = buildString {
-                append("collected ${formatMoney(amount)}\n\n")
-                append("Balance:\n${formatMoney(balanceBefore)} → ${formatMoney(balanceAfter)}")
+                append("collected ${money(amount)}\n\n")
+                append("Balance:\n${money(balanceBefore)} → ${money(balanceAfter)}")
             },
             balanceChanges = listOf(
                 BalanceChangeUi(playerId = playerId, playerName = playerName, before = balanceBefore, after = balanceAfter),
@@ -43,15 +45,15 @@ class BankingResultMapper(
     ): GameplayResultUiModel {
         val playerName = resolvePlayerName(playerId, result.session)
         val balanceAfter = result.session.players[playerId]!!.balance
-        val fee = definitions.rulesConfig.locationFee
+        val fee = definitions.bankingValues.locationFee
         return GameplayResultUiModel(
             title = "LOCATION",
             primaryPlayerId = playerId,
             primaryPlayerName = playerName,
             primaryMessage = buildString {
-                append("paid ${formatMoney(fee)}.\n\n")
+                append("paid ${money(fee)}.\n\n")
                 append("Move the physical token\nto the Property you choose.\n\n")
-                append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}\nif you pass GO.\n\n")
+                append("Do not collect ${money(definitions.bankingValues.goSalary)}\nif you pass GO.\n\n")
                 append("Now scan the Property card.")
             },
             balanceChanges = listOf(
@@ -71,15 +73,15 @@ class BankingResultMapper(
     ): GameplayResultUiModel {
         val playerName = resolvePlayerName(playerId, result.session)
         val balanceAfter = result.session.players[playerId]!!.balance
-        val fee = definitions.rulesConfig.locationFee
+        val fee = definitions.bankingValues.locationFee
         return GameplayResultUiModel(
             title = "LOCATION",
             primaryPlayerId = playerId,
             primaryPlayerName = playerName,
             primaryMessage = buildString {
-                append("paid ${formatMoney(fee)}.\n\n")
+                append("paid ${money(fee)}.\n\n")
                 append("Move the physical token\nto the Property you choose.\n\n")
-                append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}\nif you pass GO.")
+                append("Do not collect ${money(definitions.bankingValues.goSalary)}\nif you pass GO.")
             },
             balanceChanges = listOf(
                 BalanceChangeUi(playerId = playerId, playerName = playerName, before = balanceBefore, after = balanceAfter),
@@ -93,13 +95,13 @@ class BankingResultMapper(
     fun mapJailFeeResult(result: GameResult, playerId: String, balanceBefore: Int): GameplayResultUiModel {
         val playerName = resolvePlayerName(playerId, result.session)
         val balanceAfter = result.session.players[playerId]!!.balance
-        val fee = definitions.rulesConfig.jailPaymentAmount
+        val fee = definitions.bankingValues.jailReleaseFee
         return GameplayResultUiModel(
             title = "JAIL FEE PAID",
             primaryPlayerId = playerId,
             primaryPlayerName = playerName,
             primaryMessage = buildString {
-                append("paid ${formatMoney(fee)}.\n\n")
+                append("paid ${money(fee)}.\n\n")
                 append("Released from Jail.\n\n")
                 append("Roll and move normally.")
             },
@@ -118,7 +120,7 @@ class BankingResultMapper(
             primaryMessage = buildString {
                 append("sent to Jail.\n\n")
                 append("Move the physical token\ndirectly to Jail.\n\n")
-                append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}.")
+                append("Do not collect ${money(definitions.bankingValues.goSalary)}.")
             },
             physicalInstructions = listOf("Player is now in Jail."),
         )
@@ -178,8 +180,8 @@ class BankingResultMapper(
             primaryPlayerName = winnerName,
             primaryMessage = buildString {
                 append("won:\n${property.name}\n\n")
-                append("Winning Bid:\n${formatMoney(bid)}\n\n")
-                append("Balance:\n${formatMoney(balanceBefore)} → ${formatMoney(balanceAfter)}\n\n")
+                append("Winning Bid:\n${money(bid)}\n\n")
+                append("Balance:\n${money(balanceBefore)} → ${money(balanceAfter)}\n\n")
                 append("Rent Level:\n$rentLevel\n\n")
                 append("Please give the Property card\nto $winnerName.")
             },
@@ -283,6 +285,7 @@ class BankingResultMapper(
                     playerId = playerId,
                     playerName = resolvePlayerName(playerId, session),
                     wealth = wealth,
+                    wealthText = money(wealth),
                     bankrupt = player.bankrupt,
                 )
             }
@@ -301,9 +304,9 @@ class BankingResultMapper(
             primaryPlayerName = winnerName,
             playerRankings = rankings,
             primaryMessage = buildString {
-                append("Total Wealth:\n${formatMoney(cash + propertyValue)}\n\n")
-                append("Cash:\n${formatMoney(cash)}\n\n")
-                append("Property Value:\n${formatMoney(propertyValue)}")
+                append("Total Wealth:\n${money(cash + propertyValue)}\n\n")
+                append("Cash:\n${money(cash)}\n\n")
+                append("Property Value:\n${money(propertyValue)}")
             },
         )
     }

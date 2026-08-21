@@ -28,6 +28,7 @@ class FakeQrCodeSourceTest {
             eventEngineRulesJson = dataDir.resolve("event_engine_rules.json").readText(),
             boardRelationshipsJson = dataDir.resolve("board_relationships.json").readText(),
             gameRulesJson = dataDir.resolve("game_rules.json").readText(),
+            bankingValuesJson = dataDir.resolve("banking_values.json").readText(),
         )
         val processor = ScanProcessor(ScanGate(), DefaultCardResolver(definitions))
         val source = FakeQrCodeSource(

@@ -33,8 +33,9 @@ class SetupTests {
         val result = engine.process(session, GameCommand.StartGame)
 
         assertEquals(GameStatus.ACTIVE, result.session.status)
-        assertEquals(1500, result.session.players["USR_01"]!!.balance)
-        assertEquals(1500, result.session.players["USR_02"]!!.balance)
+        assertEquals(definitions.bankingValues.startingBalance, result.session.players["USR_01"]!!.balance)
+        assertEquals(definitions.bankingValues.startingBalance, result.session.players["USR_02"]!!.balance)
+        assertEquals(1500, definitions.bankingValues.startingBalance)
         assertEquals("Nishith", result.session.players["USR_01"]!!.playerName)
         assertEquals("Aditya", result.session.players["USR_02"]!!.playerName)
         assertTrue(result.session.properties.values.all { it.ownerPlayerId == null })

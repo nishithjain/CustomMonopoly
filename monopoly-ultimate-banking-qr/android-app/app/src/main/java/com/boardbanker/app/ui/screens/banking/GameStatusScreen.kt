@@ -58,7 +58,7 @@ fun GameStatusScreen(
                             playerName = name,
                             iconSize = PlayerIconSize.Normal,
                         )
-                        Text("Balance: ${formatMoney(player.balance)}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Balance: ${formatMoney(player.balance, definitions)}", style = MaterialTheme.typography.bodyMedium)
                         Text("Properties: $owned", style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "Jail: ${if (player.jailStatus) "YES" else "NO"}",

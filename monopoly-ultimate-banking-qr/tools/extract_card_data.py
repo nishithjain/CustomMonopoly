@@ -47,8 +47,6 @@ def build_properties(cards: list[dict]) -> list[dict]:
                 "initialRentLevel": extraction.get("initialRentLevel"),
                 "rentLevels": extraction["rentLevels"],
                 "maximumRentLevel": extraction["maximumRentLevel"],
-                "extractionStatus": extraction["extractionStatus"],
-                "notes": extraction["notes"],
             }
         )
 
@@ -129,8 +127,6 @@ def write_properties_csv(properties: list[dict]) -> None:
         "initialRentLevel",
         "maximumRentLevel",
         "rentLevels",
-        "extractionStatus",
-        "notes",
     ]
     rows = []
     for prop in properties:
@@ -186,7 +182,6 @@ def format_rent_levels(rent_levels: list[dict]) -> str:
 
 def write_property_report(properties: list[dict]) -> None:
     output = DATA_DIR / "property_extraction_report.txt"
-    status_counts = {"COMPLETE": 0, "NEEDS_REVIEW": 0, "UNREADABLE": 0}
     issues: list[str] = []
 
     lines = [
@@ -199,24 +194,11 @@ def write_property_report(properties: list[dict]) -> None:
     ]
 
     for prop in properties:
-        status_counts[prop["extractionStatus"]] = status_counts.get(prop["extractionStatus"], 0) + 1
-
-    lines.extend(
-        [
-            f"COMPLETE: {status_counts.get('COMPLETE', 0)}",
-            f"NEEDS_REVIEW: {status_counts.get('NEEDS_REVIEW', 0)}",
-            f"UNREADABLE: {status_counts.get('UNREADABLE', 0)}",
-            "",
-        ]
-    )
-
-    for prop in properties:
         purchase = prop["purchasePrice"] if prop["purchasePrice"] is not None else "TO_BE_CONFIRMED"
         initial_rent = prop.get("initialRentLevel", "TO_BE_CONFIRMED")
         lines.extend(
             [
                 f"{prop['propertyId']} {prop['name']}",
-                f"Status: {prop['extractionStatus']}",
                 f"Purchase Price: {purchase}",
                 f"Initial Rent Level: {initial_rent}",
                 f"Rent Levels: {format_rent_levels(prop['rentLevels'])}",
@@ -226,8 +208,6 @@ def write_property_report(properties: list[dict]) -> None:
         )
         if prop["purchasePrice"] is None:
             issues.append(f"{prop['propertyId']}: purchase price missing")
-        if prop["extractionStatus"] != "COMPLETE":
-            issues.append(f"{prop['propertyId']}: status {prop['extractionStatus']} - {prop['notes']}")
 
     lines.append("Issues:")
     if issues:

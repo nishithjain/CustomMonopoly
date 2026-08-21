@@ -47,7 +47,7 @@ class AdvancedBankingWorkflowTest {
         startActiveGame()
         val before = sessionManager.currentSession()!!.players["USR_01"]!!.balance
         val outcome = executor.execute(GameCommand.PayGoSalary("USR_01")) as BankingCommitOutcome.Success
-        assertEquals(before + definitions.rulesConfig.goSalary, outcome.session.players["USR_01"]!!.balance)
+        assertEquals(before + definitions.bankingValues.goSalary, outcome.session.players["USR_01"]!!.balance)
     }
 
     @Test
@@ -66,7 +66,7 @@ class AdvancedBankingWorkflowTest {
         val outcome = executor.execute(
             GameCommand.PayLocationFee("USR_01", "PRP_01"),
         ) as BankingCommitOutcome.Success
-        assertEquals(before - definitions.rulesConfig.locationFee, outcome.session.players["USR_01"]!!.balance)
+        assertEquals(before - definitions.bankingValues.locationFee, outcome.session.players["USR_01"]!!.balance)
     }
 
     @Test
@@ -79,7 +79,7 @@ class AdvancedBankingWorkflowTest {
                 com.boardbanker.app.gameplay.location.LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID,
             ),
         ) as BankingCommitOutcome.Success
-        assertEquals(before - definitions.rulesConfig.locationFee, outcome.session.players["USR_01"]!!.balance)
+        assertEquals(before - definitions.bankingValues.locationFee, outcome.session.players["USR_01"]!!.balance)
         assertEquals(null, outcome.session.properties["PRP_01"]!!.ownerPlayerId)
     }
 

@@ -6,8 +6,8 @@
       "name": "Old Kent Road",
       "sequence": 1,
       "qrPayload": "MUB:P:01",
-      "frontAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/01_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/01_Property_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
       "purchasePrice": 60,
@@ -34,17 +34,15 @@
           "amount": 750
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_02",
       "name": "Whitechapel Road",
       "sequence": 2,
       "qrPayload": "MUB:P:02",
-      "frontAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/02_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/02_Property_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
       "purchasePrice": 60,
@@ -71,17 +69,15 @@
           "amount": 750
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_03",
       "name": "The Angel, Islington",
       "sequence": 3,
       "qrPayload": "MUB:P:03",
-      "frontAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/03_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/03_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
       "purchasePrice": 100,
@@ -108,17 +104,15 @@
           "amount": 800
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_04",
       "name": "Euston Road",
       "sequence": 4,
       "qrPayload": "MUB:P:04",
-      "frontAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/04_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/04_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
       "purchasePrice": 100,
@@ -145,17 +139,15 @@
           "amount": 800
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_05",
       "name": "Pentonville Road",
       "sequence": 5,
       "qrPayload": "MUB:P:05",
-      "frontAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/05_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/05_Property_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
       "purchasePrice": 120,
@@ -182,17 +174,15 @@
           "amount": 860
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_06",
       "name": "Pall Mall",
       "sequence": 6,
       "qrPayload": "MUB:P:06",
-      "frontAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/06_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/06_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
       "purchasePrice": 140,
@@ -219,17 +209,15 @@
           "amount": 900
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_07",
       "name": "Whitehall",
       "sequence": 7,
       "qrPayload": "MUB:P:07",
-      "frontAsset": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/07_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/07_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
       "purchasePrice": 140,
@@ -256,17 +244,15 @@
           "amount": 900
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_08",
       "name": "Northumberland Avenue",
       "sequence": 8,
       "qrPayload": "MUB:P:08",
-      "frontAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/08_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/08_Property_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
       "purchasePrice": 160,
@@ -293,17 +279,15 @@
           "amount": 980
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_09",
       "name": "Bow Street",
       "sequence": 9,
       "qrPayload": "MUB:P:09",
-      "frontAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/09_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/09_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
       "purchasePrice": 180,
@@ -330,17 +314,15 @@
           "amount": 1000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_10",
       "name": "Marlborough Street",
       "sequence": 10,
       "qrPayload": "MUB:P:10",
-      "frontAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/10_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/10_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
       "purchasePrice": 180,
@@ -367,17 +349,15 @@
           "amount": 1000
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_11",
       "name": "Vine Street",
       "sequence": 11,
       "qrPayload": "MUB:P:11",
-      "frontAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/11_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/11_Property_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
       "purchasePrice": 200,
@@ -404,17 +384,15 @@
           "amount": 1100
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_12",
       "name": "Strand",
       "sequence": 12,
       "qrPayload": "MUB:P:12",
-      "frontAsset": "Resources/Cards/PropertyCards/12_Strand_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/12_Strand_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/12_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/12_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
       "purchasePrice": 220,
@@ -441,17 +419,15 @@
           "amount": 1160
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_13",
       "name": "Fleet Street",
       "sequence": 13,
       "qrPayload": "MUB:P:13",
-      "frontAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/13_Fleet_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/13_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/13_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
       "purchasePrice": 220,
@@ -478,17 +454,15 @@
           "amount": 1160
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_14",
       "name": "Trafalgar Square",
       "sequence": 14,
       "qrPayload": "MUB:P:14",
-      "frontAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/14_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/14_Property_Back_QR.png",
       "colorGroup": "RED",
       "colorGroupLabel": "Red",
       "purchasePrice": 240,
@@ -515,17 +489,15 @@
           "amount": 1200
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_15",
       "name": "Leicester Square",
       "sequence": 15,
       "qrPayload": "MUB:P:15",
-      "frontAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/15_Leicester_Square_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/15_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/15_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
       "purchasePrice": 260,
@@ -552,17 +524,15 @@
           "amount": 1300
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_16",
       "name": "Coventry Street",
       "sequence": 16,
       "qrPayload": "MUB:P:16",
-      "frontAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/16_Coventry_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/16_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/16_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
       "purchasePrice": 260,
@@ -589,17 +559,15 @@
           "amount": 1300
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_17",
       "name": "Piccadilly",
       "sequence": 17,
       "qrPayload": "MUB:P:17",
-      "frontAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/17_Piccadilly_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/17_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/17_Property_Back_QR.png",
       "colorGroup": "YELLOW",
       "colorGroupLabel": "Yellow",
       "purchasePrice": 280,
@@ -626,17 +594,15 @@
           "amount": 1340
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_18",
       "name": "Regent Street",
       "sequence": 18,
       "qrPayload": "MUB:P:18",
-      "frontAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/18_Regent_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/18_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/18_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
       "purchasePrice": 300,
@@ -663,17 +629,15 @@
           "amount": 1400
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_19",
       "name": "Oxford Street",
       "sequence": 19,
       "qrPayload": "MUB:P:19",
-      "frontAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/19_Oxford_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/19_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/19_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
       "purchasePrice": 300,
@@ -700,17 +664,15 @@
           "amount": 1400
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_20",
       "name": "Bond Street",
       "sequence": 20,
       "qrPayload": "MUB:P:20",
-      "frontAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/20_Bond_Street_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/20_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/20_Property_Back_QR.png",
       "colorGroup": "GREEN",
       "colorGroupLabel": "Green",
       "purchasePrice": 320,
@@ -737,17 +699,15 @@
           "amount": 1440
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_21",
       "name": "Park Lane",
       "sequence": 21,
       "qrPayload": "MUB:P:21",
-      "frontAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/21_Park_Lane_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/21_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/21_Property_Back_QR.png",
       "colorGroup": "DARK_BLUE",
       "colorGroupLabel": "Dark Blue",
       "purchasePrice": 350,
@@ -774,17 +734,15 @@
           "amount": 1500
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     },
     {
       "propertyId": "PRP_22",
       "name": "Mayfair",
       "sequence": 22,
       "qrPayload": "MUB:P:22",
-      "frontAsset": "Resources/Cards/PropertyCards/22_Mayfair_Front.png",
-      "qrAsset": "Resources/Cards/PropertyCards/22_Mayfair_Back_QR.png",
+      "frontAsset": "Resources/Cards/PropertyCards/22_Property_Front.png",
+      "qrAsset": "Resources/Cards/PropertyCards/22_Property_Back_QR.png",
       "colorGroup": "DARK_BLUE",
       "colorGroupLabel": "Dark Blue",
       "purchasePrice": 400,
@@ -811,9 +769,7 @@
           "amount": 1600
         }
       ],
-      "maximumRentLevel": 5,
-      "extractionStatus": "COMPLETE",
-      "notes": "Master values confirmed from provided game data."
+      "maximumRentLevel": 5
     }
   ]
 }

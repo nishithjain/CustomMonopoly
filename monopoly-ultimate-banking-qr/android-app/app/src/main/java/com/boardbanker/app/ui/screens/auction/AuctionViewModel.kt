@@ -16,6 +16,7 @@ import com.boardbanker.app.banking.BankingCommandExecutor
 import com.boardbanker.app.banking.BankingCommitOutcome
 import com.boardbanker.app.banking.BankingResultMapper
 import com.boardbanker.app.game.ActiveGameSessionManager
+import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
 import kotlinx.coroutines.Job
@@ -39,7 +40,9 @@ class AuctionViewModel(
 ) : ViewModel() {
     private val executor = BankingCommandExecutor(sessionManager)
     private val resultMapper = BankingResultMapper(definitions)
-    private val bidIncrement = definitions.rulesConfig.auctionBidIncrement
+    private val bidIncrement = definitions.bankingValues.auctionBidIncrement
+
+    fun money(amount: Int): String = formatMoney(amount, definitions)
 
     private val _uiState = MutableStateFlow(AuctionUiState())
     val uiState: StateFlow<AuctionUiState> = _uiState.asStateFlow()
@@ -58,6 +61,7 @@ class AuctionViewModel(
                 propertyId = propertyId,
                 propertyName = propertyName,
                 remainingSeconds = AuctionConfig.TIMER_SECONDS,
+                bidIncrement = bidIncrement,
             )
         }
         startAuctionIfNeeded()

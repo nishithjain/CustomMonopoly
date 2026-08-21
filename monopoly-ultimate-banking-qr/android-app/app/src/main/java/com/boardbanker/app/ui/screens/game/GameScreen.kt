@@ -33,7 +33,6 @@ import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 
@@ -217,6 +216,7 @@ fun GameScreen(
                                 onAuction = viewModel::onAuctionProperty,
                                 onCancel = viewModel::onCancelWorkflow,
                                 commandInFlight = uiState.commandInFlight,
+                                money = viewModel::money,
                             )
                         }
                     }
@@ -337,8 +337,9 @@ private fun UnownedPropertyContent(
     onAuction: () -> Unit,
     onCancel: () -> Unit,
     commandInFlight: Boolean,
+    money: (Int) -> String,
 ) {
-    val buyLabel = purchasePrice?.let { BankingActionLabels.confirm("BUY ${formatMoney(it)}") }
+    val buyLabel = purchasePrice?.let { BankingActionLabels.confirm("BUY ${money(it)}") }
         ?: BankingActionLabels.confirm("BUY")
     BankingActionBar(
         confirmLabel = buyLabel,

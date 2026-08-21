@@ -28,7 +28,6 @@ import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.app.util.formatMoney
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +99,7 @@ fun AuctionScreen(
             if (uiState.result == null) {
                 Text(uiState.propertyName, style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    "Current Bid:\n${formatMoney(uiState.currentBid)}",
+                    "Current Bid:\n${viewModel.money(uiState.currentBid)}",
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text("Highest Bidder:", style = MaterialTheme.typography.labelMedium)
@@ -114,9 +113,9 @@ fun AuctionScreen(
                 } else {
                     Text("None", style = MaterialTheme.typography.bodyLarge)
                 }
-                val nextBid = uiState.currentBid + 20
+                val nextBid = uiState.currentBid + uiState.bidIncrement
                 Text(
-                    "Next Bid:\n${formatMoney(nextBid)}",
+                    "Next Bid:\n${viewModel.money(nextBid)}",
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
@@ -124,7 +123,7 @@ fun AuctionScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 BankingActionBar(
-                    middleLabel = BankingActionLabels.middle("BID +${formatMoney(20)}"),
+                    middleLabel = BankingActionLabels.middle("BID +${viewModel.money(uiState.bidIncrement)}"),
                     onMiddle = viewModel::onBidRequested,
                     middleEnabled = uiState.auctionRunning && !uiState.commandInFlight,
                     cancelLabel = if (uiState.currentBid == 0) {

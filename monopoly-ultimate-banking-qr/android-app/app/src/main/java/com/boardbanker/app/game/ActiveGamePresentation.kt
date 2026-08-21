@@ -16,7 +16,7 @@ object ActiveGamePresentation {
             PlayerDashboardUi(
                 playerId = playerId,
                 playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
-                balanceText = formatMoney(playerState.balance),
+                balanceText = formatMoney(playerState.balance, definitions),
                 propertyCount = propertyCount,
                 inJail = playerState.jailStatus,
                 summaryLine = "$propertyCount Properties • $jailLabel",
@@ -48,8 +48,8 @@ object ActiveGamePresentation {
                     colorGroup = definition.colorGroup,
                     rentLevel = propertyState.currentRentLevel,
                     maxRentLevel = definition.maximumRentLevel,
-                    currentRentText = formatMoney(currentRent),
-                    purchasePriceText = formatMoney(definition.purchasePrice),
+                    currentRentText = formatMoney(currentRent, definitions),
+                    purchasePriceText = formatMoney(definition.purchasePrice, definitions),
                 )
             }
 }

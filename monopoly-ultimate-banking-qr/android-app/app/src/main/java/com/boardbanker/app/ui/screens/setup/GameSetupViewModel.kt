@@ -37,6 +37,8 @@ class GameSetupViewModel(
 ) : ViewModel() {
     private val rules = definitions.rulesConfig
 
+    fun money(amount: Int): String = com.boardbanker.app.util.formatMoney(amount, definitions)
+
     private val _uiState = MutableStateFlow(GameSetupUiState())
     val uiState: StateFlow<GameSetupUiState> = _uiState.asStateFlow()
 

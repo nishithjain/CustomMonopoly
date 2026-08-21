@@ -305,8 +305,8 @@
       "name": "Old Kent Road",
       "qrPayload": "MUB:P:01",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
-        "qr": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/01_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/01_Property_Back_QR.png"
       }
     },
     {
@@ -316,8 +316,8 @@
       "name": "Whitechapel Road",
       "qrPayload": "MUB:P:02",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
-        "qr": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/02_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/02_Property_Back_QR.png"
       }
     },
     {
@@ -327,8 +327,8 @@
       "name": "The Angel, Islington",
       "qrPayload": "MUB:P:03",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
-        "qr": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/03_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/03_Property_Back_QR.png"
       }
     },
     {
@@ -338,8 +338,8 @@
       "name": "Euston Road",
       "qrPayload": "MUB:P:04",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
-        "qr": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/04_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/04_Property_Back_QR.png"
       }
     },
     {
@@ -349,8 +349,8 @@
       "name": "Pentonville Road",
       "qrPayload": "MUB:P:05",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
-        "qr": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/05_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/05_Property_Back_QR.png"
       }
     },
     {
@@ -360,8 +360,8 @@
       "name": "Pall Mall",
       "qrPayload": "MUB:P:06",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
-        "qr": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/06_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/06_Property_Back_QR.png"
       }
     },
     {
@@ -371,8 +371,8 @@
       "name": "Whitehall",
       "qrPayload": "MUB:P:07",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
-        "qr": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/07_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/07_Property_Back_QR.png"
       }
     },
     {
@@ -382,8 +382,8 @@
       "name": "Northumberland Avenue",
       "qrPayload": "MUB:P:08",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
-        "qr": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/08_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/08_Property_Back_QR.png"
       }
     },
     {
@@ -393,8 +393,8 @@
       "name": "Bow Street",
       "qrPayload": "MUB:P:09",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/09_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/09_Property_Back_QR.png"
       }
     },
     {
@@ -404,8 +404,8 @@
       "name": "Marlborough Street",
       "qrPayload": "MUB:P:10",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/10_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/10_Property_Back_QR.png"
       }
     },
     {
@@ -415,8 +415,8 @@
       "name": "Vine Street",
       "qrPayload": "MUB:P:11",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/11_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/11_Property_Back_QR.png"
       }
     },
     {
@@ -426,8 +426,8 @@
       "name": "Strand",
       "qrPayload": "MUB:P:12",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/12_Strand_Front.png",
-        "qr": "Resources/Cards/PropertyCards/12_Strand_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/12_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/12_Property_Back_QR.png"
       }
     },
     {
@@ -437,8 +437,8 @@
       "name": "Fleet Street",
       "qrPayload": "MUB:P:13",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/13_Fleet_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/13_Fleet_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/13_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/13_Property_Back_QR.png"
       }
     },
     {
@@ -448,8 +448,8 @@
       "name": "Trafalgar Square",
       "qrPayload": "MUB:P:14",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Front.png",
-        "qr": "Resources/Cards/PropertyCards/14_Trafalgar_Square_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/14_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/14_Property_Back_QR.png"
       }
     },
     {
@@ -459,8 +459,8 @@
       "name": "Leicester Square",
       "qrPayload": "MUB:P:15",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/15_Leicester_Square_Front.png",
-        "qr": "Resources/Cards/PropertyCards/15_Leicester_Square_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/15_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/15_Property_Back_QR.png"
       }
     },
     {
@@ -470,8 +470,8 @@
       "name": "Coventry Street",
       "qrPayload": "MUB:P:16",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/16_Coventry_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/16_Coventry_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/16_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/16_Property_Back_QR.png"
       }
     },
     {
@@ -481,8 +481,8 @@
       "name": "Piccadilly",
       "qrPayload": "MUB:P:17",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/17_Piccadilly_Front.png",
-        "qr": "Resources/Cards/PropertyCards/17_Piccadilly_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/17_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/17_Property_Back_QR.png"
       }
     },
     {
@@ -492,8 +492,8 @@
       "name": "Regent Street",
       "qrPayload": "MUB:P:18",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/18_Regent_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/18_Regent_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/18_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/18_Property_Back_QR.png"
       }
     },
     {
@@ -503,8 +503,8 @@
       "name": "Oxford Street",
       "qrPayload": "MUB:P:19",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/19_Oxford_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/19_Oxford_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/19_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/19_Property_Back_QR.png"
       }
     },
     {
@@ -514,8 +514,8 @@
       "name": "Bond Street",
       "qrPayload": "MUB:P:20",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/20_Bond_Street_Front.png",
-        "qr": "Resources/Cards/PropertyCards/20_Bond_Street_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/20_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/20_Property_Back_QR.png"
       }
     },
     {
@@ -525,8 +525,8 @@
       "name": "Park Lane",
       "qrPayload": "MUB:P:21",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/21_Park_Lane_Front.png",
-        "qr": "Resources/Cards/PropertyCards/21_Park_Lane_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/21_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/21_Property_Back_QR.png"
       }
     },
     {
@@ -536,8 +536,8 @@
       "name": "Mayfair",
       "qrPayload": "MUB:P:22",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/22_Mayfair_Front.png",
-        "qr": "Resources/Cards/PropertyCards/22_Mayfair_Back_QR.png"
+        "front": "Resources/Cards/PropertyCards/22_Property_Front.png",
+        "qr": "Resources/Cards/PropertyCards/22_Property_Back_QR.png"
       }
     }
   ]

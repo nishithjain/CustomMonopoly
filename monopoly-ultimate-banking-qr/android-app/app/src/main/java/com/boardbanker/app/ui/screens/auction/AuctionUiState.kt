@@ -9,6 +9,7 @@ data class AuctionUiState(
     val highestBidderId: String? = null,
     val highestBidderName: String? = null,
     val remainingSeconds: Int = 0,
+    val bidIncrement: Int = 0,
     val auctionRunning: Boolean = false,
     val commandInFlight: Boolean = false,
     val showNoBids: Boolean = false,

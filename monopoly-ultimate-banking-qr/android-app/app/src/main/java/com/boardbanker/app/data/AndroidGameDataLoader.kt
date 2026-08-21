@@ -20,6 +20,7 @@ class AndroidGameDataLoader(
             eventEngineRulesJson = assets.open("game/event_engine_rules.json").bufferedReader().use { it.readText() },
             boardRelationshipsJson = assets.open("game/board_relationships.json").bufferedReader().use { it.readText() },
             gameRulesJson = assets.open("game/game_rules.json").bufferedReader().use { it.readText() },
+            bankingValuesJson = assets.open("game/banking_values.json").bufferedReader().use { it.readText() },
         )
     }
 }
