@@ -21,7 +21,7 @@ Runtime Game State
 ```text
 PRP_01
      ↓
-PropertyDefinition (data/properties.json)
+PropertyDefinition (data/editions/uk/properties.json)
      ↓
 purchasePrice, rentLevels, colorGroup
      ↓
@@ -35,7 +35,7 @@ owner, currentRentLevel
 ```text
 EVT_01
      ↓
-EventDefinition (data/events.json)
+EventDefinition (data/editions/uk/events.json)
      ↓
 printed rule, parsed action, parameters
      ↓
@@ -48,15 +48,15 @@ Event Engine later executes it
 
 | File | Records | Purpose |
 | ---- | ------- | ------- |
-| `data/properties.json` | 22 | Machine-readable property definitions |
+| `data/editions/uk/properties.json` | 22 | Machine-readable property definitions |
 | `data/properties.csv` | 22 | Human-readable property data |
-| `data/events.json` | 23 | Machine-readable event definitions |
+| `data/editions/uk/events.json` | 23 | Machine-readable event definitions |
 | `data/events.csv` | 23 | Human-readable event data |
 | `data/property_extraction_report.txt` | — | Per-property extraction audit |
 | `data/event_extraction_report.txt` | — | Per-event extraction audit |
 | `data/game_data_validation.txt` | — | Structural and content validation report |
 
-These files link to the card registry via `propertyId` / `eventId` and `qrPayload`. Asset paths reference preferred front images from `data/cards.json`.
+These files link to the card registry via `propertyId` / `eventId` and `qrPayload`. Asset paths reference preferred front images from `data/common/card_registry.json`.
 
 ---
 
@@ -105,7 +105,7 @@ All 22 properties use **5 rent levels**. The card front displays `RENT LEVEL` in
 | 4 | 370 |
 | 5 | 750 |
 
-Full values for all properties are in `data/properties.json`.
+Full values for all properties are in `data/editions/uk/properties.json`.
 
 ### Purchase prices
 
@@ -136,7 +136,7 @@ Purchase prices are **not printed on property card fronts** but were confirmed f
 | PRP_21 | Park Lane | 350 |
 | PRP_22 | Mayfair | 400 |
 
-Full values in `data/properties.json`.
+Full values in `data/editions/uk/properties.json`.
 
 ---
 
@@ -197,7 +197,7 @@ Some events require **multiple** player or property scans (e.g. EVT_06 swap requ
 
 ### Events modifying rent levels
 
-Events with rent-level effects include: EVT_01, 02, 03, 04, 05, 08, 10, 12, 15, 16, 17, 18, 19, 20, 22. Full classifications are in `data/events.json`.
+Events with rent-level effects include: EVT_01, 02, 03, 04, 05, 08, 10, 12, 15, 16, 17, 18, 19, 20, 22. Full classifications are in `data/editions/uk/events.json`.
 
 ### Events with bank credits/debits
 

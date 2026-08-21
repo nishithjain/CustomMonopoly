@@ -1,25 +1,24 @@
 package com.boardbanker.core
 
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.edition.EditionRepository
+import com.boardbanker.core.edition.FileEditionFileSource
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameEngine
-import com.boardbanker.core.engine.GameOutcome
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
-import com.boardbanker.core.model.GameStatus
-import com.boardbanker.core.model.PlayerState
-import com.boardbanker.core.model.PropertyState
 import com.boardbanker.core.model.TemporaryEffect
-import com.boardbanker.core.model.TransactionType
-import com.boardbanker.core.validation.GameDefinitionLoader
 import java.nio.file.Path
-import kotlin.io.path.readText
 
 object TestFixtures {
     private val dataDir: Path = resolveDataDir()
+    private val editionRepository = EditionRepository(FileEditionFileSource(dataDir))
 
-    val definitions: GameDefinitions = loadDefinitions()
+    val definitions: GameDefinitions = editionRepository.load(EditionIds.DEFAULT)
     val engine: GameEngine = DefaultGameEngine(definitions)
+
+    fun loadEdition(editionId: String): GameDefinitions = editionRepository.load(editionId)
 
     private fun resolveDataDir(): Path {
         val candidates = listOf(
@@ -28,21 +27,8 @@ object TestFixtures {
             Path.of("../../../../monopoly-ultimate-banking-qr/data"),
             Path.of("c:/Personal/Monopoly/monopoly-ultimate-banking-qr/data"),
         )
-        return candidates.firstOrNull { it.resolve("properties.json").toFile().exists() }
+        return candidates.firstOrNull { it.resolve("common/card_registry.json").toFile().exists() }
             ?: error("Could not locate data directory")
-    }
-
-    private fun loadDefinitions(): GameDefinitions {
-        val loader = GameDefinitionLoader()
-        return loader.loadAll(
-            cardsJson = dataDir.resolve("cards.json").readText(),
-            propertiesJson = dataDir.resolve("properties.json").readText(),
-            eventsJson = dataDir.resolve("events.json").readText(),
-            eventEngineRulesJson = dataDir.resolve("event_engine_rules.json").readText(),
-            boardRelationshipsJson = dataDir.resolve("board_relationships.json").readText(),
-            gameRulesJson = dataDir.resolve("game_rules.json").readText(),
-            bankingValuesJson = dataDir.resolve("banking_values.json").readText(),
-        )
     }
 
     fun defaultTestPlayerName(playerId: String): String = when (playerId) {
@@ -55,7 +41,7 @@ object TestFixtures {
 
     fun newGame(playerIds: List<String> = listOf("USR_01", "USR_02")): GameSession {
         var result = engine.process(
-            GameSession(gameId = "TEST_GAME"),
+            GameSession(gameId = "TEST_GAME", editionId = definitions.editionId),
             GameCommand.CreateGame("TEST_GAME"),
         )
         for (playerId in playerIds) {

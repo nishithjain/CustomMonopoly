@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy authoritative player icon PNGs from Resources/Icons/ into Android drawable resources."""
+"""Copy authoritative player icon PNGs from Resources/Common/Icons/ into Android drawable resources."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 ICON_MAPPINGS = [
-    ("USR_01", "Car", "Resources/Icons/Car.png", "player_car.png"),
-    ("USR_02", "Helicopter", "Resources/Icons/Helicopter.png", "player_helicopter.png"),
-    ("USR_03", "Ship", "Resources/Icons/Ship.png", "player_ship.png"),
-    ("USR_04", "Aeroplane", "Resources/Icons/Aeroplane.png", "player_aeroplane.png"),
+    ("USR_01", "Car", "Resources/Common/Icons/Car.png", "player_car.png"),
+    ("USR_02", "Helicopter", "Resources/Common/Icons/Helicopter.png", "player_helicopter.png"),
+    ("USR_03", "Ship", "Resources/Common/Icons/Ship.png", "player_ship.png"),
+    ("USR_04", "Aeroplane", "Resources/Common/Icons/Aeroplane.png", "player_aeroplane.png"),
 ]
 
 MANIFEST_NAME = "android_player_icon_manifest.json"
@@ -21,14 +21,14 @@ MANIFEST_NAME = "android_player_icon_manifest.json"
 def find_workspace_root() -> Path:
     tools_dir = Path(__file__).resolve().parent
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
-        icons = candidate / "Resources" / "Icons"
+        icons = candidate / "Resources" / "Common" / "Icons"
         android = candidate / "monopoly-ultimate-banking-qr" / "android-app"
         if icons.is_dir() and android.is_dir():
             return candidate
         project = candidate / "android-app"
         if icons.is_dir() and project.is_dir():
             return candidate
-    raise FileNotFoundError("Could not locate workspace root containing Resources/Icons and android-app/")
+    raise FileNotFoundError("Could not locate workspace root containing Resources/Common/Icons and android-app/")
 
 
 def find_project_root(workspace_root: Path) -> Path:
@@ -90,7 +90,7 @@ def main() -> int:
     data_manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
     print("\nGENERATED RUNTIME ICONS — DO NOT EDIT DIRECTLY")
-    print("Authoritative source: Resources/Icons/")
+    print("Authoritative source: Resources/Common/Icons/")
     print(f"Manifest: {data_manifest_path}")
     print(f"TOTAL: {len(manifest)} / 4")
     return 0

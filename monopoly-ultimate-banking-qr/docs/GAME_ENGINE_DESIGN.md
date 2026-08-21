@@ -11,8 +11,8 @@ No Kotlin or Android code exists in this step. This document defines how the fut
 | Layer | Responsibility |
 | ----- | -------------- |
 | **CardDefinition** | What physical card was scanned (`qrPayload` → `cardId`) |
-| **PropertyDefinition / EventDefinition** | Static master data (`data/properties.json`, `data/events.json`) |
-| **GameRules** | What actions mean (`docs/GAME_RULES.md`, `data/game_rules.json`) |
+| **PropertyDefinition / EventDefinition** | Static master data (`data/editions/uk/properties.json`, `data/editions/uk/events.json`) |
+| **GameRules** | What actions mean (`docs/GAME_RULES.md`, `data/common/game_rules.json`) |
 | **GameSession State** | What is happening in this particular game |
 | **QR Scanner** | Input only — never mutates balances, ownership, or rent |
 | **Game Engine** | Only component allowed to decide and change game state |
@@ -72,7 +72,7 @@ QR Scanner
     ↓
 qrPayload
     ↓
-Card Registry (data/cards.json)
+Card Registry (data/common/card_registry.json)
     ↓
 cardId + cardType
     ↓
@@ -181,7 +181,7 @@ not:
 if event == EVT_08 and property == PRP_07: change PRP_06 and PRP_08
 ```
 
-Relationship definitions live in `data/board_relationships.json`.
+Relationship definitions live in `data/editions/uk/board_relationships.json`.
 
 ---
 

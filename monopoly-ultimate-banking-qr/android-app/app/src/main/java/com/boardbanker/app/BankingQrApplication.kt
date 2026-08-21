@@ -77,6 +77,11 @@ class BankingQrApplication : Application() {
             definitions = definitions,
             committedStore = committedGameSessionStore,
             repository = gameSessionRepository,
+            editionResolver = { editionId ->
+                val loaded = AndroidGameDataLoader(this).load(editionId)
+                cachedDefinitions = loaded
+                loaded
+            },
         )
     }
 

@@ -32,7 +32,7 @@ REPORT_NAME = "card_front_asset_validation.txt"
 
 def find_workspace_root(tools_dir: Path) -> Path:
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
-        resources = candidate / "Resources" / "Cards"
+        resources = candidate / "Resources" / "Common"
         android = candidate / "monopoly-ultimate-banking-qr" / "android-app"
         if resources.is_dir() and android.is_dir():
             return candidate
@@ -61,7 +61,7 @@ def load_manifest(project_root: Path) -> dict:
 
 
 def load_cards(project_root: Path) -> list[dict]:
-    with (project_root / "data" / "cards.json").open(encoding="utf-8") as handle:
+    with (project_root / "data" / "common" / "card_registry.json").open(encoding="utf-8") as handle:
         return json.load(handle)["cards"]
 
 

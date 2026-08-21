@@ -16,7 +16,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 
 def load_cards() -> list[dict]:
-    with (DATA_DIR / "cards.json").open(encoding="utf-8") as handle:
+    with (DATA_DIR / "common" / "card_registry.json").open(encoding="utf-8") as handle:
         return json.load(handle)["cards"]
 
 
@@ -97,7 +97,7 @@ def build_events(cards: list[dict]) -> list[dict]:
 
 
 def write_properties_json(properties: list[dict]) -> None:
-    output = DATA_DIR / "properties.json"
+    output = DATA_DIR / "editions" / "uk" / "properties.json"
     with output.open("w", encoding="utf-8") as handle:
         json.dump({"schemaVersion": 1, "properties": properties}, handle, indent=2)
         handle.write("\n")
@@ -105,7 +105,7 @@ def write_properties_json(properties: list[dict]) -> None:
 
 
 def write_events_json(events: list[dict]) -> None:
-    output = DATA_DIR / "events.json"
+    output = DATA_DIR / "editions" / "uk" / "events.json"
     with output.open("w", encoding="utf-8") as handle:
         json.dump({"schemaVersion": 1, "events": events}, handle, indent=2)
         handle.write("\n")

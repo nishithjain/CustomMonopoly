@@ -1,0 +1,775 @@
+{
+  "schemaVersion": 1,
+  "properties": [
+    {
+      "propertyId": "PRP_01",
+      "name": "Cubbon Park",
+      "sequence": 1,
+      "qrPayload": "MUB:P:01",
+      "frontAsset": "Resources/Editions/india/PropertyCards/01_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/01_Property_Back_QR.png",
+      "colorGroup": "BROWN",
+      "colorGroupLabel": "Brown",
+      "purchasePrice": 6000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 7000
+        },
+        {
+          "level": 2,
+          "amount": 13000
+        },
+        {
+          "level": 3,
+          "amount": 22000
+        },
+        {
+          "level": 4,
+          "amount": 37000
+        },
+        {
+          "level": 5,
+          "amount": 75000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_02",
+      "name": "Lodhi Garden",
+      "sequence": 2,
+      "qrPayload": "MUB:P:02",
+      "frontAsset": "Resources/Editions/india/PropertyCards/02_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/02_Property_Back_QR.png",
+      "colorGroup": "BROWN",
+      "colorGroupLabel": "Brown",
+      "purchasePrice": 6000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 7000
+        },
+        {
+          "level": 2,
+          "amount": 13000
+        },
+        {
+          "level": 3,
+          "amount": 22000
+        },
+        {
+          "level": 4,
+          "amount": 37000
+        },
+        {
+          "level": 5,
+          "amount": 75000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_03",
+      "name": "Rock Garden",
+      "sequence": 3,
+      "qrPayload": "MUB:P:03",
+      "frontAsset": "Resources/Editions/india/PropertyCards/03_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/03_Property_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 10000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 8000
+        },
+        {
+          "level": 2,
+          "amount": 14000
+        },
+        {
+          "level": 3,
+          "amount": 24000
+        },
+        {
+          "level": 4,
+          "amount": 41000
+        },
+        {
+          "level": 5,
+          "amount": 80000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_04",
+      "name": "Marine Drive",
+      "sequence": 4,
+      "qrPayload": "MUB:P:04",
+      "frontAsset": "Resources/Editions/india/PropertyCards/04_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/04_Property_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 10000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 8000
+        },
+        {
+          "level": 2,
+          "amount": 14000
+        },
+        {
+          "level": 3,
+          "amount": 24000
+        },
+        {
+          "level": 4,
+          "amount": 41000
+        },
+        {
+          "level": 5,
+          "amount": 80000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_05",
+      "name": "Juhu Beach",
+      "sequence": 5,
+      "qrPayload": "MUB:P:05",
+      "frontAsset": "Resources/Editions/india/PropertyCards/05_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/05_Property_Back_QR.png",
+      "colorGroup": "LIGHT_BLUE",
+      "colorGroupLabel": "Light Blue",
+      "purchasePrice": 12000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 10000
+        },
+        {
+          "level": 2,
+          "amount": 16000
+        },
+        {
+          "level": 3,
+          "amount": 26000
+        },
+        {
+          "level": 4,
+          "amount": 44000
+        },
+        {
+          "level": 5,
+          "amount": 86000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_06",
+      "name": "Hawa Mahal",
+      "sequence": 6,
+      "qrPayload": "MUB:P:06",
+      "frontAsset": "Resources/Editions/india/PropertyCards/06_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/06_Property_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 14000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 11000
+        },
+        {
+          "level": 2,
+          "amount": 18000
+        },
+        {
+          "level": 3,
+          "amount": 29000
+        },
+        {
+          "level": 4,
+          "amount": 46000
+        },
+        {
+          "level": 5,
+          "amount": 90000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_07",
+      "name": "Victoria Memorial",
+      "sequence": 7,
+      "qrPayload": "MUB:P:07",
+      "frontAsset": "Resources/Editions/india/PropertyCards/07_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/07_Property_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 14000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 11000
+        },
+        {
+          "level": 2,
+          "amount": 18000
+        },
+        {
+          "level": 3,
+          "amount": 29000
+        },
+        {
+          "level": 4,
+          "amount": 46000
+        },
+        {
+          "level": 5,
+          "amount": 90000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_08",
+      "name": "India Gate",
+      "sequence": 8,
+      "qrPayload": "MUB:P:08",
+      "frontAsset": "Resources/Editions/india/PropertyCards/08_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/08_Property_Back_QR.png",
+      "colorGroup": "PINK",
+      "colorGroupLabel": "Pink",
+      "purchasePrice": 16000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 13000
+        },
+        {
+          "level": 2,
+          "amount": 20000
+        },
+        {
+          "level": 3,
+          "amount": 31000
+        },
+        {
+          "level": 4,
+          "amount": 49000
+        },
+        {
+          "level": 5,
+          "amount": 98000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_09",
+      "name": "Gateway of India",
+      "sequence": 9,
+      "qrPayload": "MUB:P:09",
+      "frontAsset": "Resources/Editions/india/PropertyCards/09_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/09_Property_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 18000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 14000
+        },
+        {
+          "level": 2,
+          "amount": 21000
+        },
+        {
+          "level": 3,
+          "amount": 33000
+        },
+        {
+          "level": 4,
+          "amount": 52000
+        },
+        {
+          "level": 5,
+          "amount": 100000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_10",
+      "name": "Mysore Palace",
+      "sequence": 10,
+      "qrPayload": "MUB:P:10",
+      "frontAsset": "Resources/Editions/india/PropertyCards/10_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/10_Property_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 18000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 14000
+        },
+        {
+          "level": 2,
+          "amount": 21000
+        },
+        {
+          "level": 3,
+          "amount": 33000
+        },
+        {
+          "level": 4,
+          "amount": 52000
+        },
+        {
+          "level": 5,
+          "amount": 100000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_11",
+      "name": "Red Fort",
+      "sequence": 11,
+      "qrPayload": "MUB:P:11",
+      "frontAsset": "Resources/Editions/india/PropertyCards/11_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/11_Property_Back_QR.png",
+      "colorGroup": "ORANGE",
+      "colorGroupLabel": "Orange",
+      "purchasePrice": 20000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 16000
+        },
+        {
+          "level": 2,
+          "amount": 23000
+        },
+        {
+          "level": 3,
+          "amount": 35000
+        },
+        {
+          "level": 4,
+          "amount": 55000
+        },
+        {
+          "level": 5,
+          "amount": 110000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_12",
+      "name": "Qutub Minar",
+      "sequence": 12,
+      "qrPayload": "MUB:P:12",
+      "frontAsset": "Resources/Editions/india/PropertyCards/12_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/12_Property_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 22000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 17000
+        },
+        {
+          "level": 2,
+          "amount": 25000
+        },
+        {
+          "level": 3,
+          "amount": 38000
+        },
+        {
+          "level": 4,
+          "amount": 58000
+        },
+        {
+          "level": 5,
+          "amount": 116000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_13",
+      "name": "Amer Fort",
+      "sequence": 13,
+      "qrPayload": "MUB:P:13",
+      "frontAsset": "Resources/Editions/india/PropertyCards/13_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/13_Property_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 22000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 17000
+        },
+        {
+          "level": 2,
+          "amount": 25000
+        },
+        {
+          "level": 3,
+          "amount": 38000
+        },
+        {
+          "level": 4,
+          "amount": 58000
+        },
+        {
+          "level": 5,
+          "amount": 116000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_14",
+      "name": "Mehrangarh Fort",
+      "sequence": 14,
+      "qrPayload": "MUB:P:14",
+      "frontAsset": "Resources/Editions/india/PropertyCards/14_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/14_Property_Back_QR.png",
+      "colorGroup": "RED",
+      "colorGroupLabel": "Red",
+      "purchasePrice": 24000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 19000
+        },
+        {
+          "level": 2,
+          "amount": 27000
+        },
+        {
+          "level": 3,
+          "amount": 40000
+        },
+        {
+          "level": 4,
+          "amount": 61000
+        },
+        {
+          "level": 5,
+          "amount": 120000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_15",
+      "name": "Jaisalmer Fort",
+      "sequence": 15,
+      "qrPayload": "MUB:P:15",
+      "frontAsset": "Resources/Editions/india/PropertyCards/15_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/15_Property_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 26000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 20000
+        },
+        {
+          "level": 2,
+          "amount": 28000
+        },
+        {
+          "level": 3,
+          "amount": 42000
+        },
+        {
+          "level": 4,
+          "amount": 64000
+        },
+        {
+          "level": 5,
+          "amount": 130000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_16",
+      "name": "Lake Pichola",
+      "sequence": 16,
+      "qrPayload": "MUB:P:16",
+      "frontAsset": "Resources/Editions/india/PropertyCards/16_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/16_Property_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 26000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 20000
+        },
+        {
+          "level": 2,
+          "amount": 28000
+        },
+        {
+          "level": 3,
+          "amount": 42000
+        },
+        {
+          "level": 4,
+          "amount": 64000
+        },
+        {
+          "level": 5,
+          "amount": 130000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_17",
+      "name": "Dal Lake",
+      "sequence": 17,
+      "qrPayload": "MUB:P:17",
+      "frontAsset": "Resources/Editions/india/PropertyCards/17_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/17_Property_Back_QR.png",
+      "colorGroup": "YELLOW",
+      "colorGroupLabel": "Yellow",
+      "purchasePrice": 28000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 22000
+        },
+        {
+          "level": 2,
+          "amount": 30000
+        },
+        {
+          "level": 3,
+          "amount": 44000
+        },
+        {
+          "level": 4,
+          "amount": 67000
+        },
+        {
+          "level": 5,
+          "amount": 134000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_18",
+      "name": "Kerala Backwaters",
+      "sequence": 18,
+      "qrPayload": "MUB:P:18",
+      "frontAsset": "Resources/Editions/india/PropertyCards/18_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/18_Property_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 30000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 23000
+        },
+        {
+          "level": 2,
+          "amount": 32000
+        },
+        {
+          "level": 3,
+          "amount": 46000
+        },
+        {
+          "level": 4,
+          "amount": 70000
+        },
+        {
+          "level": 5,
+          "amount": 140000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_19",
+      "name": "Rann of Kutch",
+      "sequence": 19,
+      "qrPayload": "MUB:P:19",
+      "frontAsset": "Resources/Editions/india/PropertyCards/19_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/19_Property_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 30000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 23000
+        },
+        {
+          "level": 2,
+          "amount": 32000
+        },
+        {
+          "level": 3,
+          "amount": 46000
+        },
+        {
+          "level": 4,
+          "amount": 70000
+        },
+        {
+          "level": 5,
+          "amount": 140000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_20",
+      "name": "Goa Beaches",
+      "sequence": 20,
+      "qrPayload": "MUB:P:20",
+      "frontAsset": "Resources/Editions/india/PropertyCards/20_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/20_Property_Back_QR.png",
+      "colorGroup": "GREEN",
+      "colorGroupLabel": "Green",
+      "purchasePrice": 32000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 25000
+        },
+        {
+          "level": 2,
+          "amount": 34000
+        },
+        {
+          "level": 3,
+          "amount": 48000
+        },
+        {
+          "level": 4,
+          "amount": 73000
+        },
+        {
+          "level": 5,
+          "amount": 144000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_21",
+      "name": "Unity Road",
+      "sequence": 21,
+      "qrPayload": "MUB:P:21",
+      "frontAsset": "Resources/Editions/india/PropertyCards/21_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/21_Property_Back_QR.png",
+      "colorGroup": "DARK_BLUE",
+      "colorGroupLabel": "Dark Blue",
+      "purchasePrice": 35000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 27000
+        },
+        {
+          "level": 2,
+          "amount": 36000
+        },
+        {
+          "level": 3,
+          "amount": 51000
+        },
+        {
+          "level": 4,
+          "amount": 74000
+        },
+        {
+          "level": 5,
+          "amount": 150000
+        }
+      ],
+      "maximumRentLevel": 5
+    },
+    {
+      "propertyId": "PRP_22",
+      "name": "Taj Mohalla",
+      "sequence": 22,
+      "qrPayload": "MUB:P:22",
+      "frontAsset": "Resources/Editions/india/PropertyCards/22_Property_Front.png",
+      "qrAsset": "Resources/Editions/india/PropertyCards/22_Property_Back_QR.png",
+      "colorGroup": "DARK_BLUE",
+      "colorGroupLabel": "Dark Blue",
+      "purchasePrice": 40000,
+      "initialRentLevel": 1,
+      "rentLevels": [
+        {
+          "level": 1,
+          "amount": 30000
+        },
+        {
+          "level": 2,
+          "amount": 40000
+        },
+        {
+          "level": 3,
+          "amount": 56000
+        },
+        {
+          "level": 4,
+          "amount": 81000
+        },
+        {
+          "level": 5,
+          "amount": 160000
+        }
+      ],
+      "maximumRentLevel": 5
+    }
+  ]
+}

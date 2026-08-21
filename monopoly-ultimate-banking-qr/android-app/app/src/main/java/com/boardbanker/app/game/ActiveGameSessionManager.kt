@@ -8,6 +8,7 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameEngine
 import com.boardbanker.core.engine.GameResult
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.persistence.SavedGameLoadResult
@@ -18,18 +19,33 @@ import kotlinx.coroutines.flow.StateFlow
  * Routes successful engine results through [CommittedGameSessionStore] for durable persistence.
  */
 class ActiveGameSessionManager(
-    definitions: GameDefinitions,
+    private var definitions: GameDefinitions,
     private val committedStore: CommittedGameSessionStore,
     private val repository: GameSessionRepository,
-    private val engine: GameEngine = DefaultGameEngine(definitions),
+    private var engine: GameEngine = DefaultGameEngine(definitions),
+    private val editionResolver: ((String) -> GameDefinitions)? = null,
 ) {
+    fun currentDefinitions(): GameDefinitions = definitions
+
+    fun bindDefinitions(next: GameDefinitions) {
+        definitions = next
+        engine = DefaultGameEngine(next)
+    }
+
     fun currentSession(): GameSession? = committedStore.currentSession()
 
     val committedSession: StateFlow<GameSession?> = committedStore.committedSession
 
-    suspend fun restoreFromStorage(): SavedGameLoadResult = committedStore.loadLatestCommitted()
+    suspend fun restoreFromStorage(): SavedGameLoadResult {
+        val result = committedStore.loadLatestCommitted()
+        if (result is SavedGameLoadResult.Success) {
+            bindEdition(result.session.editionId)
+        }
+        return result
+    }
 
     suspend fun processCommand(session: GameSession, command: GameCommand): ProcessCommitResult {
+        bindEdition(session.editionId)
         val result = engine.process(session, command)
         if (!result.isSuccess) {
             return ProcessCommitResult.Rejected(result)
@@ -44,7 +60,7 @@ class ActiveGameSessionManager(
     suspend fun createNewGame(): ProcessCommitResult {
         val gameId = GameIdProvider.newGameId()
         return processCommand(
-            session = GameSession(gameId = gameId),
+            session = GameSession(gameId = gameId, editionId = definitions.editionId),
             command = GameCommand.CreateGame(gameId),
         )
     }
@@ -56,6 +72,13 @@ class ActiveGameSessionManager(
                 else -> return
             }
         committedStore.deleteSavedGame(gameId)
+    }
+
+    private fun bindEdition(editionId: String) {
+        val id = EditionIds.normalize(editionId)
+        if (id == definitions.editionId) return
+        val resolved = editionResolver?.invoke(id) ?: return
+        bindDefinitions(resolved)
     }
 
     suspend fun hasResumableGame(): Boolean =

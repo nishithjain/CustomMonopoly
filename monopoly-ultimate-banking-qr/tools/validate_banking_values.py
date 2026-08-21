@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate data/banking_values.json and that the Android runtime copy exists."""
+"""Validate data/editions/uk/banking_values.json and that the Android runtime copy exists."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def find_project_root() -> Path:
 
 def main() -> int:
     project_root = find_project_root()
-    source = project_root / "data" / "banking_values.json"
+    source = project_root / "data" / "editions" / "uk" / "banking_values.json"
     runtime = (
         project_root
         / "android-app"
@@ -38,13 +38,15 @@ def main() -> int:
         / "main"
         / "assets"
         / "game"
+        / "editions"
+        / "uk"
         / "banking_values.json"
     )
     report = project_root / "data" / "banking_values_validation.txt"
     problems: list[str] = []
 
     if not source.is_file():
-        problems.append("data/banking_values.json is missing")
+        problems.append("data/editions/uk/banking_values.json is missing")
         data = {}
     else:
         data = json.loads(source.read_text(encoding="utf-8"))

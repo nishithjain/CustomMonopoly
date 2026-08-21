@@ -58,7 +58,7 @@ GameCommand → DefaultGameEngine → rule modules / EventEngine → atomic stat
 - `SEND_PLAYER_TO_JAIL`, `ADJUST_SELECTED_AND_NEIGHBOUR_RENT_LEVELS`
 - `DECREASE_BOARD_SIDE_RENT_LEVEL`, `INCREASE_BOARD_SIDE_RENT_LEVEL`, `TOTAL_GRIDLOCK_V1`
 
-Neighbour and board-side targeting uses `BoardRelationships` from `data/board_relationships.json` — no hard-coded event/property pairs in engine code.
+Neighbour and board-side targeting uses `BoardRelationships` from `data/editions/uk/board_relationships.json` — no hard-coded event/property pairs in engine code.
 
 ## Commands
 

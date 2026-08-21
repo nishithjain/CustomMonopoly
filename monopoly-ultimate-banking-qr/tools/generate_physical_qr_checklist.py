@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate docs/PHYSICAL_QR_TEST_CHECKLIST.md from data/cards.json."""
+"""Regenerate docs/PHYSICAL_QR_TEST_CHECKLIST.md from data/common/card_registry.json."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_PATH = PROJECT_ROOT / "data" / "cards.json"
+DATA_PATH = PROJECT_ROOT / "data" / "common" / "card_registry.json"
 OUTPUT_PATH = PROJECT_ROOT / "docs" / "PHYSICAL_QR_TEST_CHECKLIST.md"
 
 

@@ -1,5 +1,5 @@
 V1 RELEASE VALIDATION
-Result: PASS (37/37)
+Result: PARTIAL (35/37)
 
 Physical QR and full-game results are recorded in docs/ and are NOT auto-marked PASS.
 
@@ -27,8 +27,8 @@ Physical QR and full-game results are recorded in docs/ and are NOT auto-marked 
 [PASS] doc exists: docs/PHYSICAL_QR_TEST_CHECKLIST.md
 [PASS] doc exists: docs/PHYSICAL_GAMEPLAY_TEST_CHECKLIST.md
 [PASS] doc exists: docs/FULL_GAME_TEST_LOG.md
-[PASS] debug APK exists — C:\Personal\Monopoly\monopoly-ultimate-banking-qr\android-app\app\build\outputs\apk\debug\app-debug.apk
-[PASS] release APK exists — C:\Personal\Monopoly\monopoly-ultimate-banking-qr\android-app\app\build\outputs\apk\release\app-release-unsigned.apk
+[FAIL] debug APK exists — C:\Personal\Monopoly\monopoly-ultimate-banking-qr\android-app\app\build\outputs\apk\debug\app-debug.apk
+[FAIL] release APK exists — C:\Personal\Monopoly\monopoly-ultimate-banking-qr\android-app\app\build\outputs\apk\release\app-release.apk
 [PASS] physical QR checklist tracked separately — PASS counts USER=0 PROPERTY=0 EVENT=0 TOTAL=0
 [PASS] validator validate_android_foundation.py — - [PASS] sync_android_assets.py exists
 [PASS] validator validate_game_engine.py — Kotlin tests PASSED

@@ -23,7 +23,7 @@ def load_json(path: Path, key: str) -> list[dict]:
 
 
 def load_cards() -> list[dict]:
-    return load_json(DATA_DIR / "cards.json", "cards")
+    return load_json(DATA_DIR / "common" / "card_registry.json", "cards")
 
 
 def validate_properties(properties: list[dict], cards: list[dict]) -> tuple[list[str], dict]:
@@ -260,8 +260,8 @@ def write_report(
 
 def main() -> int:
     cards = load_cards()
-    properties = load_json(DATA_DIR / "properties.json", "properties")
-    events = load_json(DATA_DIR / "events.json", "events")
+    properties = load_json(DATA_DIR / "editions" / "uk" / "properties.json", "properties")
+    events = load_json(DATA_DIR / "editions" / "uk" / "events.json", "events")
 
     property_problems, property_stats = validate_properties(properties, cards)
     event_problems, event_stats = validate_events(events, cards)

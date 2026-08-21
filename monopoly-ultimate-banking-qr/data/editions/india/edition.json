@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "editionId": "india",
+  "name": "India Edition",
+  "countryCode": "IN",
+  "currency": {
+    "code": "INR",
+    "symbol": "₹",
+    "scale": 100
+  },
+  "data": {
+    "properties": "properties.json",
+    "bankingValues": "banking_values.json",
+    "events": "events.json",
+    "boardRelationships": "board_relationships.json"
+  },
+  "resources": {
+    "propertyCards": "Editions/india/PropertyCards",
+    "eventCards": "Editions/india/EventCards"
+  },
+  "artworkStatus": "INCOMPLETE",
+  "notes": "Event text currently matches the UK baseline. India-specific Event artwork/text may be added later. Do not treat this edition as READY_FOR_PLAY until artwork exists."
+}

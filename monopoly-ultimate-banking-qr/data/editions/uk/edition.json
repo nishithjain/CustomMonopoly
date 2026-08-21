@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "editionId": "uk",
+  "name": "UK Edition",
+  "countryCode": "GB",
+  "currency": {
+    "code": "M",
+    "symbol": "M",
+    "scale": 1
+  },
+  "data": {
+    "properties": "properties.json",
+    "bankingValues": "banking_values.json",
+    "events": "events.json",
+    "boardRelationships": "board_relationships.json"
+  },
+  "resources": {
+    "propertyCards": "Editions/uk/PropertyCards",
+    "eventCards": "Editions/uk/EventCards"
+  }
+}

@@ -104,16 +104,16 @@ def main() -> int:
     def record(name: str, passed: bool, detail: str = "") -> None:
         checks.append((name, passed, detail))
 
-    cards = json.loads((project_root / "data" / "cards.json").read_text(encoding="utf-8"))["cards"]
+    cards = json.loads((project_root / "data" / "common" / "card_registry.json").read_text(encoding="utf-8"))["cards"]
     type_counts = Counter(card["cardType"] for card in cards)
     record("4 User cards", type_counts["USER"] == 4, f"count={type_counts['USER']}")
     record("22 Properties", type_counts["PROPERTY"] == 22, f"count={type_counts['PROPERTY']}")
     record("23 Events", type_counts["EVENT"] == 23, f"count={type_counts['EVENT']}")
     record("49 total cards", len(cards) == 49, f"count={len(cards)}")
 
-    properties = json.loads((project_root / "data" / "properties.json").read_text(encoding="utf-8"))["properties"]
-    events = json.loads((project_root / "data" / "events.json").read_text(encoding="utf-8"))["events"]
-    event_rules = json.loads((project_root / "data" / "event_engine_rules.json").read_text(encoding="utf-8"))["events"]
+    properties = json.loads((project_root / "data" / "editions" / "uk" / "properties.json").read_text(encoding="utf-8"))["properties"]
+    events = json.loads((project_root / "data" / "editions" / "uk" / "events.json").read_text(encoding="utf-8"))["events"]
+    event_rules = json.loads((project_root / "data" / "common" / "event_engine_rules.json").read_text(encoding="utf-8"))["events"]
     record("22 Property definitions", len(properties) == 22)
     record("23 Event definitions", len(events) == 23)
     record("23 Event Engine rules", len(event_rules) == 23)

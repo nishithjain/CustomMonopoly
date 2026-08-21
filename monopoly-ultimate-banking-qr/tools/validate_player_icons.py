@@ -20,7 +20,7 @@ EXPECTED = {
 def find_workspace_root() -> Path:
     tools_dir = Path(__file__).resolve().parent
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
-        icons = candidate / "Resources" / "Icons"
+        icons = candidate / "Resources" / "Common" / "Icons"
         android = candidate / "monopoly-ultimate-banking-qr" / "android-app"
         if icons.is_dir() and android.is_dir():
             return candidate
@@ -51,12 +51,12 @@ def main() -> int:
 
     problems: list[str] = []
 
-    icons_dir = workspace_root / "Resources" / "Icons"
+    icons_dir = workspace_root / "Resources" / "Common" / "Icons"
     if not icons_dir.is_dir():
-        problems.append("Resources/Icons directory missing")
+        problems.append("Resources/Common/Icons directory missing")
     for icon_name in ["Car.png", "Helicopter.png", "Ship.png", "Aeroplane.png"]:
         if not (icons_dir / icon_name).is_file():
-            problems.append(f"Missing source icon: Resources/Icons/{icon_name}")
+            problems.append(f"Missing source icon: Resources/Common/Icons/{icon_name}")
 
     if not manifest_path.is_file():
         problems.append(f"Missing manifest: data/{MANIFEST_NAME}")

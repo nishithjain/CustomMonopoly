@@ -131,7 +131,7 @@ EVENT_OVERRIDES = {
 
 
 def build_event_engine_rules() -> dict:
-    with (DATA_DIR / "events.json").open(encoding="utf-8") as handle:
+    with (DATA_DIR / "editions" / "uk" / "events.json").open(encoding="utf-8") as handle:
         events = json.load(handle)["events"]
 
     records = []
@@ -194,7 +194,7 @@ def build_event_engine_rules() -> dict:
 
 def main() -> None:
     payload = build_event_engine_rules()
-    output = DATA_DIR / "event_engine_rules.json"
+    output = DATA_DIR / "common" / "event_engine_rules.json"
     with output.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
         handle.write("\n")

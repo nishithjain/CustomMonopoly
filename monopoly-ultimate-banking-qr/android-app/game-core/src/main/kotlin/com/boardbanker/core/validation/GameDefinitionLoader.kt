@@ -2,6 +2,8 @@ package com.boardbanker.core.validation
 
 import com.boardbanker.core.card.CardDefinition
 import com.boardbanker.core.card.CardType
+import com.boardbanker.core.model.EditionDefinition
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.BankingValues
 import com.boardbanker.core.model.BoardRelationships
 import com.boardbanker.core.model.EventDefinition
@@ -12,12 +14,15 @@ import com.boardbanker.core.model.PlayerDefinition
 import com.boardbanker.core.model.PropertyDefinition
 import com.boardbanker.core.model.RentLevel
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.decodeFromJsonElement
 
 class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = true }) {
+
+    fun loadEditionManifest(jsonString: String): EditionDefinition =
+        json.decodeFromString(EditionDefinition.serializer(), jsonString)
 
     fun loadGameRulesConfig(jsonString: String): GameRulesConfig =
         json.decodeFromString(GameRulesConfig.serializer(), jsonString)
@@ -131,17 +136,28 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         boardRelationshipsJson: String,
         gameRulesJson: String,
         bankingValuesJson: String,
+        edition: EditionDefinition? = null,
     ): GameDefinitions {
         val rulesConfig = loadGameRulesConfig(gameRulesJson)
         val bankingValues = loadBankingValues(bankingValuesJson)
         val engineRules = loadEventEngineRules(eventEngineRulesJson)
-        val cards = loadCards(cardsJson)
+        val properties = loadProperties(propertiesJson)
+        val events = loadEvents(eventsJson, engineRules)
+        val cards = overlayEditionCardNames(loadCards(cardsJson), properties, events)
+        val resolvedEdition = edition ?: EditionDefinition(
+            editionId = EditionIds.DEFAULT,
+            name = "UK Edition",
+            countryCode = "GB",
+            currency = bankingValues.currency,
+        )
         val definitions = GameDefinitions(
+            editionId = resolvedEdition.editionId,
+            edition = resolvedEdition,
             cards = cards.associateBy { it.cardId },
             cardsByQrPayload = cards.associateBy { it.qrPayload },
             players = loadPlayersFromCards(cardsJson).associateBy { it.playerId },
-            properties = loadProperties(propertiesJson).associateBy { it.propertyId },
-            events = loadEvents(eventsJson, engineRules).associateBy { it.eventId },
+            properties = properties.associateBy { it.propertyId },
+            events = events.associateBy { it.eventId },
             boardRelationships = loadBoardRelationships(boardRelationshipsJson),
             rulesConfig = rulesConfig,
             bankingValues = bankingValues,
@@ -153,5 +169,22 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
             )
         }
         return definitions
+    }
+
+    private fun overlayEditionCardNames(
+        cards: List<CardDefinition>,
+        properties: List<PropertyDefinition>,
+        events: List<EventDefinition>,
+    ): List<CardDefinition> {
+        val propertyNames = properties.associate { it.propertyId to it.name }
+        val eventNames = events.associate { it.eventId to it.name }
+        return cards.map { card ->
+            val overlay = when (card.cardType) {
+                CardType.PROPERTY -> propertyNames[card.cardId]
+                CardType.EVENT -> eventNames[card.cardId]
+                CardType.USER -> null
+            }
+            if (overlay == null) card else card.copy(name = overlay)
+        }
     }
 }

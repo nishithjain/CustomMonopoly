@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "currency": {
+    "code": "INR",
+    "symbol": "₹",
+    "scale": 100
+  },
+  "startingBalance": 150000,
+  "goSalary": 20000,
+  "locationFee": 10000,
+  "jailReleaseFee": 10000,
+  "auctionBidIncrement": 2000,
+  "eventAmounts": {
+    "M50": 5000,
+    "M200": 20000
+  }
+}

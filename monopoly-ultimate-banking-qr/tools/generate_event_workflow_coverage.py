@@ -18,7 +18,7 @@ def find_project_root() -> Path:
 
 def main() -> int:
     project_root = find_project_root()
-    rules_path = project_root / "data" / "event_engine_rules.json"
+    rules_path = project_root / "data" / "common" / "event_engine_rules.json"
     output_path = project_root / "data" / "event_ui_workflow_coverage.txt"
 
     rules = json.loads(rules_path.read_text(encoding="utf-8"))["events"]

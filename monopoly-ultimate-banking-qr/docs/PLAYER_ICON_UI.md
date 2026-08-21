@@ -5,7 +5,7 @@ Player icons provide compact visual identity for each registered player througho
 ## Source assets (read-only)
 
 ```text
-Resources/Icons/
+Resources/Common/Icons/
 ├── Aeroplane.png
 ├── Car.png
 ├── Helicopter.png

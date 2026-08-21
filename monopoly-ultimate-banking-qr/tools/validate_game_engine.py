@@ -31,21 +31,22 @@ def validate_master_data() -> tuple[list[str], dict]:
     stats: dict = {}
 
     required_files = [
-        "cards.json",
-        "properties.json",
-        "events.json",
-        "event_engine_rules.json",
-        "board_relationships.json",
-        "game_rules.json",
+        "common/card_registry.json",
+        "common/game_rules.json",
+        "common/event_engine_rules.json",
+        "editions/uk/properties.json",
+        "editions/uk/events.json",
+        "editions/uk/board_relationships.json",
+        "editions/uk/banking_values.json",
     ]
     for name in required_files:
         if not (DATA_DIR / name).exists():
             problems.append(f"Missing data file: {name}")
 
-    properties = load_json(DATA_DIR / "properties.json", "properties")
-    events = load_json(DATA_DIR / "events.json", "events")
-    engine_rules = load_json(DATA_DIR / "event_engine_rules.json", "events")
-    cards = load_json(DATA_DIR / "cards.json", "cards")
+    properties = load_json(DATA_DIR / "editions" / "uk" / "properties.json", "properties")
+    events = load_json(DATA_DIR / "editions" / "uk" / "events.json", "events")
+    engine_rules = load_json(DATA_DIR / "common" / "event_engine_rules.json", "events")
+    cards = load_json(DATA_DIR / "common" / "card_registry.json", "cards")
 
     stats["properties"] = len(properties)
     stats["events"] = len(events)
@@ -71,7 +72,7 @@ def validate_master_data() -> tuple[list[str], dict]:
         if extra_rules:
             problems.append(f"Engine rules without events: {', '.join(extra_rules)}")
 
-    with (DATA_DIR / "game_rules.json").open(encoding="utf-8") as handle:
+    with (DATA_DIR / "common" / "game_rules.json").open(encoding="utf-8") as handle:
         game_rules = json.load(handle)
     setup = game_rules.get("setup", {})
     if setup.get("startingBalance") != 1500:

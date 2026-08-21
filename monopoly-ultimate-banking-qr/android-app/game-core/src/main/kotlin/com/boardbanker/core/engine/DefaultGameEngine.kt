@@ -70,7 +70,11 @@ class DefaultGameEngine(
     }
 
     private fun handleCreateGame(command: GameCommand.CreateGame): GameResult {
-        val session = GameSession(gameId = command.gameId, status = GameStatus.SETUP)
+        val session = GameSession(
+            gameId = command.gameId,
+            editionId = definitions.editionId,
+            status = GameStatus.SETUP,
+        )
         return GameResult(session)
     }
 

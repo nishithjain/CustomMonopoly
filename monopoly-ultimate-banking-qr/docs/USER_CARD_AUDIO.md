@@ -6,10 +6,10 @@ User card scans play a short identification clip mapped by stable player ID only
 
 | Player ID | Display Name | Source | Android Raw |
 |-----------|--------------|--------|-------------|
-| USR_01 | Car | `Resources/Sounds/UserCardSounds/Car.mp3` | `res/raw/user_car.mp3` |
-| USR_02 | Helicopter | `Resources/Sounds/UserCardSounds/Helicopter.mp3` | `res/raw/user_helicopter.mp3` |
-| USR_03 | Ship | `Resources/Sounds/UserCardSounds/Ship.mp3` | `res/raw/user_ship.mp3` |
-| USR_04 | Aeroplane | `Resources/Sounds/UserCardSounds/Aeroplane.mp3` | `res/raw/user_aeroplane.mp3` |
+| USR_01 | Car | `Resources/Common/Sounds/UserCardSounds/Car.mp3` | `res/raw/user_car.mp3` |
+| USR_02 | Helicopter | `Resources/Common/Sounds/UserCardSounds/Helicopter.mp3` | `res/raw/user_helicopter.mp3` |
+| USR_03 | Ship | `Resources/Common/Sounds/UserCardSounds/Ship.mp3` | `res/raw/user_ship.mp3` |
+| USR_04 | Aeroplane | `Resources/Common/Sounds/UserCardSounds/Aeroplane.mp3` | `res/raw/user_aeroplane.mp3` |
 
 Mapping is defined once in `UserCardSoundRegistry`. Sound selection never uses QR payload text, filename parsing, or display-name substring matching.
 

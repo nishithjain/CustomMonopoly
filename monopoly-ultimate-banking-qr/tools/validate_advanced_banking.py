@@ -73,15 +73,15 @@ def main() -> int:
     record("Jail bid restriction respected", "jailStatus" in auction_vm)
     record(
         "GO amount not hard-coded in Compose",
-        "rulesConfig.goSalary" in banking_vm,
+        "bankingValues.goSalary" in banking_vm or "rulesConfig.goSalary" in banking_vm,
     )
     record(
         "Location fee uses domain config",
-        "rulesConfig.locationFee" in banking_vm,
+        "bankingValues.locationFee" in banking_vm or "rulesConfig.locationFee" in banking_vm,
     )
     record(
         "Jail fee uses domain config",
-        "rulesConfig.jailPaymentAmount" in banking_vm,
+        "bankingValues.jailReleaseFee" in banking_vm or "rulesConfig.jailPaymentAmount" in banking_vm,
     )
     record("finished games block normal gameplay", "gameplayLocked" in game_screen)
     record("transaction history exists", (package_root / "ui" / "screens" / "history" / "TransactionHistoryScreen.kt").is_file())
