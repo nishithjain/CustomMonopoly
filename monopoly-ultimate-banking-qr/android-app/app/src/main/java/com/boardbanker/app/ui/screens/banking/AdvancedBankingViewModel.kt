@@ -10,7 +10,8 @@ import com.boardbanker.app.audio.GameplayAudioCue
 import com.boardbanker.app.audio.GameplayOutcomeAudio
 import com.boardbanker.app.audio.InvalidUserActionAudio
 import com.boardbanker.app.audio.ScanPromptAudio
-import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.gameplay.location.LocationWorkflowConstants
+import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
 import com.boardbanker.app.banking.BankingCommandExecutor
 import com.boardbanker.app.banking.BankingCommitOutcome
 import com.boardbanker.app.banking.BankingResultMapper
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 class AdvancedBankingViewModel(
     private val sessionManager: ActiveGameSessionManager,
     private val definitions: GameDefinitions,
+    private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModel() {
@@ -86,8 +88,12 @@ class AdvancedBankingViewModel(
         _uiState.update { it.copy(step = AdvancedBankingStep.Hub) }
     }
 
-    fun onJail() {
-        requestPlayerScan(AdvancedBankingStep.JailScanPlayer)
+    fun onGetOutOfJail() {
+        requestPlayerScan(AdvancedBankingStep.GetOutOfJailScanPlayer)
+    }
+
+    fun onGoToJail() {
+        requestPlayerScan(AdvancedBankingStep.GoToJailScanPlayer)
     }
 
     fun onUndo() {
@@ -133,19 +139,32 @@ class AdvancedBankingViewModel(
                 _uiState.update { it.copy(step = AdvancedBankingStep.GoConfirm(playerId)) }
             }
             AdvancedBankingStep.LocationScanPlayer -> {
-                pendingPlayerId = playerId
-                requestPropertyScan(AdvancedBankingStep.LocationScanProperty)
+                _uiState.update { it.copy(step = AdvancedBankingStep.LocationConfirmPlayer(playerId)) }
             }
-            AdvancedBankingStep.JailScanPlayer -> {
+            AdvancedBankingStep.GoToJailScanPlayer -> {
                 val session = sessionManager.currentSession() ?: return
                 val player = session.players[playerId]
-                if (player == null || !player.jailStatus) {
-                    val name = playerDisplayName(playerId)
+                if (player?.jailStatus == true) {
                     InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
                     _uiState.update {
                         it.copy(
                             step = AdvancedBankingStep.Hub,
-                            message = "$name is not currently in Jail.",
+                            result = resultMapper.mapAlreadyInJail(playerId, session),
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(step = AdvancedBankingStep.GoToJailConfirm(playerId)) }
+                }
+            }
+            AdvancedBankingStep.GetOutOfJailScanPlayer -> {
+                val session = sessionManager.currentSession() ?: return
+                val player = session.players[playerId]
+                if (player == null || !player.jailStatus) {
+                    InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                    _uiState.update {
+                        it.copy(
+                            step = AdvancedBankingStep.Hub,
+                            result = resultMapper.mapNotInJail(playerId, session),
                         )
                     }
                 } else {
@@ -157,22 +176,17 @@ class AdvancedBankingViewModel(
         }
     }
 
-    fun onPropertyScanned(propertyId: String) {
-        ScanPromptAudio.endPromptSession(scanPromptToken)
-        if (_uiState.value.step != AdvancedBankingStep.LocationScanProperty) return
-        val playerId = pendingPlayerId ?: return
-        if (definitions.properties[propertyId] == null) {
-            _uiState.update { it.copy(message = "Unknown property card.") }
-            return
-        }
+    fun onConfirmLocationPlayer(playerId: String) {
         val session = sessionManager.currentSession() ?: return
         val balanceBefore = session.players[playerId]?.balance ?: 0
         executeCommand(
-            GameCommand.PayLocationFee(playerId, propertyId),
+            GameCommand.PayLocationFee(playerId, LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID),
         ) { outcome ->
             when (outcome) {
-                is BankingCommitOutcome.Success ->
-                    resultMapper.mapLocationResult(outcome.result, playerId, propertyId, balanceBefore)
+                is BankingCommitOutcome.Success -> {
+                    locationWorkflowHolder.beginWaitingForDestination(playerId)
+                    resultMapper.mapLocationFeeOnlyResult(outcome.result, playerId, balanceBefore)
+                }
                 is BankingCommitOutcome.DebtRequired -> {
                     _events.tryEmit(AdvancedBankingEvent.NavigateToDebt)
                     null
@@ -188,6 +202,35 @@ class AdvancedBankingViewModel(
                 null -> null
             }
         }
+    }
+
+    fun onConfirmGoToJail(playerId: String) {
+        val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus == true) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update {
+                it.copy(
+                    step = AdvancedBankingStep.Hub,
+                    result = resultMapper.mapAlreadyInJail(playerId, session),
+                )
+            }
+            return
+        }
+        executeCommand(GameCommand.SendPlayerToJail(playerId)) { outcome ->
+            when (outcome) {
+                is BankingCommitOutcome.Success ->
+                    resultMapper.mapGoToJailResult(outcome.session, playerId)
+                is BankingCommitOutcome.Rejected ->
+                    resultMapper.errorResult(outcome.result.error?.let { it.toString() } ?: "Unable to send to Jail.")
+                is BankingCommitOutcome.PersistenceFailed ->
+                    resultMapper.errorResult("Unable to save the game.\nPlease try again.")
+                else -> null
+            }
+        }
+    }
+
+    fun onPropertyScanned(propertyId: String) {
+        // Location destination Property scans are handled on Active Game after fee commit.
     }
 
     fun onConfirmGo(playerId: String) {
@@ -340,11 +383,20 @@ class AdvancedBankingViewModel(
             }
             val mapped = mapResult(outcome)
             refreshUndoState()
+            val continueLocation = outcome is BankingCommitOutcome.Success &&
+                locationWorkflowHolder.isWaitingForDestination()
+            if (continueLocation) {
+                _events.tryEmit(AdvancedBankingEvent.ContinueLocationOnActiveGame)
+            }
             _uiState.update {
                 it.copy(
                     commandInFlight = false,
-                    step = if (mapped != null) AdvancedBankingStep.Hub else it.step,
-                    result = mapped,
+                    step = when {
+                        continueLocation -> AdvancedBankingStep.Hub
+                        mapped != null -> AdvancedBankingStep.Hub
+                        else -> it.step
+                    },
+                    result = if (continueLocation) null else mapped,
                 )
             }
         }
@@ -362,7 +414,7 @@ class AdvancedBankingViewModel(
 
     fun playerDisplayName(playerId: String): String {
         val session = sessionManager.currentSession()
-        return PlayerDisplayNames.displayName(session, playerId, definitions)
+        return com.boardbanker.app.player.PlayerDisplayNames.displayName(session, playerId, definitions)
     }
 
     fun goSalaryText(): String =
@@ -378,6 +430,7 @@ class AdvancedBankingViewModel(
 class AdvancedBankingViewModelFactory(
     private val sessionManager: ActiveGameSessionManager,
     private val definitions: GameDefinitions,
+    private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModelProvider.Factory {
@@ -387,6 +440,7 @@ class AdvancedBankingViewModelFactory(
             return AdvancedBankingViewModel(
                 sessionManager,
                 definitions,
+                locationWorkflowHolder,
                 gameAudioFeedback,
                 gameEndAudioCoordinator,
             ) as T

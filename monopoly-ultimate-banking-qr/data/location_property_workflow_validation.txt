@@ -1,0 +1,28 @@
+Location Property Workflow Validation
+========================================
+
+[PASS] Location fee uses Game Engine PayLocationFee
+  Banking and Player Details call PayLocationFee
+
+[PASS] Fee-only sentinel property id
+  M100 committed before destination scan
+
+[PASS] Transient location wait state
+  Non-persisted wait for destination Property
+
+[PASS] Handoff to normal Property workflow
+  No LocationPropertyProcessor duplicate rules
+
+[PASS] Landing player carried (no re-scan)
+  Location player preselected for BUY/AUCTION/rent
+
+[PASS] Continue on Active Game after fee
+  Does not stop at banking result hub
+
+[PASS] GR-SAVE-002 documented
+  Restart behaviour documented
+
+[PASS] Game-core remains Android-free
+  Engine has no Android imports
+
+Summary: 8/8 checks passed

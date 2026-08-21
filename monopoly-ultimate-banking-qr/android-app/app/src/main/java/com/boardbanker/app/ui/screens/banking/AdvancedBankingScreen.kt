@@ -43,6 +43,7 @@ fun AdvancedBankingScreen(
     onNavigateToGameOver: () -> Unit,
     onNavigateToGameStatus: () -> Unit,
     onNavigateToHistory: () -> Unit,
+    onContinueLocationOnActiveGame: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -55,6 +56,7 @@ fun AdvancedBankingScreen(
                 AdvancedBankingEvent.NavigateToGameOver -> onNavigateToGameOver()
                 AdvancedBankingEvent.NavigateToGameStatus -> onNavigateToGameStatus()
                 AdvancedBankingEvent.NavigateToHistory -> onNavigateToHistory()
+                AdvancedBankingEvent.ContinueLocationOnActiveGame -> onContinueLocationOnActiveGame()
             }
         }
     }
@@ -106,8 +108,11 @@ fun AdvancedBankingScreen(
                         Button(onClick = viewModel::onLocation, modifier = Modifier.fillMaxWidth()) {
                             Text("LOCATION")
                         }
-                        Button(onClick = viewModel::onJail, modifier = Modifier.fillMaxWidth()) {
-                            Text("JAIL")
+                        Button(onClick = viewModel::onGoToJail, modifier = Modifier.fillMaxWidth()) {
+                            Text("GO TO JAIL")
+                        }
+                        Button(onClick = viewModel::onGetOutOfJail, modifier = Modifier.fillMaxWidth()) {
+                            Text("GET OUT OF JAIL")
                         }
                         Button(
                             onClick = viewModel::onUndo,
@@ -184,17 +189,56 @@ fun AdvancedBankingScreen(
                         Text("SCAN PLAYER CARD")
                     }
                 }
-                AdvancedBankingStep.LocationScanProperty -> {
+                is AdvancedBankingStep.LocationConfirmPlayer -> {
+                    PlayerIdentity(
+                        playerId = step.playerId,
+                        playerName = viewModel.playerDisplayName(step.playerId),
+                        iconSize = PlayerIconSize.Normal,
+                    )
                     Text(
-                        "Scan the Property you are moving to.",
+                        "Pay ${viewModel.locationFeeText()}?\n\n" +
+                            "Move the physical token to the Property you choose.\n\n" +
+                            "Do not collect ${viewModel.goSalaryText()} if you pass GO.",
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Button(onClick = { onOpenScanner(BankingScanContext.PROPERTY) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("SCAN PROPERTY CARD")
+                    BankingActionBar(
+                        confirmLabel = BankingActionLabels.confirm("PAY ${viewModel.locationFeeText()}"),
+                        onConfirm = { viewModel.onConfirmLocationPlayer(step.playerId) },
+                        cancelLabel = BankingActionLabels.cancel(),
+                        onCancel = viewModel::onBack,
+                    )
+                }
+                AdvancedBankingStep.GoToJailScanPlayer -> {
+                    Text(
+                        "Scan the Player card\nto send to Jail.",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
+                        Text("SCAN PLAYER CARD")
                     }
                 }
-                AdvancedBankingStep.JailScanPlayer -> {
-                    Text("Scan the Player card.", style = MaterialTheme.typography.bodyLarge)
+                is AdvancedBankingStep.GoToJailConfirm -> {
+                    PlayerIdentity(
+                        playerId = step.playerId,
+                        playerName = viewModel.playerDisplayName(step.playerId),
+                        iconSize = PlayerIconSize.Normal,
+                    )
+                    Text(
+                        "Send to Jail?\n\nMove the physical token\ndirectly to Jail.\n\nDo not collect ${viewModel.goSalaryText()}.",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    BankingActionBar(
+                        confirmLabel = BankingActionLabels.confirm("GO TO JAIL"),
+                        onConfirm = { viewModel.onConfirmGoToJail(step.playerId) },
+                        cancelLabel = BankingActionLabels.cancel(),
+                        onCancel = viewModel::onBack,
+                    )
+                }
+                AdvancedBankingStep.GetOutOfJailScanPlayer -> {
+                    Text(
+                        "Scan the jailed Player card.",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                     Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
                         Text("SCAN PLAYER CARD")
                     }

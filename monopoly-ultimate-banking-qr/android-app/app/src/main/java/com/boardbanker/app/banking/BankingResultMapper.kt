@@ -36,6 +36,33 @@ class BankingResultMapper(
         )
     }
 
+    fun mapLocationFeeOnlyResult(
+        result: GameResult,
+        playerId: String,
+        balanceBefore: Int,
+    ): GameplayResultUiModel {
+        val playerName = resolvePlayerName(playerId, result.session)
+        val balanceAfter = result.session.players[playerId]!!.balance
+        val fee = definitions.rulesConfig.locationFee
+        return GameplayResultUiModel(
+            title = "LOCATION",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = buildString {
+                append("paid ${formatMoney(fee)}.\n\n")
+                append("Move the physical token\nto the Property you choose.\n\n")
+                append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}\nif you pass GO.\n\n")
+                append("Now scan the Property card.")
+            },
+            balanceChanges = listOf(
+                BalanceChangeUi(playerId = playerId, playerName = playerName, before = balanceBefore, after = balanceAfter),
+            ),
+            physicalInstructions = listOf(
+                "Scan the destination Property card on Active Game.",
+            ),
+        )
+    }
+
     fun mapLocationResult(
         result: GameResult,
         playerId: String,
@@ -46,11 +73,11 @@ class BankingResultMapper(
         val balanceAfter = result.session.players[playerId]!!.balance
         val fee = definitions.rulesConfig.locationFee
         return GameplayResultUiModel(
-            title = "LOCATION FEE PAID",
+            title = "LOCATION",
             primaryPlayerId = playerId,
             primaryPlayerName = playerName,
             primaryMessage = buildString {
-                append("paid ${formatMoney(fee)}\n\n")
+                append("paid ${formatMoney(fee)}.\n\n")
                 append("Move the physical token\nto the Property you choose.\n\n")
                 append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}\nif you pass GO.")
             },
@@ -79,6 +106,45 @@ class BankingResultMapper(
             balanceChanges = listOf(
                 BalanceChangeUi(playerId = playerId, playerName = playerName, before = balanceBefore, after = balanceAfter),
             ),
+        )
+    }
+
+    fun mapGoToJailResult(session: GameSession, playerId: String): GameplayResultUiModel {
+        val playerName = resolvePlayerName(playerId, session)
+        return GameplayResultUiModel(
+            title = "GO TO JAIL",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = buildString {
+                append("sent to Jail.\n\n")
+                append("Move the physical token\ndirectly to Jail.\n\n")
+                append("Do not collect ${formatMoney(definitions.rulesConfig.goSalary)}.")
+            },
+            physicalInstructions = listOf("Player is now in Jail."),
+        )
+    }
+
+    fun mapAlreadyInJail(playerId: String, session: GameSession): GameplayResultUiModel {
+        val playerName = resolvePlayerName(playerId, session)
+        return GameplayResultUiModel(
+            title = "PLAYER ALREADY IN JAIL",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = "$playerName is already in Jail.",
+            isSuccess = false,
+            isError = true,
+        )
+    }
+
+    fun mapNotInJail(playerId: String, session: GameSession?): GameplayResultUiModel {
+        val playerName = resolvePlayerName(playerId, session ?: GameSession(gameId = "INVALID"))
+        return GameplayResultUiModel(
+            title = "PLAYER IS NOT IN JAIL",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = "$playerName does not need to get out of Jail.",
+            isSuccess = false,
+            isError = true,
         )
     }
 

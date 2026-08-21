@@ -9,6 +9,10 @@ import com.boardbanker.core.model.GameSession
 sealed class GameplayWorkflowState {
     data object Ready : GameplayWorkflowState()
 
+    data class LocationWaitingForDestinationProperty(
+        val playerId: String,
+    ) : GameplayWorkflowState()
+
     data class PropertySummary(
         val propertyId: String,
         val propertyName: String,
@@ -20,9 +24,15 @@ sealed class GameplayWorkflowState {
         val maximumRentLevel: Int,
     ) : GameplayWorkflowState()
 
-    data class UnownedPropertyDecision(val propertyId: String) : GameplayWorkflowState()
+    data class UnownedPropertyDecision(
+        val propertyId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
 
-    data class WaitingForPurchasingPlayer(val propertyId: String) : GameplayWorkflowState()
+    data class WaitingForPurchasingPlayer(
+        val propertyId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
 
     data class WaitingForRentPayer(
         val propertyId: String,
@@ -33,7 +43,8 @@ sealed class GameplayWorkflowState {
     data class EventIntro(
         val eventId: String,
         val eventName: String,
-        val printedText: String,
+        val eventSubtitle: String,
+        val eventDescription: String,
     ) : GameplayWorkflowState()
 
     data class EventCollectingTargets(
@@ -60,7 +71,10 @@ sealed class GameplayWorkflowState {
         val propertyId: String,
     ) : GameplayWorkflowState()
 
-    data class WaitingForAuctionStarter(val propertyId: String) : GameplayWorkflowState()
+    data class WaitingForAuctionStarter(
+        val propertyId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
 
     data class PlayerInfo(val playerId: String) : GameplayWorkflowState()
 
@@ -119,11 +133,65 @@ class GameplayWorkflowController(
         val propertyDef = definitions.properties[propertyId] ?: return listOf(
             WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown property.")),
         )
+        return beginPropertyWorkflow(propertyId, session, landingPlayerId = null)
+    }
+
+    fun beginLocationDestinationProperty(
+        playerId: String,
+        propertyId: String,
+        session: GameSession,
+    ): List<WorkflowAction> {
+        if (definitions.properties[propertyId] == null) {
+            return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown property.")))
+        }
+        return beginPropertyWorkflow(propertyId, session, landingPlayerId = playerId)
+    }
+
+    private fun beginPropertyWorkflow(
+        propertyId: String,
+        session: GameSession,
+        landingPlayerId: String?,
+    ): List<WorkflowAction> {
+        val propertyDef = definitions.properties[propertyId]!!
         val propertyState = session.properties[propertyId]
         val ownerId = propertyState?.ownerPlayerId
         val ownerName = ownerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
         val rentLevel = propertyState?.currentRentLevel ?: propertyDef.initialRentLevel
         val currentRent = propertyDef.rentLevels.firstOrNull { it.level == rentLevel }?.amount
+
+        if (landingPlayerId != null) {
+            return when (ownerId) {
+                null -> {
+                    state = GameplayWorkflowState.UnownedPropertyDecision(propertyId, landingPlayerId)
+                    listOf(
+                        WorkflowAction.StateChanged(showUnownedProperty(propertyId)),
+                        WorkflowAction.StateChanged(state),
+                    )
+                }
+                landingPlayerId -> listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.ProcessPropertyLanding(landingPlayerId, propertyId),
+                            context = WorkflowCommandContext.PropertyLanding(
+                                playerId = landingPlayerId,
+                                propertyId = propertyId,
+                            ),
+                        ),
+                    ),
+                )
+                else -> listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.ProcessPropertyLanding(landingPlayerId, propertyId),
+                            context = WorkflowCommandContext.PropertyLanding(
+                                playerId = landingPlayerId,
+                                propertyId = propertyId,
+                            ),
+                        ),
+                    ),
+                )
+            }
+        }
 
         return if (ownerId == null) {
             state = GameplayWorkflowState.UnownedPropertyDecision(propertyId)
@@ -162,7 +230,8 @@ class GameplayWorkflowController(
         state = GameplayWorkflowState.EventIntro(
             eventId = eventId,
             eventName = event.name,
-            printedText = event.printedText,
+            eventSubtitle = event.eventSubtitle,
+            eventDescription = event.eventDescription,
         )
         return listOf(
             WorkflowAction.StateChanged(state),
@@ -234,6 +303,12 @@ class GameplayWorkflowController(
                 )
             }
             is GameplayWorkflowState.EventCollectingTargets -> handleEventUserScan(current, playerId)
+            is GameplayWorkflowState.LocationWaitingForDestinationProperty -> listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.PROPERTY,
+                    message = "PROPERTY CARD EXPECTED\n\nPlease scan the destination Property card.",
+                ),
+            )
             else -> listOf(
                 WorkflowAction.WrongCardType(
                     expected = CardType.USER,
@@ -243,10 +318,27 @@ class GameplayWorkflowController(
         }
     }
 
-    fun onBuySelected(): List<WorkflowAction> {
+    fun onBuySelected(session: GameSession): List<WorkflowAction> {
         if (buyLocked) return emptyList()
         val current = state
         if (current !is GameplayWorkflowState.UnownedPropertyDecision) return emptyList()
+        val landingPlayerId = current.landingPlayerId
+        if (landingPlayerId != null) {
+            buyLocked = true
+            val balanceBefore = session.players[landingPlayerId]?.balance ?: 0
+            return listOf(
+                WorkflowAction.ExecuteCommand(
+                    WorkflowCommandRequest(
+                        command = GameCommand.PurchaseProperty(landingPlayerId, current.propertyId),
+                        context = WorkflowCommandContext.Purchase(
+                            playerId = landingPlayerId,
+                            propertyId = current.propertyId,
+                            balanceBefore = balanceBefore,
+                        ),
+                    ),
+                ),
+            )
+        }
         buyLocked = true
         state = GameplayWorkflowState.WaitingForPurchasingPlayer(current.propertyId)
         return listOf(
@@ -260,9 +352,18 @@ class GameplayWorkflowController(
         )
     }
 
-    fun onAuctionSelected(): List<WorkflowAction> {
+    fun onAuctionSelected(session: GameSession): List<WorkflowAction> {
         val current = state
         if (current !is GameplayWorkflowState.UnownedPropertyDecision) return emptyList()
+        val landingPlayerId = current.landingPlayerId
+        if (landingPlayerId != null) {
+            return listOf(
+                WorkflowAction.NavigateToAuction(
+                    propertyId = current.propertyId,
+                    startedByPlayerId = landingPlayerId,
+                ),
+            )
+        }
         state = GameplayWorkflowState.WaitingForAuctionStarter(current.propertyId)
         return listOf(
             WorkflowAction.StateChanged(state),
@@ -273,6 +374,11 @@ class GameplayWorkflowController(
                 ),
             ),
         )
+    }
+
+    fun enterLocationWaitingForDestination(playerId: String): List<WorkflowAction> {
+        state = GameplayWorkflowState.LocationWaitingForDestinationProperty(playerId)
+        return listOf(WorkflowAction.StateChanged(state))
     }
 
     fun onEventConfirm(): List<WorkflowAction> {

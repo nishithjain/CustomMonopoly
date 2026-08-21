@@ -10,6 +10,7 @@ enum class ScanResultConsumer {
     BANKING,
     AUCTION,
     DEBT,
+    PLAYER_DETAILS,
 }
 
 enum class ScanDeliveryStage {

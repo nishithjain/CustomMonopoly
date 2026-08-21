@@ -29,6 +29,9 @@ import com.boardbanker.app.ui.screens.history.TransactionHistoryScreen
 import com.boardbanker.app.ui.screens.game.GameScreen
 import com.boardbanker.app.ui.screens.game.GameViewModel
 import com.boardbanker.app.ui.screens.game.GameViewModelFactory
+import com.boardbanker.app.ui.screens.playerdetails.PlayerDetailsScreen
+import com.boardbanker.app.ui.screens.playerdetails.PlayerDetailsViewModel
+import com.boardbanker.app.ui.screens.playerdetails.PlayerDetailsViewModelFactory
 import com.boardbanker.app.ui.screens.home.HomeScreen
 import com.boardbanker.app.ui.screens.home.HomeViewModel
 import com.boardbanker.app.ui.screens.home.HomeViewModelFactory
@@ -142,6 +145,7 @@ fun AppNavigation(
                     sessionManager = app.activeGameSessionManager,
                     definitions = app.gameDefinitions,
                     transientWorkflow = app.transientScanWorkflow,
+                    locationWorkflowHolder = app.locationWorkflowHolder,
                     gameAudioFeedback = app.gameAudioFeedback,
                     gameEndAudioCoordinator = app.gameEndAudioCoordinator,
                 ),
@@ -179,6 +183,55 @@ fun AppNavigation(
                 onNavigateToGameOver = {
                     navController.navigate(AppDestination.GameOver.route)
                 },
+                onNavigateToPlayerDetails = { playerId ->
+                    navController.navigate(AppDestination.playerDetailsRoute(playerId))
+                },
+            )
+        }
+
+        composable(
+            route = AppDestination.PlayerDetails.route,
+            arguments = listOf(navArgument("playerId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val playerId = backStackEntry.arguments?.getString("playerId") ?: return@composable
+            val playerDetailsViewModel: PlayerDetailsViewModel = viewModel(
+                factory = PlayerDetailsViewModelFactory(
+                    playerId = playerId,
+                    sessionManager = app.activeGameSessionManager,
+                    definitions = app.gameDefinitions,
+                    locationWorkflowHolder = app.locationWorkflowHolder,
+                    gameAudioFeedback = app.gameAudioFeedback,
+                    gameEndAudioCoordinator = app.gameEndAudioCoordinator,
+                ),
+            )
+
+            CollectScanResults(
+                deliverer = app.scanResultDeliverer,
+                consumer = ScanResultConsumer.PLAYER_DETAILS,
+            ) { card ->
+                if (card.cardType == com.boardbanker.core.card.CardType.PROPERTY) {
+                    playerDetailsViewModel.onPropertyScanned(card.cardId)
+                }
+            }
+
+            PlayerDetailsScreen(
+                viewModel = playerDetailsViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onOpenPropertyScanner = {
+                    backStackEntry.savedStateHandle[BankingNavigation.SCAN_CONTEXT] =
+                        BankingScanContext.PROPERTY.name
+                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.PLAYER_DETAILS)
+                    navController.navigate(AppDestination.BankingScanner.route)
+                },
+                onNavigateToDebt = {
+                    navController.navigate(AppDestination.DebtResolution.route)
+                },
+                onNavigateToGameOver = {
+                    navController.navigate(AppDestination.GameOver.route)
+                },
+                onContinueLocationOnActiveGame = {
+                    navController.popBackStack(AppDestination.Game.route, inclusive = false)
+                },
             )
         }
 
@@ -187,6 +240,7 @@ fun AppNavigation(
                 factory = AdvancedBankingViewModelFactory(
                     sessionManager = app.activeGameSessionManager,
                     definitions = app.gameDefinitions,
+                    locationWorkflowHolder = app.locationWorkflowHolder,
                     gameAudioFeedback = app.gameAudioFeedback,
                     gameEndAudioCoordinator = app.gameEndAudioCoordinator,
                 ),
@@ -222,6 +276,9 @@ fun AppNavigation(
                 },
                 onNavigateToHistory = {
                     navController.navigate(AppDestination.TransactionHistory.route)
+                },
+                onContinueLocationOnActiveGame = {
+                    navController.popBackStack(AppDestination.Game.route, inclusive = false)
                 },
             )
         }

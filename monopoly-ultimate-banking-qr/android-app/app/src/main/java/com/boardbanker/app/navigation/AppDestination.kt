@@ -13,6 +13,7 @@ enum class AppDestination(val route: String) {
     GameOver("game_over"),
     TransactionHistory("transaction_history"),
     GameStatus("game_status"),
+    PlayerDetails("player_details/{playerId}"),
     QrScanner("qr_scanner"),
     ResumeGame("resume_game"),
     PersistenceDebug("persistence_debug"),
@@ -23,5 +24,7 @@ enum class AppDestination(val route: String) {
 
         fun auctionRoute(propertyId: String, startedByPlayerId: String): String =
             "auction/$propertyId/$startedByPlayerId"
+
+        fun playerDetailsRoute(playerId: String): String = "player_details/$playerId"
     }
 }

@@ -77,7 +77,6 @@ Each property record includes:
 | `initialRentLevel` | Rent level when first purchased (1 for all properties) |
 | `rentLevels` | Array of `{level, amount}` for levels 1–5 |
 | `maximumRentLevel` | Highest rent level (5 for all properties) |
-| `rawVisibleText` | Transcribed visible gameplay text |
 | `extractionStatus` | `COMPLETE`, `NEEDS_REVIEW`, or `UNREADABLE` |
 | `notes` | Extraction caveats |
 
@@ -152,8 +151,9 @@ Each event record includes:
 | `sequence` | Event sequence |
 | `qrPayload` | QR lookup value |
 | `frontAsset` / `qrAsset` | Image paths |
-| `printedText` | Full gameplay instruction transcribed from card |
-| `printedTextValidated` | Whether printed text has been confirmed against source |
+| `eventSubtitle` | Short flavour text from the event card |
+| `eventDescription` | Full gameplay instruction transcribed from card |
+| `printedTextValidated` | Whether card text has been confirmed against source |
 | `printedRuleStatus` | Whether the printed rule text is resolved (`RESOLVED` / `NEEDS_REVIEW`) |
 | `engineImplementationStatus` | Whether executable engine behaviour is defined (`COMPLETE` / `NEEDS_REVIEW`) |
 | `effectClassification` | Tags for game-engine behaviour |
@@ -193,7 +193,7 @@ Actual token movement is performed manually by the players. Digital board moveme
 | `true` | 6 | EVT_06, 07, 09, 11, 14, 23 |
 | `false` | 17 | All others |
 
-Some events require **multiple** player or property scans (e.g. EVT_06 swap requires two property scans; EVT_11 requires two player scans). See `printedText` and `notes` per event.
+Some events require **multiple** player or property scans (e.g. EVT_06 swap requires two property scans; EVT_11 requires two player scans). See `eventDescription` and `notes` per event.
 
 ### Events modifying rent levels
 

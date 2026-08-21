@@ -1,5 +1,6 @@
 package com.boardbanker.app.ui.screens.game
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ fun GameScreen(
     onNavigateToAuction: (String, String) -> Unit,
     onNavigateToDebt: () -> Unit,
     onNavigateToGameOver: () -> Unit,
+    onNavigateToPlayerDetails: (String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -58,17 +60,22 @@ fun GameScreen(
                 is GameEvent.NavigateToAuction -> onNavigateToAuction(event.propertyId, event.startedByPlayerId)
                 GameEvent.NavigateToDebt -> onNavigateToDebt()
                 GameEvent.NavigateToGameOver -> onNavigateToGameOver()
+                is GameEvent.NavigateToPlayerDetails -> onNavigateToPlayerDetails(event.playerId)
             }
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.resumeLocationWorkflowIfPending()
+    }
+
     uiState.message?.let { message ->
         AlertDialog(
-            onDismissRequest = viewModel::onDone,
+            onDismissRequest = viewModel::dismissMessage,
             title = { Text("Gameplay") },
             text = { Text(message) },
             confirmButton = {
-                TextButton(onClick = viewModel::onDone) { Text("OK") }
+                TextButton(onClick = viewModel::dismissMessage) { Text("OK") }
             },
         )
     }
@@ -122,18 +129,23 @@ fun GameScreen(
             if (!showCardInteraction) {
                 item {
                     uiState.players.forEach { player ->
-                        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.onPlayerSelected(player.playerId) }
+                                .padding(bottom = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             PlayerIdentity(
                                 playerId = player.playerId,
                                 playerName = player.playerName,
                                 iconSize = PlayerIconSize.Normal,
                             )
                             Text(player.balanceText, style = MaterialTheme.typography.bodyLarge)
-                            Text("Properties: ${player.propertyCount}", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                "Jail: ${if (player.inJail) "Yes" else "No"}",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
+                            Text(player.summaryLine, style = MaterialTheme.typography.bodyMedium)
+                            if (player.inJail) {
+                                Text("IN JAIL", style = MaterialTheme.typography.labelLarge)
+                            }
                         }
                     }
                 }
@@ -259,6 +271,32 @@ fun GameScreen(
                         onCancel = viewModel::onCancelWorkflow,
                         commandInFlight = uiState.commandInFlight,
                     )
+                    is GameplayWorkflowState.LocationWaitingForDestinationProperty -> {
+                        Text("LOCATION", style = MaterialTheme.typography.titleMedium)
+                        PlayerIdentity(
+                            playerId = workflow.playerId,
+                            playerName = viewModel.playerDisplayName(workflow.playerId),
+                            iconSize = PlayerIconSize.Normal,
+                        )
+                        Text(
+                            buildString {
+                                append("${viewModel.playerDisplayName(workflow.playerId)} paid ${viewModel.locationFeeText()}.\n\n")
+                                append("Move ${viewModel.playerDisplayName(workflow.playerId)}'s physical token\n")
+                                append("to the Property you choose.\n\n")
+                                append("Do NOT collect ${viewModel.goSalaryText()} if you pass GO.\n\n")
+                                append("Now scan the Property card.")
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        ScanPromptContent(
+                            prompt = uiState.scanPrompt ?: "Scan the Property card you moved to.",
+                            scanButtonLabel = "SCAN PROPERTY",
+                            onScan = viewModel::onScanPropertyRequested,
+                            onCancel = viewModel::onCancelWorkflow,
+                            commandInFlight = uiState.commandInFlight,
+                            showCancel = actionVisibility.showCancel,
+                        )
+                    }
                     is GameplayWorkflowState.PlayerInfo -> Unit
                     is GameplayWorkflowState.Error -> {
                         BankingActionBar(

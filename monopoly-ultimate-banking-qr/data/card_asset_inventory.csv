@@ -84,48 +84,37 @@ EVENT,,,LEGACY_BACK,Wibble_Wobble_Back.png,Resources/EventCards/Wibble_Wobble_Ba
 EVENT,23,Wibble Wobble,FRONT,Wibble_Wobble_Front.png,Resources/EventCards/Wibble_Wobble_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,01_Old_Kent_Road_Back.png,Resources/PropertyCards/01_Old_Kent_Road_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,1,Old Kent Road,QR,01_Old_Kent_Road_Back_QR.png,Resources/PropertyCards/01_Old_Kent_Road_Back_QR.png,true,
-PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front.png,Resources/PropertyCards/01_Old_Kent_Road_Front.png,false,Alternate front artwork variant
-PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front_New.png,Resources/PropertyCards/01_Old_Kent_Road_Front_New.png,true,Preferred front display asset
+PROPERTY,1,Old Kent Road,FRONT,01_Old_Kent_Road_Front.png,Resources/PropertyCards/01_Old_Kent_Road_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,02_Whitechapel_Road_Back.png,Resources/PropertyCards/02_Whitechapel_Road_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,2,Whitechapel Road,QR,02_Whitechapel_Road_Back_QR.png,Resources/PropertyCards/02_Whitechapel_Road_Back_QR.png,true,
-PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front.png,Resources/PropertyCards/02_Whitechapel_Road_Front.png,false,Alternate front artwork variant
-PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front_New.png,Resources/PropertyCards/02_Whitechapel_Road_Front_New.png,true,Preferred front display asset
+PROPERTY,2,Whitechapel Road,FRONT,02_Whitechapel_Road_Front.png,Resources/PropertyCards/02_Whitechapel_Road_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,03_The_Angel_Islington_Back.png,Resources/PropertyCards/03_The_Angel_Islington_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,3,"The Angel, Islington",QR,03_The_Angel_Islington_Back_QR.png,Resources/PropertyCards/03_The_Angel_Islington_Back_QR.png,true,
-PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front.png,Resources/PropertyCards/03_The_Angel_Islington_Front.png,false,Alternate front artwork variant
-PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front_New.png,Resources/PropertyCards/03_The_Angel_Islington_Front_New.png,true,Preferred front display asset
+PROPERTY,3,"The Angel, Islington",FRONT,03_The_Angel_Islington_Front.png,Resources/PropertyCards/03_The_Angel_Islington_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,04_Euston_Road_Back.png,Resources/PropertyCards/04_Euston_Road_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,4,Euston Road,QR,04_Euston_Road_Back_QR.png,Resources/PropertyCards/04_Euston_Road_Back_QR.png,true,
-PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front.png,Resources/PropertyCards/04_Euston_Road_Front.png,false,Alternate front artwork variant
-PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front_new.jpeg,Resources/PropertyCards/04_Euston_Road_Front_new.jpeg,true,Preferred front display asset
+PROPERTY,4,Euston Road,FRONT,04_Euston_Road_Front.png,Resources/PropertyCards/04_Euston_Road_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,05_Pentonville_Road_Back.png,Resources/PropertyCards/05_Pentonville_Road_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,5,Pentonville Road,QR,05_Pentonville_Road_Back_QR.png,Resources/PropertyCards/05_Pentonville_Road_Back_QR.png,true,
-PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front.png,Resources/PropertyCards/05_Pentonville_Road_Front.png,false,Alternate front artwork variant
-PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front_New.jpeg,Resources/PropertyCards/05_Pentonville_Road_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,5,Pentonville Road,FRONT,05_Pentonville_Road_Front.png,Resources/PropertyCards/05_Pentonville_Road_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,06_Pall_Mall_Back.png,Resources/PropertyCards/06_Pall_Mall_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,6,Pall Mall,QR,06_Pall_Mall_Back_QR.png,Resources/PropertyCards/06_Pall_Mall_Back_QR.png,true,
-PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front.png,Resources/PropertyCards/06_Pall_Mall_Front.png,false,Alternate front artwork variant
-PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front_New.jpeg,Resources/PropertyCards/06_Pall_Mall_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,6,Pall Mall,FRONT,06_Pall_Mall_Front.png,Resources/PropertyCards/06_Pall_Mall_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,07_Whitehall_Back.png,Resources/PropertyCards/07_Whitehall_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,7,Whitehall,QR,07_Whitehall_Back_QR.png,Resources/PropertyCards/07_Whitehall_Back_QR.png,true,
-PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front.png,Resources/PropertyCards/07_Whitehall_Front.png,false,Alternate front artwork variant
-PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front_New.jpeg,Resources/PropertyCards/07_Whitehall_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,7,Whitehall,FRONT,07_Whitehall_Front.png,Resources/PropertyCards/07_Whitehall_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,08_Northumberland_Avenue_Back.png,Resources/PropertyCards/08_Northumberland_Avenue_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,8,Northumberland Avenue,QR,08_Northumberland_Avenue_Back_QR.png,Resources/PropertyCards/08_Northumberland_Avenue_Back_QR.png,true,
-PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front.png,Resources/PropertyCards/08_Northumberland_Avenue_Front.png,false,Alternate front artwork variant
-PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front_New.jpeg,Resources/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,8,Northumberland Avenue,FRONT,08_Northumberland_Avenue_Front.png,Resources/PropertyCards/08_Northumberland_Avenue_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,09_Bow_Street_Back.png,Resources/PropertyCards/09_Bow_Street_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,9,Bow Street,QR,09_Bow_Street_Back_QR.png,Resources/PropertyCards/09_Bow_Street_Back_QR.png,true,
-PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front.png,Resources/PropertyCards/09_Bow_Street_Front.png,false,Alternate front artwork variant
-PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front_New.jpeg,Resources/PropertyCards/09_Bow_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,9,Bow Street,FRONT,09_Bow_Street_Front.png,Resources/PropertyCards/09_Bow_Street_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,10_Marlborough_Street_Back.png,Resources/PropertyCards/10_Marlborough_Street_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,10,Marlborough Street,QR,10_Marlborough_Street_Back_QR.png,Resources/PropertyCards/10_Marlborough_Street_Back_QR.png,true,
-PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front.png,Resources/PropertyCards/10_Marlborough_Street_Front.png,false,Alternate front artwork variant
-PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front_New.jpeg,Resources/PropertyCards/10_Marlborough_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,10,Marlborough Street,FRONT,10_Marlborough_Street_Front.png,Resources/PropertyCards/10_Marlborough_Street_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,11_Vine_Street_Back.png,Resources/PropertyCards/11_Vine_Street_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,11,Vine Street,QR,11_Vine_Street_Back_QR.png,Resources/PropertyCards/11_Vine_Street_Back_QR.png,true,
-PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front.png,Resources/PropertyCards/11_Vine_Street_Front.png,false,Alternate front artwork variant
-PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front_New.jpeg,Resources/PropertyCards/11_Vine_Street_Front_New.jpeg,true,Preferred front display asset
+PROPERTY,11,Vine Street,FRONT,11_Vine_Street_Front.png,Resources/PropertyCards/11_Vine_Street_Front.png,true,Preferred front display asset
 PROPERTY,,,LEGACY_BACK,12_Strand_Back.png,Resources/PropertyCards/12_Strand_Back.png,false,Ignored legacy hardware barcode
 PROPERTY,12,Strand,QR,12_Strand_Back_QR.png,Resources/PropertyCards/12_Strand_Back_QR.png,true,
 PROPERTY,12,Strand,FRONT,12_Strand_Front.png,Resources/PropertyCards/12_Strand_Front.png,true,Preferred front display asset

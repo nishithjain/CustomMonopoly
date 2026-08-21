@@ -82,7 +82,10 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
                 eventId = eventId,
                 name = obj["name"]!!.jsonPrimitive.content,
                 qrPayload = obj["qrPayload"]!!.jsonPrimitive.content,
-                printedText = obj["printedText"]?.jsonPrimitive?.content ?: "",
+                eventSubtitle = obj["eventSubtitle"]?.jsonPrimitive?.content ?: "",
+                eventDescription = obj["eventDescription"]?.jsonPrimitive?.content
+                    ?: obj["printedText"]?.jsonPrimitive?.content
+                    ?: "",
                 engineRule = rule,
             )
         }

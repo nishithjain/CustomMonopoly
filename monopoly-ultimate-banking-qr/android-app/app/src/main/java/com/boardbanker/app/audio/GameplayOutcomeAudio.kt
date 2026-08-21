@@ -106,6 +106,7 @@ object GameplayOutcomeAudio {
     ): GameplayAudioCue? = when (command) {
         is GameCommand.PayGoSalary -> GameplayAudioCue.GO
         is GameCommand.PayLocationFee -> GameplayAudioCue.MONEY_LOST
+        is GameCommand.SendPlayerToJail -> GameplayAudioCue.GO_TO_JAIL
         is GameCommand.PayJailFee -> GameplayAudioCue.KA_CHING
         is GameCommand.UndoLastAction ->
             if (result.transactions.any { it.transactionType == TransactionType.UNDO }) {

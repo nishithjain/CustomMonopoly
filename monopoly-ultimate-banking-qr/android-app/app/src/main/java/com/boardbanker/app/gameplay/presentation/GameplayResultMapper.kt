@@ -239,7 +239,7 @@ class GameplayResultMapper(
             title = if (eventId == "EVT_21") "TOTAL GRIDLOCK" else "EVENT APPLIED",
             primaryMessage = buildString {
                 append("${event.name}\n\n")
-                append(event.printedText.ifBlank { result.pendingMessage ?: "Event applied." })
+                append(event.displayText().ifBlank { result.pendingMessage ?: "Event applied." })
                 append(swapMessage)
                 if (gridlockMessage != null) append("\n\n$gridlockMessage")
             },

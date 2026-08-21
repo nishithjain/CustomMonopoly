@@ -11,6 +11,10 @@ class TransientScanWorkflowHolder {
         workflowState = ScanWorkflowState.WAITING_FOR_PLAYER
     }
 
+    fun enterLocationWaitingForDestination() {
+        workflowState = ScanWorkflowState.LOCATION_WAITING_FOR_DESTINATION_PROPERTY
+    }
+
     fun enterWaitingForProperty() {
         workflowState = ScanWorkflowState.WAITING_FOR_PROPERTY
     }
@@ -28,6 +32,7 @@ enum class ScanWorkflowState {
     READY,
     WAITING_FOR_PLAYER,
     WAITING_FOR_PROPERTY,
+    LOCATION_WAITING_FOR_DESTINATION_PROPERTY,
     PROPERTY_IDENTIFIED,
     EVENT_IDENTIFIED,
 }

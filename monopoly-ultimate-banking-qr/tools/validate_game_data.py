@@ -170,11 +170,12 @@ def validate_events(events: list[dict], cards: list[dict]) -> tuple[list[str], d
             elif not (WORKSPACE_ROOT / asset_path).exists():
                 problems.append(f"{event['eventId']}: {asset_key} not found: {asset_path}")
 
-        printed = event.get("printedText", "")
-        if status == "UNREADABLE" and not printed:
+        subtitle = event.get("eventSubtitle", "")
+        description = event.get("eventDescription", "") or event.get("printedText", "")
+        if status == "UNREADABLE" and not description and not subtitle:
             pass
-        elif not printed:
-            problems.append(f"{event['eventId']}: missing printedText")
+        elif not description:
+            problems.append(f"{event['eventId']}: missing eventDescription")
         if event.get("printedTextValidated") is not True:
             problems.append(f"{event['eventId']}: printedText not validated")
         if event.get("printedRuleStatus") != "RESOLVED":

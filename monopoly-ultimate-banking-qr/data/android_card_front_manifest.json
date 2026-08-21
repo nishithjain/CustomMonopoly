@@ -330,7 +330,7 @@
       "cardId": "PRP_01",
       "cardType": "PROPERTY",
       "name": "Old Kent Road",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_01.png",
       "asset": "cards/fronts/prp_01.png",
       "orientation": "PORTRAIT",
@@ -342,7 +342,7 @@
       "cardId": "PRP_02",
       "cardType": "PROPERTY",
       "name": "Whitechapel Road",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front_New.png",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_02.png",
       "asset": "cards/fronts/prp_02.png",
       "orientation": "PORTRAIT",
@@ -354,7 +354,7 @@
       "cardId": "PRP_03",
       "cardType": "PROPERTY",
       "name": "The Angel, Islington",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front_New.png",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_03.png",
       "asset": "cards/fronts/prp_03.png",
       "orientation": "PORTRAIT",
@@ -366,97 +366,97 @@
       "cardId": "PRP_04",
       "cardType": "PROPERTY",
       "name": "Euston Road",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/04_Euston_Road_Front_new.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_04.png",
       "asset": "cards/fronts/prp_04.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 816,
+      "height": 1312
     },
     "PRP_05": {
       "cardId": "PRP_05",
       "cardType": "PROPERTY",
       "name": "Pentonville Road",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_05.png",
       "asset": "cards/fronts/prp_05.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 824,
+      "height": 1283
     },
     "PRP_06": {
       "cardId": "PRP_06",
       "cardType": "PROPERTY",
       "name": "Pall Mall",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/06_Pall_Mall_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_06.png",
       "asset": "cards/fronts/prp_06.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 627,
+      "height": 979
     },
     "PRP_07": {
       "cardId": "PRP_07",
       "cardType": "PROPERTY",
       "name": "Whitehall",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/07_Whitehall_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_07.png",
       "asset": "cards/fronts/prp_07.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 630,
+      "height": 979
     },
     "PRP_08": {
       "cardId": "PRP_08",
       "cardType": "PROPERTY",
       "name": "Northumberland Avenue",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_08.png",
       "asset": "cards/fronts/prp_08.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 628,
+      "height": 985
     },
     "PRP_09": {
       "cardId": "PRP_09",
       "cardType": "PROPERTY",
       "name": "Bow Street",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/09_Bow_Street_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_09.png",
       "asset": "cards/fronts/prp_09.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 801,
+      "height": 1252
     },
     "PRP_10": {
       "cardId": "PRP_10",
       "cardType": "PROPERTY",
       "name": "Marlborough Street",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_10.png",
       "asset": "cards/fronts/prp_10.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 632,
+      "height": 981
     },
     "PRP_11": {
       "cardId": "PRP_11",
       "cardType": "PROPERTY",
       "name": "Vine Street",
-      "sourceFrontPath": "Resources/Cards/PropertyCards/11_Vine_Street_Front_New.jpeg",
+      "sourceFrontPath": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
       "runtimeAssetPath": "cards/fronts/prp_11.png",
       "asset": "cards/fronts/prp_11.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 637,
-      "height": 1024
+      "width": 632,
+      "height": 979
     },
     "PRP_12": {
       "cardId": "PRP_12",
@@ -479,8 +479,8 @@
       "asset": "cards/fronts/prp_13.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 800,
+      "height": 1265
     },
     "PRP_14": {
       "cardId": "PRP_14",
@@ -491,8 +491,8 @@
       "asset": "cards/fronts/prp_14.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 791,
+      "height": 1239
     },
     "PRP_15": {
       "cardId": "PRP_15",
@@ -503,8 +503,8 @@
       "asset": "cards/fronts/prp_15.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 800,
+      "height": 1244
     },
     "PRP_16": {
       "cardId": "PRP_16",
@@ -515,8 +515,8 @@
       "asset": "cards/fronts/prp_16.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 798,
+      "height": 1243
     },
     "PRP_17": {
       "cardId": "PRP_17",
@@ -527,8 +527,8 @@
       "asset": "cards/fronts/prp_17.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 801,
+      "height": 1244
     },
     "PRP_18": {
       "cardId": "PRP_18",
@@ -539,8 +539,8 @@
       "asset": "cards/fronts/prp_18.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 816,
+      "height": 1300
     },
     "PRP_19": {
       "cardId": "PRP_19",
@@ -551,8 +551,8 @@
       "asset": "cards/fronts/prp_19.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 806,
+      "height": 1251
     },
     "PRP_20": {
       "cardId": "PRP_20",
@@ -563,8 +563,8 @@
       "asset": "cards/fronts/prp_20.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 794,
+      "height": 1232
     },
     "PRP_21": {
       "cardId": "PRP_21",
@@ -575,8 +575,8 @@
       "asset": "cards/fronts/prp_21.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 797,
+      "height": 1229
     },
     "PRP_22": {
       "cardId": "PRP_22",
@@ -587,8 +587,8 @@
       "asset": "cards/fronts/prp_22.png",
       "orientation": "PORTRAIT",
       "rotationApplied": true,
-      "width": 1024,
-      "height": 1631
+      "width": 811,
+      "height": 1283
     }
   }
 }

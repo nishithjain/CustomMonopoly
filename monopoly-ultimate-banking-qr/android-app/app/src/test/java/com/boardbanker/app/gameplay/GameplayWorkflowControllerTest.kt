@@ -46,17 +46,27 @@ class GameplayWorkflowControllerTest {
     fun buyRequiresPlayerScan() {
         val session = AppTestSupport.newGame()
         controller.onPropertyScanned("PRP_01", session)
-        val actions = controller.onBuySelected()
+        val actions = controller.onBuySelected(session)
         assertTrue(actions.any { it is WorkflowAction.RequestScan })
         assertTrue(controller.currentState() is GameplayWorkflowState.WaitingForPurchasingPlayer)
+    }
+
+    @Test
+    fun locationBuyUsesKnownLandingPlayerWithoutScan() {
+        val session = AppTestSupport.newGame()
+        val actions = controller.beginLocationDestinationProperty("USR_01", "PRP_01", session)
+        assertTrue(controller.currentState() is GameplayWorkflowState.UnownedPropertyDecision)
+        val buyActions = controller.onBuySelected(session)
+        assertTrue(buyActions.any { it is WorkflowAction.ExecuteCommand })
+        assertTrue(buyActions.none { it is WorkflowAction.RequestScan })
     }
 
     @Test
     fun duplicateBuyTapIgnored() {
         val session = AppTestSupport.newGame()
         controller.onPropertyScanned("PRP_01", session)
-        controller.onBuySelected()
-        val second = controller.onBuySelected()
+        controller.onBuySelected(session)
+        val second = controller.onBuySelected(session)
         assertTrue(second.isEmpty())
     }
 

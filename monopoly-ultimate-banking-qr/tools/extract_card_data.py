@@ -47,7 +47,6 @@ def build_properties(cards: list[dict]) -> list[dict]:
                 "initialRentLevel": extraction.get("initialRentLevel"),
                 "rentLevels": extraction["rentLevels"],
                 "maximumRentLevel": extraction["maximumRentLevel"],
-                "rawVisibleText": extraction["rawVisibleText"],
                 "extractionStatus": extraction["extractionStatus"],
                 "notes": extraction["notes"],
             }
@@ -78,7 +77,11 @@ def build_events(cards: list[dict]) -> list[dict]:
                 "qrPayload": card["qrPayload"],
                 "frontAsset": card["assets"]["front"],
                 "qrAsset": card["assets"]["qr"],
-                "printedText": extraction["printedText"],
+                "eventSubtitle": extraction.get("eventSubtitle", ""),
+                "eventDescription": extraction.get(
+                    "eventDescription",
+                    extraction.get("printedText", ""),
+                ),
                 "printedTextValidated": extraction.get("printedTextValidated", False),
                 "printedRuleStatus": extraction.get("printedRuleStatus", "NEEDS_REVIEW"),
                 "engineImplementationStatus": extraction.get("engineImplementationStatus", "NEEDS_REVIEW"),
@@ -126,7 +129,6 @@ def write_properties_csv(properties: list[dict]) -> None:
         "initialRentLevel",
         "maximumRentLevel",
         "rentLevels",
-        "rawVisibleText",
         "extractionStatus",
         "notes",
     ]
@@ -152,7 +154,8 @@ def write_events_csv(events: list[dict]) -> None:
         "qrPayload",
         "frontAsset",
         "qrAsset",
-        "printedText",
+        "eventSubtitle",
+        "eventDescription",
         "printedTextValidated",
         "printedRuleStatus",
         "engineImplementationStatus",
@@ -267,7 +270,8 @@ def write_event_report(events: list[dict]) -> None:
             [
                 f"{event['eventId']} {event['name']}",
                 f"Status: {event['extractionStatus']}",
-                f"Printed rule: {event['printedText']}",
+                f"Subtitle: {event.get('eventSubtitle', '')}",
+                f"Description: {event.get('eventDescription', '')}",
                 f"Printed rule: {event.get('printedRuleStatus', 'UNKNOWN')}",
                 f"Engine implementation: {event.get('engineImplementationStatus', 'UNKNOWN')}",
                 f"Classification: {', '.join(event['effectClassification'])}",

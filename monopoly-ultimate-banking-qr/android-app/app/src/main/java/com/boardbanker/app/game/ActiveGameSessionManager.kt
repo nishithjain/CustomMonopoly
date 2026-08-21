@@ -11,6 +11,7 @@ import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.persistence.SavedGameLoadResult
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Holds the single authoritative committed [GameSession] in the app layer.
@@ -23,6 +24,8 @@ class ActiveGameSessionManager(
     private val engine: GameEngine = DefaultGameEngine(definitions),
 ) {
     fun currentSession(): GameSession? = committedStore.currentSession()
+
+    val committedSession: StateFlow<GameSession?> = committedStore.committedSession
 
     suspend fun restoreFromStorage(): SavedGameLoadResult = committedStore.loadLatestCommitted()
 

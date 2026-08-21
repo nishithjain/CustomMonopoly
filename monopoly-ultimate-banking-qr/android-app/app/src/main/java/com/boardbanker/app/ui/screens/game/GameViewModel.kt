@@ -9,18 +9,20 @@ import com.boardbanker.app.audio.GameplayOutcomeAudio
 import com.boardbanker.app.audio.InvalidUserActionAudio
 import com.boardbanker.app.audio.CommitAudioTrigger
 import com.boardbanker.app.audio.ScanPromptAudio
+import com.boardbanker.app.game.ActiveGamePresentation
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.gameplay.presentation.GameplayResultMapper
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.gameplay.location.LocationWorkflowConstants
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowController
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.gameplay.workflow.WorkflowAction
 import com.boardbanker.app.gameplay.workflow.WorkflowCommandContext
 import com.boardbanker.app.gameplay.workflow.WorkflowScanRequest
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
-import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.GameOutcome
@@ -37,12 +39,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.boardbanker.app.util.formatMoney
 import java.util.concurrent.atomic.AtomicBoolean
 
 class GameViewModel(
     private val sessionManager: ActiveGameSessionManager,
     private val definitions: GameDefinitions,
     private val transientWorkflow: TransientScanWorkflowHolder,
+    private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModel() {
@@ -59,6 +63,18 @@ class GameViewModel(
 
     init {
         loadSession()
+        viewModelScope.launch {
+            sessionManager.committedSession.collect { session ->
+                if (session == null) return@collect
+                if (session.status == GameStatus.FINISHED && !_uiState.value.gameplayLocked) {
+                    _events.emit(GameEvent.NavigateToGameOver)
+                }
+                if (session.debtResolution != null && _uiState.value.workflowState == GameplayWorkflowState.Ready) {
+                    _events.emit(GameEvent.NavigateToDebt)
+                }
+                refreshDashboardFromSession(session)
+            }
+        }
     }
 
     private fun loadSession() {
@@ -82,8 +98,17 @@ class GameViewModel(
             } else {
                 transientWorkflow.resetToReady()
                 updateFromSession(session)
+                resumeLocationWorkflowIfPending()
             }
         }
+    }
+
+    fun resumeLocationWorkflowIfPending() {
+        val playerId = locationWorkflowHolder.landingPlayerId ?: return
+        if (_uiState.value.workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
+            return
+        }
+        handleWorkflowActions(workflowController.enterLocationWaitingForDestination(playerId))
     }
 
     fun onScanRequested() {
@@ -96,6 +121,11 @@ class GameViewModel(
         _events.tryEmit(GameEvent.NavigateToBanking)
     }
 
+    fun onPlayerSelected(playerId: String) {
+        if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
+        _events.tryEmit(GameEvent.NavigateToPlayerDetails(playerId))
+    }
+
     fun onScanCardRequested() {
         if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
         _uiState.update { it.copy(expectedCardType = null, scanPrompt = null) }
@@ -103,9 +133,49 @@ class GameViewModel(
         _events.tryEmit(GameEvent.OpenScanner(null))
     }
 
+    fun onScanPropertyRequested() {
+        if (_uiState.value.commandInFlight) return
+        _events.tryEmit(GameEvent.OpenScanner(CardType.PROPERTY))
+    }
+
+    fun locationFeeText(): String = formatMoney(definitions.rulesConfig.locationFee)
+
+    fun goSalaryText(): String = formatMoney(definitions.rulesConfig.goSalary)
+
+    fun playerDisplayName(playerId: String): String =
+        PlayerDisplayNames.displayName(sessionManager.currentSession(), playerId, definitions)
+
     fun onCardScanned(cardId: String, cardType: CardType) {
         ScanPromptAudio.endPromptSession(scanPromptToken)
         val session = sessionManager.currentSession() ?: return
+        val workflowState = _uiState.value.workflowState
+        if (workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
+            when (cardType) {
+                CardType.PROPERTY -> {
+                    locationWorkflowHolder.clear()
+                    handleWorkflowActions(
+                        workflowController.beginLocationDestinationProperty(
+                            playerId = workflowState.playerId,
+                            propertyId = cardId,
+                            session = session,
+                        ),
+                    )
+                }
+                CardType.USER -> {
+                    InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                    _uiState.update {
+                        it.copy(message = "PROPERTY CARD EXPECTED\n\nPlease scan the destination Property card.")
+                    }
+                }
+                CardType.EVENT -> {
+                    InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                    _uiState.update {
+                        it.copy(message = "PROPERTY CARD EXPECTED\n\nPlease scan the destination Property card.")
+                    }
+                }
+            }
+            return
+        }
         val actions = when (cardType) {
             CardType.PROPERTY -> {
                 if (_uiState.value.workflowState is GameplayWorkflowState.EventCollectingTargets) {
@@ -122,11 +192,13 @@ class GameViewModel(
 
     fun onBuyProperty() {
         if (_uiState.value.commandInFlight) return
-        handleWorkflowActions(workflowController.onBuySelected())
+        val session = sessionManager.currentSession() ?: return
+        handleWorkflowActions(workflowController.onBuySelected(session))
     }
 
     fun onAuctionProperty() {
-        handleWorkflowActions(workflowController.onAuctionSelected())
+        val session = sessionManager.currentSession() ?: return
+        handleWorkflowActions(workflowController.onAuctionSelected(session))
     }
 
     fun onEventConfirm() {
@@ -145,13 +217,21 @@ class GameViewModel(
     }
 
     fun onCancelWorkflow() {
+        if (_uiState.value.workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
+            locationWorkflowHolder.clear()
+        }
         handleWorkflowActions(workflowController.onCancel())
         transientWorkflow.resetToReady()
+    }
+
+    fun dismissMessage() {
+        _uiState.update { it.copy(message = null) }
     }
 
     fun onDone() {
         handleWorkflowActions(workflowController.onDone())
         transientWorkflow.resetToReady()
+        locationWorkflowHolder.clear()
         sessionManager.currentSession()?.let { updateFromSession(it) }
         _uiState.update {
             it.copy(
@@ -177,6 +257,7 @@ class GameViewModel(
             sessionManager.deleteCurrentGame()
             workflowController.reset()
             transientWorkflow.resetToReady()
+            locationWorkflowHolder.clear()
             _uiState.update { it.copy(showAbandonConfirm = false) }
             _events.emit(GameEvent.NavigateHome)
         }
@@ -215,7 +296,13 @@ class GameViewModel(
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
         when (request.expectedCardType) {
             CardType.USER -> transientWorkflow.enterWaitingForPlayer()
-            CardType.PROPERTY -> transientWorkflow.enterWaitingForProperty()
+            CardType.PROPERTY -> {
+                if (_uiState.value.workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
+                    transientWorkflow.enterLocationWaitingForDestination()
+                } else {
+                    transientWorkflow.enterWaitingForProperty()
+                }
+            }
             CardType.EVENT -> transientWorkflow.enterEventIdentified()
             else -> transientWorkflow.resetToReady()
         }
@@ -263,6 +350,17 @@ class GameViewModel(
             is GameplayWorkflowState.Error -> {
                 InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
                 _uiState.update { it.copy(message = state.message) }
+            }
+            is GameplayWorkflowState.LocationWaitingForDestinationProperty -> {
+                scanPromptToken = ScanPromptAudio.beginPromptSession()
+                ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
+                transientWorkflow.enterLocationWaitingForDestination()
+                _uiState.update {
+                    it.copy(
+                        expectedCardType = CardType.PROPERTY,
+                        scanPrompt = "Scan the Property card you moved to.",
+                    )
+                }
             }
             else -> Unit
         }
@@ -377,15 +475,10 @@ class GameViewModel(
     }
 
     private fun updateFromSession(session: GameSession) {
-        val players = session.players.map { (playerId, playerState) ->
-            PlayerDashboardUi(
-                playerId = playerId,
-                playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
-                balanceText = formatMoney(playerState.balance),
-                propertyCount = session.properties.values.count { it.ownerPlayerId == playerId },
-                inJail = playerState.jailStatus,
-            )
-        }
+        refreshDashboardFromSession(session)
+    }
+
+    private fun refreshDashboardFromSession(session: GameSession) {
         val activeEvent = session.temporaryEffects.firstOrNull {
             it.active && it.effectType == "FORCE_LEVEL_1_RENT"
         }?.let { effect ->
@@ -395,7 +488,7 @@ class GameViewModel(
             it.copy(
                 loading = false,
                 status = session.status,
-                players = players,
+                players = ActiveGamePresentation.buildPlayerDashboard(session, definitions),
                 activeEventMessage = activeEvent,
                 gameplayLocked = session.status == GameStatus.FINISHED,
             )
@@ -407,6 +500,7 @@ class GameViewModelFactory(
     private val sessionManager: ActiveGameSessionManager,
     private val definitions: GameDefinitions,
     private val transientWorkflow: TransientScanWorkflowHolder,
+    private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModelProvider.Factory {
@@ -417,6 +511,7 @@ class GameViewModelFactory(
                 sessionManager,
                 definitions,
                 transientWorkflow,
+                locationWorkflowHolder,
                 gameAudioFeedback,
                 gameEndAudioCoordinator,
             ) as T

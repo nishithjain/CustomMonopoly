@@ -11,6 +11,7 @@ data class PlayerDashboardUi(
     val balanceText: String,
     val propertyCount: Int = 0,
     val inJail: Boolean = false,
+    val summaryLine: String = "",
 )
 
 data class CardPresentationUi(
@@ -45,4 +46,5 @@ sealed class GameEvent {
     data class NavigateToAuction(val propertyId: String, val startedByPlayerId: String) : GameEvent()
     data object NavigateToDebt : GameEvent()
     data object NavigateToGameOver : GameEvent()
+    data class NavigateToPlayerDetails(val playerId: String) : GameEvent()
 }

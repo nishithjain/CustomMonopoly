@@ -9,8 +9,10 @@ sealed class AdvancedBankingStep {
     data class GoConfirm(val playerId: String) : AdvancedBankingStep()
     data object LocationIntro : AdvancedBankingStep()
     data object LocationScanPlayer : AdvancedBankingStep()
-    data object LocationScanProperty : AdvancedBankingStep()
-    data object JailScanPlayer : AdvancedBankingStep()
+    data class LocationConfirmPlayer(val playerId: String) : AdvancedBankingStep()
+    data object GoToJailScanPlayer : AdvancedBankingStep()
+    data class GoToJailConfirm(val playerId: String) : AdvancedBankingStep()
+    data object GetOutOfJailScanPlayer : AdvancedBankingStep()
     data class JailOptions(val playerId: String) : AdvancedBankingStep()
     data class JailDoublesConfirm(val playerId: String) : AdvancedBankingStep()
     data object UndoConfirm : AdvancedBankingStep()
@@ -32,4 +34,5 @@ sealed class AdvancedBankingEvent {
     data object NavigateToGameOver : AdvancedBankingEvent()
     data object NavigateToGameStatus : AdvancedBankingEvent()
     data object NavigateToHistory : AdvancedBankingEvent()
+    data object ContinueLocationOnActiveGame : AdvancedBankingEvent()
 }

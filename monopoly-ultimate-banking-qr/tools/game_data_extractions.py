@@ -799,7 +799,11 @@ for _event_id, _master in EVENT_MASTER_BY_ID.items():
         continue
     extraction = EVENT_EXTRACTIONS[_event_id]
     extraction["displayName"] = _master["name"]
-    extraction["printedText"] = _master["printedText"]
+    extraction["eventSubtitle"] = _master.get("eventSubtitle", "")
+    extraction["eventDescription"] = _master.get(
+        "eventDescription",
+        _master.get("printedText", ""),
+    )
     extraction["printedTextValidated"] = True
     extraction["printedRuleStatus"] = "RESOLVED"
     if _event_id in ENGINE_IMPLEMENTATION_NEEDS_REVIEW:

@@ -305,7 +305,7 @@
       "name": "Old Kent Road",
       "qrPayload": "MUB:P:01",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+        "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
         "qr": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png"
       }
     },
@@ -316,7 +316,7 @@
       "name": "Whitechapel Road",
       "qrPayload": "MUB:P:02",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front_New.png",
+        "front": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
         "qr": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png"
       }
     },
@@ -327,7 +327,7 @@
       "name": "The Angel, Islington",
       "qrPayload": "MUB:P:03",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front_New.png",
+        "front": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
         "qr": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png"
       }
     },
@@ -338,7 +338,7 @@
       "name": "Euston Road",
       "qrPayload": "MUB:P:04",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/04_Euston_Road_Front_new.jpeg",
+        "front": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
         "qr": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png"
       }
     },
@@ -349,7 +349,7 @@
       "name": "Pentonville Road",
       "qrPayload": "MUB:P:05",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
         "qr": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png"
       }
     },
@@ -360,7 +360,7 @@
       "name": "Pall Mall",
       "qrPayload": "MUB:P:06",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/06_Pall_Mall_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
         "qr": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png"
       }
     },
@@ -371,7 +371,7 @@
       "name": "Whitehall",
       "qrPayload": "MUB:P:07",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/07_Whitehall_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
         "qr": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png"
       }
     },
@@ -382,7 +382,7 @@
       "name": "Northumberland Avenue",
       "qrPayload": "MUB:P:08",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
         "qr": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png"
       }
     },
@@ -393,7 +393,7 @@
       "name": "Bow Street",
       "qrPayload": "MUB:P:09",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/09_Bow_Street_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
         "qr": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png"
       }
     },
@@ -404,7 +404,7 @@
       "name": "Marlborough Street",
       "qrPayload": "MUB:P:10",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
         "qr": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png"
       }
     },
@@ -415,7 +415,7 @@
       "name": "Vine Street",
       "qrPayload": "MUB:P:11",
       "assets": {
-        "front": "Resources/Cards/PropertyCards/11_Vine_Street_Front_New.jpeg",
+        "front": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
         "qr": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png"
       }
     },

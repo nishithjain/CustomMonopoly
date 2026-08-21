@@ -1,0 +1,24 @@
+PLAYER DETAILS / BANK ACTIONS VALIDATION
+Project root: C:\Personal\Monopoly\monopoly-ultimate-banking-qr
+
+[PASS] committed session StateFlow exists
+[PASS] ActiveGameSessionManager exposes committed session
+[PASS] GameViewModel observes committed session
+[PASS] PlayerDetailsViewModel observes committed session
+[PASS] Player rows clickable on Active Game
+[PASS] PlayerDetailsScreen exists
+[PASS] owned property list exists
+[PASS] owned properties derive from session ownership
+[PASS] player-specific bank actions on Player Details
+[PASS] GO TO JAIL bank action exists
+[PASS] generic ambiguous JAIL label removed from hub
+[PASS] GET OUT OF JAIL exists
+[PASS] GO uses Game Engine
+[PASS] Location uses Game Engine
+[PASS] SendPlayerToJail uses Game Engine
+[PASS] Get Out uses Game Engine
+[PASS] Player Details navigation by playerId
+[PASS] no manual balance arithmetic in Compose screens
+[PASS] game-core remains Android-free
+
+RESULT: PASS (19/19)

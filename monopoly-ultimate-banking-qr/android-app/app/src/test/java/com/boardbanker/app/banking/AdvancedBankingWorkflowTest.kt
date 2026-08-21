@@ -70,6 +70,20 @@ class AdvancedBankingWorkflowTest {
     }
 
     @Test
+    fun locationFeeOnly_deductsWithoutPropertyLanding() = runTest {
+        startActiveGame()
+        val before = sessionManager.currentSession()!!.players["USR_01"]!!.balance
+        val outcome = executor.execute(
+            GameCommand.PayLocationFee(
+                "USR_01",
+                com.boardbanker.app.gameplay.location.LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID,
+            ),
+        ) as BankingCommitOutcome.Success
+        assertEquals(before - definitions.rulesConfig.locationFee, outcome.session.players["USR_01"]!!.balance)
+        assertEquals(null, outcome.session.properties["PRP_01"]!!.ownerPlayerId)
+    }
+
+    @Test
     fun jailFee_releasesPlayer() = runTest {
         startActiveGame()
         var session = sessionManager.currentSession()!!
@@ -125,6 +139,13 @@ class AdvancedBankingWorkflowTest {
             ),
         )
         assertFalse(UndoEligibility(definitions).canUndo(session))
+    }
+
+    @Test
+    fun sendPlayerToJail_setsJailStatus() = runTest {
+        startActiveGame()
+        val outcome = executor.execute(GameCommand.SendPlayerToJail("USR_01")) as BankingCommitOutcome.Success
+        assertTrue(outcome.session.players["USR_01"]!!.jailStatus)
     }
 
     @Test

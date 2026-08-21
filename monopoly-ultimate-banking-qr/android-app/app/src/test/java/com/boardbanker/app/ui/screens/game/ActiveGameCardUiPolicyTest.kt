@@ -54,7 +54,8 @@ class ActiveGameCardUiPolicyTest {
             workflowState = GameplayWorkflowState.EventIntro(
                 eventId = "EVT_06",
                 eventName = "Haunted House",
-                printedText = "Swap properties.",
+                eventSubtitle = "Something strange is going on!",
+                eventDescription = "Swap properties.",
             ),
             result = null,
             gameplayLocked = false,
@@ -71,7 +72,8 @@ class ActiveGameCardUiPolicyTest {
             workflowState = GameplayWorkflowState.EventIntro(
                 eventId = "EVT_06",
                 eventName = "Haunted House",
-                printedText = "Swap properties.",
+                eventSubtitle = "Something strange is going on!",
+                eventDescription = "Swap properties.",
             ),
             result = null,
         )

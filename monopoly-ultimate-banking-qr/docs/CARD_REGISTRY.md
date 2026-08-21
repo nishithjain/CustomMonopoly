@@ -140,7 +140,7 @@ Full mappings are in `data/cards.json` and `data/card_registry.csv`.
 
 Asset paths in the registry are relative to the workspace root (`Resources/...`).
 
-Properties with newer front artwork use the `_Front_New` / `_Front_new` variant as the preferred display asset when present. Original front files remain in the inventory but are not the preferred runtime asset.
+Property front artwork uses the canonical `_Front.png` filename under `Resources/Cards/PropertyCards/`.
 
 Example:
 
@@ -152,7 +152,7 @@ Example:
   "name": "Old Kent Road",
   "qrPayload": "MUB:P:01",
   "assets": {
-    "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+    "front": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
     "qr": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png"
   }
 }

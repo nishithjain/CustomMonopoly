@@ -58,14 +58,14 @@ object ActiveGameCardPresentationBuilder {
         is GameplayWorkflowState.EventIntro -> CardPresentationUi(
             cardTypeLabel = "EVENT",
             title = state.eventName,
-            body = state.printedText,
+            body = formatEventBody(state.eventSubtitle, state.eventDescription),
         )
         is GameplayWorkflowState.EventCollectingTargets -> {
             val event = definitions.events[state.eventId] ?: return null
             CardPresentationUi(
                 cardTypeLabel = "EVENT",
                 title = event.name,
-                body = event.printedText,
+                body = event.displayText(),
             )
         }
         is GameplayWorkflowState.EventConfirm -> {
@@ -73,9 +73,19 @@ object ActiveGameCardPresentationBuilder {
             CardPresentationUi(
                 cardTypeLabel = "EVENT",
                 title = event.name,
-                body = event.printedText,
+                body = event.displayText(),
             )
         }
         else -> null
+    }
+
+    private fun formatEventBody(subtitle: String, description: String): String = buildString {
+        if (subtitle.isNotBlank()) {
+            append(subtitle)
+            if (description.isNotBlank()) {
+                append("\n\n")
+            }
+        }
+        append(description)
     }
 }

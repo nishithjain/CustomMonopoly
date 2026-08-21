@@ -8,6 +8,7 @@ data class ActiveGameActionVisibility(
     val showAuction: Boolean = false,
     val showContinue: Boolean = false,
     val showScanPlayer: Boolean = false,
+    val showScanProperty: Boolean = false,
     val showDone: Boolean = false,
     val showCancel: Boolean = false,
 )
@@ -67,6 +68,10 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.EventPropertyChoice -> ActiveGameActionVisibility(
                 showBuy = true,
                 showAuction = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.LocationWaitingForDestinationProperty -> ActiveGameActionVisibility(
+                showScanProperty = true,
                 showCancel = true,
             )
             else -> ActiveGameActionVisibility()

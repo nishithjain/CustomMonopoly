@@ -5,13 +5,17 @@ import com.boardbanker.app.persistence.repository.SaveSessionResult
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.GameSession
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class CommittedGameSessionStore(
     private val repository: GameSessionRepository,
 ) {
-    private var currentCommittedSession: GameSession? = null
+    private val _committedSession = MutableStateFlow<GameSession?>(null)
+    val committedSession: StateFlow<GameSession?> = _committedSession.asStateFlow()
 
-    fun currentSession(): GameSession? = currentCommittedSession
+    fun currentSession(): GameSession? = _committedSession.value
 
     suspend fun commitGameResult(result: GameResult): CommitResult {
         if (!shouldPersist(result)) {
@@ -21,7 +25,7 @@ class CommittedGameSessionStore(
         val saveResult = repository.save(result.session)
         return when (saveResult) {
             is SaveSessionResult.Success -> {
-                currentCommittedSession = saveResult.session
+                _committedSession.value = saveResult.session
                 CommitResult.Persisted(saveResult.session)
             }
             is SaveSessionResult.Failure -> CommitResult.PersistenceFailed(
@@ -34,15 +38,15 @@ class CommittedGameSessionStore(
     suspend fun loadLatestCommitted(): com.boardbanker.core.persistence.SavedGameLoadResult {
         val loadResult = repository.loadLatestActive()
         if (loadResult is com.boardbanker.core.persistence.SavedGameLoadResult.Success) {
-            currentCommittedSession = loadResult.session
+            _committedSession.value = loadResult.session
         }
         return loadResult
     }
 
     suspend fun deleteSavedGame(gameId: String) {
         repository.delete(gameId)
-        if (currentCommittedSession?.gameId == gameId) {
-            currentCommittedSession = null
+        if (_committedSession.value?.gameId == gameId) {
+            _committedSession.value = null
         }
     }
 

@@ -6,7 +6,7 @@
       "name": "Old Kent Road",
       "sequence": 1,
       "qrPayload": "MUB:P:01",
-      "frontAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front_New.png",
+      "frontAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/01_Old_Kent_Road_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
@@ -35,7 +35,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "OLD KENT ROAD. RENT LEVEL 1-5. RENT: 70, 130, 220, 370, 750. Sequence: 1. © 1935, 2015 Hasbro.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -44,7 +43,7 @@
       "name": "Whitechapel Road",
       "sequence": 2,
       "qrPayload": "MUB:P:02",
-      "frontAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front_New.png",
+      "frontAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/02_Whitechapel_Road_Back_QR.png",
       "colorGroup": "BROWN",
       "colorGroupLabel": "Brown",
@@ -73,7 +72,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "WHITECHAPEL ROAD. RENT LEVEL 1-5. RENT: 70, 130, 220, 370, 750. Sequence: 2.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -82,7 +80,7 @@
       "name": "The Angel, Islington",
       "sequence": 3,
       "qrPayload": "MUB:P:03",
-      "frontAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front_New.png",
+      "frontAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/03_The_Angel_Islington_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
@@ -111,7 +109,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "THE ANGEL, ISLINGTON. RENT LEVEL 1-5. RENT: 80, 140, 240, 410, 800. Sequence: 3.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -120,7 +117,7 @@
       "name": "Euston Road",
       "sequence": 4,
       "qrPayload": "MUB:P:04",
-      "frontAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Front_new.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/04_Euston_Road_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
@@ -149,7 +146,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "EUSTON ROAD. RENT LEVEL 1-5. RENT: 80, 140, 240, 410, 800. Sequence: 4.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -158,7 +154,7 @@
       "name": "Pentonville Road",
       "sequence": 5,
       "qrPayload": "MUB:P:05",
-      "frontAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/05_Pentonville_Road_Back_QR.png",
       "colorGroup": "LIGHT_BLUE",
       "colorGroupLabel": "Light Blue",
@@ -187,7 +183,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "PENTONVILLE ROAD. RENT LEVEL 1-5. RENT: 100, 160, 260, 440, 860. Sequence: 5.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -196,7 +191,7 @@
       "name": "Pall Mall",
       "sequence": 6,
       "qrPayload": "MUB:P:06",
-      "frontAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/06_Pall_Mall_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
@@ -225,7 +220,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "PALL MALL. RENT LEVEL 1-5. RENT: 110, 180, 290, 460, 900. Sequence: 6.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -234,7 +228,7 @@
       "name": "Whitehall",
       "sequence": 7,
       "qrPayload": "MUB:P:07",
-      "frontAsset": "Resources/Cards/PropertyCards/07_Whitehall_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/07_Whitehall_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/07_Whitehall_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
@@ -263,7 +257,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "WHITEHALL. RENT LEVEL 1-5. RENT: 110, 180, 290, 460, 900. Sequence: 7.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -272,7 +265,7 @@
       "name": "Northumberland Avenue",
       "sequence": 8,
       "qrPayload": "MUB:P:08",
-      "frontAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/08_Northumberland_Avenue_Back_QR.png",
       "colorGroup": "PINK",
       "colorGroupLabel": "Pink",
@@ -301,7 +294,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "NORTHUMBERLAND AVENUE. RENT LEVEL 1-5. RENT: 130, 200, 310, 490, 980. Sequence: 8.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -310,7 +302,7 @@
       "name": "Bow Street",
       "sequence": 9,
       "qrPayload": "MUB:P:09",
-      "frontAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/09_Bow_Street_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
@@ -339,7 +331,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "BOW STREET. RENT LEVEL 1-5. RENT: 140, 210, 330, 520, 1000. Sequence: 9.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -348,7 +339,7 @@
       "name": "Marlborough Street",
       "sequence": 10,
       "qrPayload": "MUB:P:10",
-      "frontAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/10_Marlborough_Street_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
@@ -377,7 +368,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "MARLBOROUGH STREET. RENT LEVEL 1-5. RENT: 140, 210, 330, 520, 1000. Sequence: 10.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -386,7 +376,7 @@
       "name": "Vine Street",
       "sequence": 11,
       "qrPayload": "MUB:P:11",
-      "frontAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Front_New.jpeg",
+      "frontAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Front.png",
       "qrAsset": "Resources/Cards/PropertyCards/11_Vine_Street_Back_QR.png",
       "colorGroup": "ORANGE",
       "colorGroupLabel": "Orange",
@@ -415,7 +405,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "VINE STREET. RENT LEVEL 1-5. RENT: 160, 230, 350, 550, 1100. Sequence: 11.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -453,7 +442,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "STRAND. RENT LEVEL 1-5. RENT: 170, 250, 380, 580, 1160. Sequence: 12.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -491,7 +479,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "FLEET STREET. RENT LEVEL 1-5. RENT: 170, 250, 380, 580, 1160. Sequence: 13.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -529,7 +516,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "TRAFALGAR SQUARE. RENT LEVEL 1-5. RENT: 190, 270, 400, 610, 1200. Sequence: 14.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -567,7 +553,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "LEICESTER SQUARE. RENT LEVEL 1-5. RENT: 200, 280, 420, 640, 1300. Sequence: 15.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -605,7 +590,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "COVENTRY STREET. RENT LEVEL 1-5. RENT: 200, 280, 420, 640, 1300. Sequence: 16.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -643,7 +627,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "PICCADILLY. RENT LEVEL 1-5. RENT: 220, 300, 440, 670, 1340. Sequence: 17.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -681,7 +664,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "REGENT STREET. RENT LEVEL 1-5. RENT: 230, 320, 460, 700, 1400. Sequence: 18.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -719,7 +701,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "OXFORD STREET. RENT LEVEL 1-5. RENT: 230, 320, 460, 700, 1400. Sequence: 19.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -757,7 +738,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "BOND STREET. RENT LEVEL 1-5. RENT: 250, 340, 480, 730, 1440. Sequence: 20.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -795,7 +775,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "PARK LANE. RENT LEVEL 1-5. RENT: 270, 360, 510, 740, 1500. Sequence: 21.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     },
@@ -833,7 +812,6 @@
         }
       ],
       "maximumRentLevel": 5,
-      "rawVisibleText": "MAYFAIR. RENT LEVEL 1-5. RENT: 300, 400, 560, 810, 1600. Sequence: 22.",
       "extractionStatus": "COMPLETE",
       "notes": "Master values confirmed from provided game data."
     }
