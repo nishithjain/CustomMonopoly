@@ -31,7 +31,7 @@ def main() -> None:
     board = json.loads((DATA / "board_relationships.json").read_text(encoding="utf-8"))
     engine_rules = json.loads((DATA / "event_engine_rules.json").read_text(encoding="utf-8"))
     india_props = json.loads(
-        (WORKSPACE / "CustomCardGenerators" / "properties_india.json").read_text(encoding="utf-8")
+        (DATA / "editions" / "india" / "properties.json").read_text(encoding="utf-8")
     )
 
     baseline = {

@@ -61,6 +61,10 @@ signing.properties
 !.vscode/launch.json
 !.vscode/tasks.json
 
+# Generated card/board output
+CustomCardGenerators/output/**
+!CustomCardGenerators/output/.gitkeep
+
 # Cursor local state
 .cursor/projects/
 *.code-workspace

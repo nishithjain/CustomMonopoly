@@ -1,0 +1,40 @@
+{
+  "themeId": "monopoly_default",
+  "notes": "Extracted from the existing property-card and board generators. Property cards derive header/rent shades from propertyCardBase. Board tiles use the boardTiles dark/light pairs as rendered today. Do not mix the two palettes.",
+  "fonts": {
+    "property": "Cambria",
+    "board": "Cambria"
+  },
+  "board": {
+    "outerSizeCm": 50,
+    "innerSizeCm": 37,
+    "dpi": 300
+  },
+  "cards": {
+    "widthMm": 108,
+    "heightMm": 172,
+    "dpi": 300
+  },
+  "colors": {
+    "propertyCardBase": {
+      "BROWN": "#A16434",
+      "LIGHT_BLUE": "#77BFE8",
+      "PINK": "#D9569E",
+      "ORANGE": "#E9923A",
+      "RED": "#D94B43",
+      "YELLOW": "#E7BE35",
+      "GREEN": "#3E9762",
+      "DARK_BLUE": "#355B91"
+    },
+    "boardTiles": {
+      "BROWN": { "dark": "#7b3e20", "light": "#b66536" },
+      "LIGHT_BLUE": { "dark": "#4f91ad", "light": "#8fc9df" },
+      "PINK": { "dark": "#a92f70", "light": "#df66a1" },
+      "ORANGE": { "dark": "#c25a2a", "light": "#e88a5a" },
+      "RED": { "dark": "#a52d2d", "light": "#dc5b5b" },
+      "YELLOW": { "dark": "#b89600", "light": "#e3c93e" },
+      "GREEN": { "dark": "#237547", "light": "#55aa73" },
+      "DARK_BLUE": { "dark": "#244c92", "light": "#4f78c8" }
+    }
+  }
+}
