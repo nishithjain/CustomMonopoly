@@ -199,50 +199,150 @@ class BankingResultMapper(
         )
     }
 
-    fun mapDebtSettled(result: GameResult, propertyId: String, sessionBefore: GameSession): GameplayResultUiModel {
+    fun mapDebtSettled(
+        result: GameResult,
+        propertyIds: List<String>,
+        sessionBefore: GameSession,
+    ): GameplayResultUiModel {
         val debt = sessionBefore.debtResolution ?: return errorResult("No debt context.")
-        val property = definitions.properties[propertyId]!!
         val debtorName = resolvePlayerName(debt.debtorPlayerId, result.session)
         val creditorName = if (debt.creditorPlayerId == EntityRef.BANK) {
             "Bank"
         } else {
             resolvePlayerName(debt.creditorPlayerId, result.session)
         }
-        val rentLevel = result.session.properties[propertyId]!!.currentRentLevel
+        val propertyNames = propertyIds.mapNotNull { definitions.properties[it]?.name }
+        val propertySummary = when (propertyNames.size) {
+            0 -> "Selected properties"
+            1 -> propertyNames.single()
+            else -> "${propertyNames.size} properties"
+        }
+        val transferMessage = when (propertyNames.size) {
+            1 -> "$propertySummary was transferred to $creditorName."
+            else -> "$propertySummary were transferred to $creditorName."
+        }
+        val changeAmount = debtSettlementChangeAmount(result, debt)
+        val changeMessage = when {
+            changeAmount <= 0 -> null
+            debt.creditorPlayerId == EntityRef.BANK ->
+                "$creditorName returned ${money(changeAmount)} change to $debtorName."
+            else -> "$creditorName paid ${money(changeAmount)} change to $debtorName."
+        }
+        val propertyChanges = propertyIds.mapNotNull { propertyId ->
+            val property = definitions.properties[propertyId] ?: return@mapNotNull null
+            val rentLevel = result.session.properties[propertyId]?.currentRentLevel ?: 1
+            if (debt.creditorPlayerId == EntityRef.BANK) {
+                PropertyChangeUi(propertyName = property.name, ownerName = null, rentLevelAfter = rentLevel)
+            } else {
+                PropertyChangeUi(
+                    propertyName = property.name,
+                    ownerName = creditorName,
+                    ownerPlayerId = debt.creditorPlayerId,
+                    rentLevelAfter = rentLevel,
+                )
+            }
+        }
+        val balanceChanges = buildDebtSettlementBalanceChanges(
+            result = result,
+            debt = debt,
+            debtorName = debtorName,
+            creditorName = creditorName,
+            sessionBefore = sessionBefore,
+            changeAmount = changeAmount,
+        )
         return if (debt.creditorPlayerId == EntityRef.BANK) {
             GameplayResultUiModel(
-                title = "PROPERTY RETURNED TO BANK",
+                title = "DEBT SETTLED SUCCESSFULLY",
+                primaryPlayerId = debt.debtorPlayerId,
+                primaryPlayerName = debtorName,
                 primaryMessage = buildString {
-                    append("${property.name} is now unowned.\n\n")
+                    append(transferMessage)
+                    append("\n\n")
+                    append("${propertyNames.firstOrNull() ?: "Property"} is now unowned.\n\n")
                     append("Remove the physical ownership indicator.")
+                    if (changeMessage != null) {
+                        append("\n\n")
+                        append(changeMessage)
+                    }
                 },
-                propertyChanges = listOf(
-                    PropertyChangeUi(propertyName = property.name, ownerName = null, rentLevelAfter = 1),
-                ),
+                balanceChanges = balanceChanges,
+                propertyChanges = propertyChanges,
             )
         } else {
             GameplayResultUiModel(
-                title = "DEBT SETTLED",
+                title = "DEBT SETTLED SUCCESSFULLY",
                 primaryPlayerId = debt.debtorPlayerId,
                 primaryPlayerName = debtorName,
                 secondaryPlayerId = debt.creditorPlayerId,
                 secondaryPlayerName = creditorName,
                 primaryMessage = buildString {
-                    append("${property.name} transferred.\n\n")
-                    append("Rent Level remains:\n$rentLevel\n\n")
-                    append("Please physically give\nthe Property card to $creditorName.")
+                    append(transferMessage)
+                    if (changeMessage != null) {
+                        append("\n\n")
+                        append(changeMessage)
+                    }
+                    append("\n\n")
+                    append("Please physically give the Property card")
+                    if (propertyNames.size == 1) {
+                        append(" to $creditorName.")
+                    } else {
+                        append("s to $creditorName.")
+                    }
                 },
-                propertyChanges = listOf(
-                    PropertyChangeUi(
-                        propertyName = property.name,
-                        ownerName = creditorName,
-                        ownerPlayerId = debt.creditorPlayerId,
-                        rentLevelAfter = rentLevel,
-                    ),
-                ),
+                balanceChanges = balanceChanges,
+                propertyChanges = propertyChanges,
             )
         }
     }
+
+    private fun debtSettlementChangeAmount(result: GameResult, debt: com.boardbanker.core.model.DebtResolutionState): Int {
+        val changeTx = result.transactions.lastOrNull {
+            when (it.transactionType) {
+                TransactionType.BANK_CREDIT ->
+                    it.toEntity == debt.debtorPlayerId && it.fromEntity == EntityRef.BANK
+                TransactionType.RENT_PAYMENT ->
+                    it.fromEntity == debt.creditorPlayerId && it.toEntity == debt.debtorPlayerId
+                else -> false
+            }
+        }
+        return changeTx?.amount ?: 0
+    }
+
+    private fun buildDebtSettlementBalanceChanges(
+        result: GameResult,
+        debt: com.boardbanker.core.model.DebtResolutionState,
+        debtorName: String,
+        creditorName: String,
+        sessionBefore: GameSession,
+        changeAmount: Int,
+    ): List<BalanceChangeUi> {
+        if (changeAmount <= 0) return emptyList()
+        val debtorBefore = sessionBefore.players[debt.debtorPlayerId]!!.balance
+        val debtorAfter = result.session.players[debt.debtorPlayerId]!!.balance
+        val changes = mutableListOf(
+            BalanceChangeUi(
+                playerId = debt.debtorPlayerId,
+                playerName = debtorName,
+                before = debtorBefore,
+                after = debtorAfter,
+            ),
+        )
+        if (debt.creditorPlayerId != EntityRef.BANK) {
+            val creditorBefore = sessionBefore.players[debt.creditorPlayerId]!!.balance
+            val creditorAfter = result.session.players[debt.creditorPlayerId]!!.balance
+            changes += BalanceChangeUi(
+                playerId = debt.creditorPlayerId,
+                playerName = creditorName,
+                before = creditorBefore,
+                after = creditorAfter,
+            )
+        }
+        return changes
+    }
+
+    @Deprecated("Use mapDebtSettled(result, propertyIds, sessionBefore)")
+    fun mapDebtSettled(result: GameResult, propertyId: String, sessionBefore: GameSession): GameplayResultUiModel =
+        mapDebtSettled(result, listOf(propertyId), sessionBefore)
 
     fun mapBankruptcy(debtorId: String, session: GameSession): GameplayResultUiModel {
         val debtorName = resolvePlayerName(debtorId, session)

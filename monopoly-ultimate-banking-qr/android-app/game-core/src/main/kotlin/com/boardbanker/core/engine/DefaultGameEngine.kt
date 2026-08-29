@@ -64,6 +64,7 @@ class DefaultGameEngine(
             is GameCommand.CompleteAuction -> handleCompleteAuction(session)
             is GameCommand.CancelAuction -> handleCancelAuction(session)
             is GameCommand.ResolveDebt -> handleResolveDebt(session, command)
+            is GameCommand.ResolveDebtWithProperties -> handleResolveDebtWithProperties(session, command)
             is GameCommand.CheckBankruptcy -> handleCheckBankruptcy(session)
             is GameCommand.UndoLastAction -> handleUndo(session)
         }
@@ -572,8 +573,16 @@ class DefaultGameEngine(
     private fun handleResolveDebt(
         session: GameSession,
         command: GameCommand.ResolveDebt,
+    ): GameResult = handleResolveDebtWithProperties(
+        session,
+        GameCommand.ResolveDebtWithProperties(listOf(command.propertyId)),
+    )
+
+    private fun handleResolveDebtWithProperties(
+        session: GameSession,
+        command: GameCommand.ResolveDebtWithProperties,
     ): GameResult {
-        val result = debtRules.resolveWithProperty(session, command.propertyId)
+        val result = debtRules.resolveWithProperties(session, command.propertyIds)
         if (!result.isSuccess) {
             return reject(session, GameError.DebtError(result.error!!))
         }

@@ -49,7 +49,7 @@ class DebtResolutionViewModel(
         refreshFromSession()
     }
 
-    fun refreshFromSession() {
+    fun refreshFromSession(clearSelection: Boolean = false) {
         val session = sessionManager.currentSession() ?: return
         val debt = session.debtResolution ?: return
         val debtor = session.players[debt.debtorPlayerId]!!
@@ -70,6 +70,12 @@ class DebtResolutionViewModel(
                 )
             }
             .sortedBy { it.propertyName }
+        val ownedPropertyIds = ownedProperties.map { it.propertyId }.toSet()
+        val preservedSelection = if (clearSelection) {
+            emptySet()
+        } else {
+            _uiState.value.selectedPropertyIds.intersect(ownedPropertyIds)
+        }
         _uiState.update {
             it.copy(
                 debtorPlayerId = debt.debtorPlayerId,
@@ -79,18 +85,23 @@ class DebtResolutionViewModel(
                 amountDue = debt.amountRemaining + debtor.balance,
                 availableCash = debtor.balance,
                 remainingAfterCash = debt.amountRemaining,
+                selectedPropertyIds = preservedSelection,
                 properties = ownedProperties,
-            )
+            ).withSettlementSummary(::money)
         }
     }
 
     fun onToggleProperty(propertyId: String) {
         _uiState.update { state ->
-            state.copy(
-                properties = state.properties.map {
-                    if (it.propertyId == propertyId) it.copy(selected = !it.selected) else it
-                },
-            )
+            if (state.properties.none { it.propertyId == propertyId }) {
+                return@update state
+            }
+            val updatedSelection = if (propertyId in state.selectedPropertyIds) {
+                state.selectedPropertyIds - propertyId
+            } else {
+                state.selectedPropertyIds + propertyId
+            }
+            state.copy(selectedPropertyIds = updatedSelection).withSettlementSummary(::money)
         }
     }
 
@@ -108,26 +119,27 @@ class DebtResolutionViewModel(
             _uiState.update { it.copy(message = "This Property does not belong to the debtor.") }
             return
         }
-        resolveDebt(propertyId)
+        resolveDebt(listOf(propertyId))
     }
 
     fun onSettleSelected() {
-        val selected = _uiState.value.properties.firstOrNull { it.selected } ?: run {
+        val selectedPropertyIds = _uiState.value.selectedPropertyIds.toList()
+        if (selectedPropertyIds.isEmpty()) {
             _uiState.update { it.copy(message = "Select a Property to cover the debt.") }
             return
         }
-        resolveDebt(selected.propertyId)
+        resolveDebt(selectedPropertyIds)
     }
 
-    private fun resolveDebt(propertyId: String) {
-        if (_uiState.value.commandInFlight) return
+    private fun resolveDebt(propertyIds: List<String>) {
+        if (propertyIds.isEmpty() || _uiState.value.commandInFlight) return
         val sessionBefore = sessionManager.currentSession() ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(commandInFlight = true) }
-            when (val outcome = executor.execute(GameCommand.ResolveDebt(propertyId))) {
+            when (val outcome = executor.execute(GameCommand.ResolveDebtWithProperties(propertyIds))) {
                 is BankingCommitOutcome.Success -> {
                     if (outcome.session.debtResolution != null) {
-                        refreshFromSession()
+                        refreshFromSession(clearSelection = true)
                         _uiState.update { it.copy(commandInFlight = false, result = null) }
                     } else {
                         GameplayOutcomeAudio.playCommittedOutcome(
@@ -139,13 +151,18 @@ class DebtResolutionViewModel(
                         _uiState.update {
                             it.copy(
                                 commandInFlight = false,
-                                result = resultMapper.mapDebtSettled(outcome.result, propertyId, sessionBefore),
-                            )
+                                result = resultMapper.mapDebtSettled(
+                                    result = outcome.result,
+                                    propertyIds = propertyIds,
+                                    sessionBefore = sessionBefore,
+                                ),
+                                selectedPropertyIds = emptySet(),
+                            ).withSettlementSummary(::money)
                         }
                     }
                 }
                 is BankingCommitOutcome.DebtRequired -> {
-                    refreshFromSession()
+                    refreshFromSession(clearSelection = true)
                     _uiState.update { it.copy(commandInFlight = false) }
                 }
                 is BankingCommitOutcome.Bankruptcy -> {
@@ -157,13 +174,17 @@ class DebtResolutionViewModel(
                     _uiState.update {
                         it.copy(
                             commandInFlight = false,
-                            message = outcome.result.error?.let { err -> err.toString() } ?: "Unable to settle debt.",
+                            message = outcome.result.error?.let { err -> err.toString() }
+                                ?: "Unable to settle debt.",
                         )
                     }
                 }
                 is BankingCommitOutcome.PersistenceFailed -> {
                     _uiState.update {
-                        it.copy(commandInFlight = false, message = "Unable to save the game.\nPlease try again.")
+                        it.copy(
+                            commandInFlight = false,
+                            message = "Unable to save the game.\nPlease try again.",
+                        )
                     }
                 }
                 null -> _uiState.update { it.copy(commandInFlight = false) }

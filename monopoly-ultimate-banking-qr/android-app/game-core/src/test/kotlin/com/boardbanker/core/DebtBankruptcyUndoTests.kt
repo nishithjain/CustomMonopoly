@@ -2,9 +2,12 @@ package com.boardbanker.core
 
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.GameOutcome
+import com.boardbanker.core.model.DebtReason
+import com.boardbanker.core.model.DebtResolutionState
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameStatus
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.rules.WinnerCalculator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
@@ -34,6 +37,133 @@ class DebtBankruptcyUndoTests {
         session = engine.process(session, GameCommand.ResolveDebt("PRP_11")).session
         assertEquals("USR_01", session.properties["PRP_11"]!!.ownerPlayerId)
         assertEquals(4, session.properties["PRP_11"]!!.currentRentLevel)
+    }
+
+    @Test
+    fun tsDebt003_playerToPlayerChangeReturnedFromCreditor() {
+        var session = TestFixtures.sessionWithBalances(mapOf("USR_01" to 1200, "USR_02" to 0))
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_10" -> state.copy(ownerPlayerId = "USR_02", currentRentLevel = 1)
+                    else -> state
+                }
+            },
+            debtResolution = DebtResolutionState(
+                debtorPlayerId = "USR_02",
+                creditorPlayerId = "USR_01",
+                amountRemaining = 160,
+                reason = DebtReason.RENT,
+                propertyId = "PRP_12",
+            ),
+        )
+
+        val wealthBefore = totalWealth(session)
+        val result = engine.process(session, GameCommand.ResolveDebt("PRP_10"))
+
+        assertNull(result.session.debtResolution)
+        assertEquals("USR_01", result.session.properties["PRP_10"]!!.ownerPlayerId)
+        assertEquals(20, result.session.players["USR_02"]!!.balance)
+        assertEquals(1180, result.session.players["USR_01"]!!.balance)
+        assertTrue(
+            result.transactions.any {
+                it.transactionType == TransactionType.RENT_PAYMENT &&
+                    it.fromEntity == "USR_01" &&
+                    it.toEntity == "USR_02" &&
+                    it.amount == 20
+            },
+        )
+        assertEquals(wealthBefore, totalWealth(result.session))
+    }
+
+    @Test
+    fun tsDebt004_multiplePropertiesApplySingleChange() {
+        var session = TestFixtures.sessionWithBalances(mapOf("USR_01" to 1500, "USR_02" to 0))
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_10" -> state.copy(ownerPlayerId = "USR_02", currentRentLevel = 1)
+                    "PRP_11" -> state.copy(ownerPlayerId = "USR_02", currentRentLevel = 1)
+                    else -> state
+                }
+            },
+            debtResolution = DebtResolutionState(
+                debtorPlayerId = "USR_02",
+                creditorPlayerId = "USR_01",
+                amountRemaining = 300,
+            ),
+        )
+
+        val result = engine.process(
+            session,
+            GameCommand.ResolveDebtWithProperties(listOf("PRP_10", "PRP_11")),
+        )
+
+        assertNull(result.session.debtResolution)
+        assertEquals("USR_01", result.session.properties["PRP_10"]!!.ownerPlayerId)
+        assertEquals("USR_01", result.session.properties["PRP_11"]!!.ownerPlayerId)
+        assertEquals(80, result.session.players["USR_02"]!!.balance)
+        assertEquals(1420, result.session.players["USR_01"]!!.balance)
+    }
+
+    @Test
+    fun tsDebt005_bankDebtReturnsChangeWithoutDebitingPlayer() {
+        var session = TestFixtures.sessionWithBalances(mapOf("USR_01" to 0))
+        session = session.copy(
+            properties = session.properties + (
+                "PRP_11" to session.properties["PRP_11"]!!.copy(ownerPlayerId = "USR_01", currentRentLevel = 4)
+            ),
+            debtResolution = DebtResolutionState(
+                debtorPlayerId = "USR_01",
+                creditorPlayerId = EntityRef.BANK,
+                amountRemaining = 160,
+            ),
+        )
+
+        val result = engine.process(session, GameCommand.ResolveDebt("PRP_11"))
+        assertEquals(40, result.session.players["USR_01"]!!.balance)
+        assertNull(result.session.properties["PRP_11"]!!.ownerPlayerId)
+        assertTrue(
+            result.transactions.any {
+                it.transactionType == TransactionType.BANK_CREDIT &&
+                    it.fromEntity == EntityRef.BANK &&
+                    it.amount == 40
+            },
+        )
+    }
+
+    @Test
+    fun tsDebt006_settlementUndoRestoresBalancesOwnershipAndDebt() {
+        var session = TestFixtures.sessionWithBalances(mapOf("USR_01" to 1200, "USR_02" to 0))
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_10" -> state.copy(ownerPlayerId = "USR_02", currentRentLevel = 3)
+                    else -> state
+                }
+            },
+            debtResolution = DebtResolutionState(
+                debtorPlayerId = "USR_02",
+                creditorPlayerId = "USR_01",
+                amountRemaining = 160,
+            ),
+        )
+
+        val settled = engine.process(session, GameCommand.ResolveDebt("PRP_10")).session
+        assertNotNull(settled.undoSnapshot)
+        val undone = engine.process(settled, GameCommand.UndoLastAction).session
+
+        assertEquals(0, undone.players["USR_02"]!!.balance)
+        assertEquals(1200, undone.players["USR_01"]!!.balance)
+        assertEquals("USR_02", undone.properties["PRP_10"]!!.ownerPlayerId)
+        assertEquals(160, undone.debtResolution!!.amountRemaining)
+    }
+
+    private fun totalWealth(session: com.boardbanker.core.model.GameSession): Int {
+        val calculator = WinnerCalculator(definitions)
+        return session.players.keys.sumOf { playerId ->
+            if (session.players[playerId]!!.bankrupt) 0 else calculator.calculateWealth(session, playerId)
+        }
     }
 
     @Test

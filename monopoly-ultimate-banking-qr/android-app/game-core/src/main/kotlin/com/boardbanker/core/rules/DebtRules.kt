@@ -68,95 +68,108 @@ class DebtRules(
         session: GameSession,
         propertyId: String,
         timestamp: Long = System.currentTimeMillis(),
+    ): DebtResult = resolveWithProperties(session, listOf(propertyId), timestamp)
+
+    fun resolveWithProperties(
+        session: GameSession,
+        propertyIds: List<String>,
+        timestamp: Long = System.currentTimeMillis(),
     ): DebtResult {
+        if (propertyIds.isEmpty()) {
+            return DebtResult.failure("No properties selected")
+        }
+        if (propertyIds.size != propertyIds.toSet().size) {
+            return DebtResult.failure("Duplicate property selected")
+        }
+
         val debt = session.debtResolution
             ?: return DebtResult.failure("No debt resolution in progress")
         val debtorId = debt.debtorPlayerId
         val creditorId = debt.creditorPlayerId
-        val propertyDef = definitions.properties[propertyId]
-            ?: return DebtResult.failure("Unknown property")
-        val propertyState = session.properties[propertyId]
-            ?: return DebtResult.failure("Property state missing")
-        val debtor = session.players[debtorId]!!
-        if (propertyState.ownerPlayerId != debtorId) {
-            return DebtResult.failure("Property not owned by debtor")
+        val undoSnapshotBeforeSettlement = session.snapshot()
+
+        val selectedProperties = mutableListOf<Pair<String, PropertyState>>()
+        val selectedValues = mutableListOf<Int>()
+        for (propertyId in propertyIds) {
+            val propertyDef = definitions.properties[propertyId]
+                ?: return DebtResult.failure("Unknown property")
+            val propertyState = session.properties[propertyId]
+                ?: return DebtResult.failure("Property state missing")
+            if (propertyState.ownerPlayerId != debtorId) {
+                return DebtResult.failure("Property not owned by debtor")
+            }
+            selectedProperties += propertyId to propertyState
+            selectedValues += propertyDef.purchasePrice
         }
 
-        val valuation = propertyDef.purchasePrice
-        val amountRemaining = debt.amountRemaining
+        val settlement = DebtSettlementCalculator.calculate(debt.amountRemaining, selectedValues)
         val transactions = mutableListOf<Transaction>()
         var updatedSession = session
 
-        if (creditorId != EntityRef.BANK) {
-            val updatedProperty = propertyState.copy(ownerPlayerId = creditorId)
-            updatedSession = updatedSession.copy(
-                properties = updatedSession.properties + (propertyId to updatedProperty),
-            )
-            val (ownershipTx, sessionAfterOwnership) = transactionFactory.create(
-                session = updatedSession,
-                type = TransactionType.PROPERTY_OWNERSHIP_CHANGE,
-                timestamp = timestamp,
-                fromEntity = debtorId,
-                toEntity = creditorId,
-                playerId = debtorId,
-                propertyId = propertyId,
-                amount = valuation,
-            )
-            transactions += ownershipTx
-            updatedSession = sessionAfterOwnership
-        } else {
-            val updatedProperty = propertyState.copy(
-                ownerPlayerId = null,
-                currentRentLevel = 1,
-            )
-            updatedSession = updatedSession.copy(
-                properties = updatedSession.properties + (propertyId to updatedProperty),
-            )
-            val (ownershipTx, sessionAfterOwnership) = transactionFactory.create(
-                session = updatedSession,
-                type = TransactionType.PROPERTY_OWNERSHIP_CHANGE,
-                timestamp = timestamp,
-                fromEntity = debtorId,
-                toEntity = EntityRef.BANK,
-                playerId = debtorId,
-                propertyId = propertyId,
-                amount = valuation,
-            )
-            transactions += ownershipTx
-            updatedSession = sessionAfterOwnership
+        for ((propertyId, propertyState) in selectedProperties) {
+            val valuation = definitions.properties[propertyId]!!.purchasePrice
+            if (creditorId != EntityRef.BANK) {
+                val updatedProperty = propertyState.copy(ownerPlayerId = creditorId)
+                updatedSession = updatedSession.copy(
+                    properties = updatedSession.properties + (propertyId to updatedProperty),
+                )
+                val (ownershipTx, sessionAfterOwnership) = transactionFactory.create(
+                    session = updatedSession,
+                    type = TransactionType.PROPERTY_OWNERSHIP_CHANGE,
+                    timestamp = timestamp,
+                    fromEntity = debtorId,
+                    toEntity = creditorId,
+                    playerId = debtorId,
+                    propertyId = propertyId,
+                    amount = valuation,
+                )
+                transactions += ownershipTx
+                updatedSession = sessionAfterOwnership
+            } else {
+                val updatedProperty = propertyState.copy(
+                    ownerPlayerId = null,
+                    currentRentLevel = 1,
+                )
+                updatedSession = updatedSession.copy(
+                    properties = updatedSession.properties + (propertyId to updatedProperty),
+                )
+                val (ownershipTx, sessionAfterOwnership) = transactionFactory.create(
+                    session = updatedSession,
+                    type = TransactionType.PROPERTY_OWNERSHIP_CHANGE,
+                    timestamp = timestamp,
+                    fromEntity = debtorId,
+                    toEntity = EntityRef.BANK,
+                    playerId = debtorId,
+                    propertyId = propertyId,
+                    amount = valuation,
+                )
+                transactions += ownershipTx
+                updatedSession = sessionAfterOwnership
+            }
         }
 
-        val newRemaining = amountRemaining - valuation
-        if (newRemaining > 0) {
+        if (settlement.remainingDebt > 0) {
             updatedSession = updatedSession.copy(
-                debtResolution = debt.copy(amountRemaining = newRemaining),
+                debtResolution = debt.copy(amountRemaining = settlement.remainingDebt),
             )
             return DebtResult.success(updatedSession, transactions)
         }
 
-        val change = -newRemaining
-        if (change > 0) {
-            val updatedDebtor = updatedSession.players[debtorId]!!.copy(
-                balance = updatedSession.players[debtorId]!!.balance + change,
-            )
-            updatedSession = updatedSession.copy(
-                players = updatedSession.players + (debtorId to updatedDebtor),
-            )
-            val (creditTx, sessionAfterCredit) = transactionFactory.create(
+        if (settlement.changeAmount > 0) {
+            val changeResult = applyDebtSettlementChange(
                 session = updatedSession,
-                type = TransactionType.BANK_CREDIT,
+                debtorId = debtorId,
+                creditorId = creditorId,
+                changeAmount = settlement.changeAmount,
                 timestamp = timestamp,
-                fromEntity = EntityRef.BANK,
-                toEntity = debtorId,
-                playerId = debtorId,
-                amount = change,
             )
-            transactions += creditTx
-            updatedSession = sessionAfterCredit
+            updatedSession = changeResult.session
+            transactions += changeResult.transactions
         }
 
         val debtBeforeClear = updatedSession.debtResolution
         updatedSession = clearDebtAndMaybeReleaseJail(updatedSession, debtorId)
+            .copy(undoSnapshot = undoSnapshotBeforeSettlement)
         if (debtBeforeClear != null && updatedSession.debtResolution == null) {
             val followUp = completeDebtReason(
                 session = updatedSession,
@@ -169,6 +182,68 @@ class DebtRules(
         }
         return DebtResult.success(updatedSession, transactions)
     }
+
+    private fun applyDebtSettlementChange(
+        session: GameSession,
+        debtorId: String,
+        creditorId: String,
+        changeAmount: Int,
+        timestamp: Long,
+    ): ChangeResult {
+        if (changeAmount <= 0) {
+            return ChangeResult(session, emptyList())
+        }
+
+        val transactions = mutableListOf<Transaction>()
+        var updatedSession = session
+        val updatedDebtor = updatedSession.players[debtorId]!!.copy(
+            balance = updatedSession.players[debtorId]!!.balance + changeAmount,
+        )
+        updatedSession = updatedSession.copy(
+            players = updatedSession.players + (debtorId to updatedDebtor),
+        )
+
+        if (creditorId == EntityRef.BANK) {
+            val (creditTx, sessionAfterCredit) = transactionFactory.create(
+                session = updatedSession,
+                type = TransactionType.BANK_CREDIT,
+                timestamp = timestamp,
+                fromEntity = EntityRef.BANK,
+                toEntity = debtorId,
+                playerId = debtorId,
+                amount = changeAmount,
+                reversible = true,
+            )
+            transactions += creditTx
+            updatedSession = sessionAfterCredit
+        } else {
+            val updatedCreditor = updatedSession.players[creditorId]!!.copy(
+                balance = updatedSession.players[creditorId]!!.balance - changeAmount,
+            )
+            updatedSession = updatedSession.copy(
+                players = updatedSession.players + (creditorId to updatedCreditor),
+            )
+            val (changeTx, sessionAfterChange) = transactionFactory.create(
+                session = updatedSession,
+                type = TransactionType.RENT_PAYMENT,
+                timestamp = timestamp,
+                fromEntity = creditorId,
+                toEntity = debtorId,
+                playerId = debtorId,
+                amount = changeAmount,
+                reversible = true,
+            )
+            transactions += changeTx
+            updatedSession = sessionAfterChange
+        }
+
+        return ChangeResult(updatedSession, transactions)
+    }
+
+    private data class ChangeResult(
+        val session: GameSession,
+        val transactions: List<Transaction>,
+    )
 
     private fun completeDebtReason(
         session: GameSession,

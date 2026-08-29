@@ -77,6 +77,8 @@ sealed class GameCommand {
 
     data class ResolveDebt(val propertyId: String) : GameCommand()
 
+    data class ResolveDebtWithProperties(val propertyIds: List<String>) : GameCommand()
+
     object CheckBankruptcy : GameCommand()
 
     object UndoLastAction : GameCommand()
