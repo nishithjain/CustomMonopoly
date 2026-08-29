@@ -2,6 +2,7 @@ package com.boardbanker.app.scanner.delivery
 
 import android.util.Log
 import com.boardbanker.app.BuildConfig
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.model.ResolvedCard
 
 enum class ScanResultConsumer {
@@ -54,6 +55,7 @@ class ScanResultDeliverer {
     private val lock = Any()
     private var nextAttemptId: Long = 1L
     private var preparedConsumer: ScanResultConsumer? = null
+    private var pendingScanRequest: ScanRequest? = null
     private var lastConsumedAttemptId: Long = -1L
     private var lastStagedAttemptId: Long = -1L
 
@@ -68,9 +70,21 @@ class ScanResultDeliverer {
         nextAttemptId++
     }
 
-    fun prepareConsumer(consumer: ScanResultConsumer) {
+    fun prepareConsumer(
+        consumer: ScanResultConsumer,
+        request: ScanRequest = ScanRequest.gameCard(),
+    ) {
         synchronized(lock) {
             preparedConsumer = consumer
+            pendingScanRequest = request
+        }
+    }
+
+    fun peekScanRequest(): ScanRequest? = synchronized(lock) { pendingScanRequest }
+
+    fun clearPendingScanRequest() {
+        synchronized(lock) {
+            pendingScanRequest = null
         }
     }
 
@@ -101,6 +115,7 @@ class ScanResultDeliverer {
             if (replay.scanAttemptId != scanAttemptId || replay.consumer != expectedConsumer) return null
             lastConsumedAttemptId = scanAttemptId
             preparedConsumer = null
+            pendingScanRequest = null
             return replay.card
         }
     }
@@ -118,6 +133,7 @@ class ScanResultDeliverer {
         synchronized(lock) {
             nextAttemptId = 1L
             preparedConsumer = null
+            pendingScanRequest = null
             lastConsumedAttemptId = -1L
             lastStagedAttemptId = -1L
         }

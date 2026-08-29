@@ -197,6 +197,7 @@ private class ThrowingGameAudioFeedback : GameAudioFeedback {
     override fun playKaChing() = Unit
     override fun playMoneyLost() = Unit
     override fun playUndo() = Unit
+    override fun playUndoLastAction() = Unit
     override fun playLostGame() = Unit
     override fun playWinner() = Unit
 

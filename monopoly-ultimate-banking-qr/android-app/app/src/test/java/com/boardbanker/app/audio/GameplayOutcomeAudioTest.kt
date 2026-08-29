@@ -165,7 +165,10 @@ class GameplayOutcomeAudioTest {
         session = engine.process(session, GameCommand.PurchaseProperty("USR_01", "PRP_01")).session
         val before = session
         val result = engine.process(session, GameCommand.UndoLastAction)
-        assertEquals(GameplayAudioCue.UNDO, cue(result, before, CommitAudioTrigger.Banking(GameCommand.UndoLastAction)))
+        assertEquals(
+            GameplayAudioCue.UNDO_LAST_ACTION,
+            cue(result, before, CommitAudioTrigger.Banking(GameCommand.UndoLastAction)),
+        )
     }
 
     @Test

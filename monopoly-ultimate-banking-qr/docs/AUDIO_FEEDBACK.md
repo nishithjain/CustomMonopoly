@@ -18,7 +18,7 @@ SoundPoolGameAudioFeedback (res/raw via GameSoundRegistry)
 
 Primary types:
 
-- `GameSound` / `GameSoundRegistry` — authoritative semantic → raw resource mapping (22 sounds)
+- `GameSound` / `GameSoundRegistry` — authoritative semantic → raw resource mapping (23 sounds)
 - `GameAudioFeedback` — scan, error, and gameplay semantic playback methods
 - `SoundPoolGameAudioFeedback` — SoundPool implementation
 - `ScanAudioFeedback` — scan-result audio (never blocks workflow delivery)
@@ -67,7 +67,7 @@ User scan audio remains independent of workflow delivery and never blocks it.
 | `SomeoneJustTookYourMoney.mp3` | Mandatory cash loss without dedicated sound | Yes | EVT_07, Location fee, debt cash payment |
 | `AuctionBegins.mp3` | Auction enters RUNNING | Yes | On `StartAuction` commit |
 | `AuctionEnding.mp3` | Auction timer expires | N/A (UI transition) | Once; no PropertyPurchased after auction win |
-| `Undo.mp3` | Successful `UndoLastAction` | Yes | |
+| `UndoLastAction.mp3` | Successful authorized `UndoLastAction` | Yes | After every registered player approves; not `Undo.mp3` |
 | `LostGame.mp3` | Bankruptcy commits / game FINISHED | Yes | Not Error |
 | `Winner.mp3` | Fresh game-over screen after bankruptcy path | Yes | Queued after LostGame; skipped on resume |
 | `ScanCard.mp3` | Enter waiting-for-scan state | No | Token-gated |
@@ -114,8 +114,8 @@ Authoritative sources:
 
 ```text
 Resources/Common/Sounds/UserCardSounds/  (4 files)
-Resources/Common/Sounds/Other/           (18 files)
-TOTAL: 22
+Resources/Common/Sounds/Other/           (19 files)
+TOTAL: 23
 ```
 
 ```bash

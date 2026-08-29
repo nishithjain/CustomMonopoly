@@ -44,6 +44,7 @@ OTHER_SOUND_SOURCES = {
     "SCAN_CARD": ("Resources/Common/Sounds/Other/ScanCard.mp3", "scan_card.mp3"),
     "MONEY_LOST": ("Resources/Common/Sounds/Other/SomeoneJustTookYourMoney.mp3", "someone_just_took_your_money.mp3"),
     "UNDO": ("Resources/Common/Sounds/Other/Undo.mp3", "undo.mp3"),
+    "UNDO_LAST_ACTION": ("Resources/Common/Sounds/Other/UndoLastAction.mp3", "undo_last_action.mp3"),
     "WINNER": ("Resources/Common/Sounds/Other/Winner.mp3", "winner.mp3"),
     "COLOR_SET_COMPLETE": ("Resources/Common/Sounds/Other/ColorSetComplete.mp3", "color_set_complete.mp3"),
 }
@@ -63,6 +64,7 @@ REQUIRED_GAMEPLAY_METHODS = [
     "playKaChing",
     "playMoneyLost",
     "playUndo",
+    "playUndoLastAction",
     "playLostGame",
     "playWinner",
     "playScanPrompt",

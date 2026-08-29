@@ -25,6 +25,7 @@ object GameSoundRegistry {
         GameSound.SCAN_CARD to "scan_card",
         GameSound.MONEY_LOST to "someone_just_took_your_money",
         GameSound.UNDO to "undo",
+        GameSound.UNDO_LAST_ACTION to "undo_last_action",
         GameSound.WINNER to "winner",
         GameSound.COLOR_SET_COMPLETE to "color_set_complete",
     )

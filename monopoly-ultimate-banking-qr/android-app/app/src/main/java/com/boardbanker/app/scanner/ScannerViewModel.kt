@@ -14,7 +14,6 @@ import com.boardbanker.app.scanner.model.ResolvedCard
 import com.boardbanker.app.scanner.model.ScannerUiModel
 import com.boardbanker.app.scanner.model.ScannerUiState
 import com.boardbanker.core.card.CardResolution
-import com.boardbanker.core.card.CardType
 import com.boardbanker.core.scanner.ScanProcessorResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class ScannerViewModel(
     application: Application,
-    private val expectedCardType: CardType? = null,
+    private val scanRequest: ScanRequest = ScanRequest.gameCard(),
     private val gameAudioFeedback: GameAudioFeedback? = null,
     private val scanResultDeliverer: ScanResultDeliverer? = null,
 ) : AndroidViewModel(application) {
@@ -191,7 +190,7 @@ class ScannerViewModel(
                     ScanDeliveryStage.CARD_RESOLVED,
                     "cardId=${result.resolution.cardId}",
                 )
-                val validation = ScannerCardFilter.validateCardType(result.resolution, expectedCardType)
+                val validation = ScannerCardFilter.validate(result.resolution, scanRequest)
                 val resolvedCard = result.resolution.toResolvedCard()
                 when (validation) {
                     CardTypeValidation.Accepted -> {
@@ -207,15 +206,21 @@ class ScannerViewModel(
                             )
                         }
                     }
-                    is CardTypeValidation.WrongType -> {
+                    is CardTypeValidation.WrongType,
+                    is CardTypeValidation.WrongCard,
+                    -> {
                         controller.lockAfterResolved()
                         ScanAudioFeedback.onScanProcessed(audio, result, validation, scanAttemptId)
+                        val message = when (validation) {
+                            is CardTypeValidation.WrongCard -> validation.message
+                            else -> scanRequest.mismatchInstruction
+                        }
                         _uiModel.update {
                             it.copy(
                                 state = ScannerUiState.WRONG_CARD_TYPE,
                                 resolvedCard = null,
                                 unknownPayload = null,
-                                wrongCardTypeMessage = wrongCardTypeMessage(validation.expected),
+                                wrongCardTypeMessage = message,
                             )
                         }
                     }
@@ -235,12 +240,6 @@ class ScannerViewModel(
                 }
             }
         }
-    }
-
-    private fun wrongCardTypeMessage(expected: CardType): String = when (expected) {
-        CardType.USER -> "PLAYER CARD EXPECTED\n\nPlease scan a Player card."
-        CardType.PROPERTY -> "PROPERTY CARD EXPECTED\n\nPlease scan a Property card."
-        CardType.EVENT -> "EVENT CARD EXPECTED\n\nPlease scan an Event card."
     }
 
     private fun CardResolution.Success.toResolvedCard() = ResolvedCard(

@@ -1,5 +1,6 @@
 package com.boardbanker.app.gameplay.workflow
 
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EventEngineRule
@@ -73,24 +74,15 @@ object EventWorkflowPlanner {
         return steps
     }
 
-    fun expectedCardType(step: EventScanStep?): CardType? = when (step) {
-        EventScanStep.ACTING_PLAYER, EventScanStep.TARGET_PLAYER -> CardType.USER
-        EventScanStep.PROPERTY, EventScanStep.SECOND_PROPERTY -> CardType.PROPERTY
-        EventScanStep.CONFIRM, null -> null
+    fun expectedCardType(step: EventScanStep?): CardType? = scanRequest(step).singleExpectedType
+
+    fun scanRequest(step: EventScanStep?): ScanRequest = when (step) {
+        EventScanStep.ACTING_PLAYER, EventScanStep.TARGET_PLAYER -> ScanRequest.player()
+        EventScanStep.PROPERTY, EventScanStep.SECOND_PROPERTY -> ScanRequest.property()
+        EventScanStep.CONFIRM, null -> ScanRequest.gameCard()
     }
 
-    fun scanPrompt(step: EventScanStep?): String = when (step) {
-        EventScanStep.ACTING_PLAYER ->
-            "Scan the Player card of the player who drew this Event."
-        EventScanStep.TARGET_PLAYER ->
-            "Scan the required Player card."
-        EventScanStep.PROPERTY ->
-            "Scan the Property card affected by this Event."
-        EventScanStep.SECOND_PROPERTY ->
-            "Scan the second Property card."
-        EventScanStep.CONFIRM -> "Review and confirm this Event."
-        null -> "Scan a game card."
-    }
+    fun scanPrompt(step: EventScanStep?): String = scanRequest(step).instruction
 
     fun buildApplyCommand(
         eventId: String,

@@ -33,7 +33,9 @@ object ScanAudioFeedback {
                                 audio.playUserCard(resolution.cardId)
                             }
                         }
-                        is CardTypeValidation.WrongType -> {
+                        is CardTypeValidation.WrongType,
+                        is CardTypeValidation.WrongCard,
+                        -> {
                             if (resolution.cardType == CardType.USER) {
                                 logUserAudio(scanAttemptId, resolution.cardId)
                                 audio.playUserCardThenError(resolution.cardId)

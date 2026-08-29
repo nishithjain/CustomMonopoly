@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
@@ -33,7 +34,6 @@ import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +41,7 @@ import com.boardbanker.core.command.GameCommand
 fun GameScreen(
     viewModel: GameViewModel,
     onNavigateHome: () -> Unit,
-    onOpenScanner: (CardType?) -> Unit,
+    onOpenScanner: (ScanRequest) -> Unit,
     onNavigateToBanking: () -> Unit,
     onNavigateToAuction: (String, String) -> Unit,
     onNavigateToDebt: () -> Unit,
@@ -54,7 +54,7 @@ fun GameScreen(
         viewModel.events.collect { event ->
             when (event) {
                 GameEvent.NavigateHome -> onNavigateHome()
-                is GameEvent.OpenScanner -> onOpenScanner(event.expectedCardType)
+                is GameEvent.OpenScanner -> onOpenScanner(event.request)
                 GameEvent.NavigateToBanking -> onNavigateToBanking()
                 is GameEvent.NavigateToAuction -> onNavigateToAuction(event.propertyId, event.startedByPlayerId)
                 GameEvent.NavigateToDebt -> onNavigateToDebt()

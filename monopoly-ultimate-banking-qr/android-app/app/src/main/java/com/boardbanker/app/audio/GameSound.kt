@@ -26,6 +26,7 @@ enum class GameSound {
     SCAN_CARD,
     MONEY_LOST,
     UNDO,
+    UNDO_LAST_ACTION,
     WINNER,
     COLOR_SET_COMPLETE,
 }

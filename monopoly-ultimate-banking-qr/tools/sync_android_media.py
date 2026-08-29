@@ -31,6 +31,7 @@ OTHER_SOUND_MAPPINGS = [
     ("Resources/Common/Sounds/Other/ScanCard.mp3", "scan_card.mp3"),
     ("Resources/Common/Sounds/Other/SomeoneJustTookYourMoney.mp3", "someone_just_took_your_money.mp3"),
     ("Resources/Common/Sounds/Other/Undo.mp3", "undo.mp3"),
+    ("Resources/Common/Sounds/Other/UndoLastAction.mp3", "undo_last_action.mp3"),
     ("Resources/Common/Sounds/Other/Winner.mp3", "winner.mp3"),
     ("Resources/Common/Sounds/Other/ColorSetComplete.mp3", "color_set_complete.mp3"),
 ]

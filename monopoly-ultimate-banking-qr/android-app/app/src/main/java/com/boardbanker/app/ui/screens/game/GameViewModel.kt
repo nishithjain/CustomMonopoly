@@ -22,6 +22,7 @@ import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.gameplay.workflow.WorkflowAction
 import com.boardbanker.app.gameplay.workflow.WorkflowCommandContext
 import com.boardbanker.app.gameplay.workflow.WorkflowScanRequest
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
@@ -113,7 +114,8 @@ class GameViewModel(
 
     fun onScanRequested() {
         if (_uiState.value.commandInFlight) return
-        _events.tryEmit(GameEvent.OpenScanner(_uiState.value.expectedCardType))
+        val request = _uiState.value.scanRequest ?: return
+        _events.tryEmit(GameEvent.OpenScanner(request))
     }
 
     fun onBankActionsRequested() {
@@ -128,14 +130,16 @@ class GameViewModel(
 
     fun onScanCardRequested() {
         if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
-        _uiState.update { it.copy(expectedCardType = null, scanPrompt = null) }
+        val request = ScanRequest.gameCard()
+        _uiState.update { it.withScanRequest(request) }
         transientWorkflow.resetToReady()
-        _events.tryEmit(GameEvent.OpenScanner(null))
+        _events.tryEmit(GameEvent.OpenScanner(request))
     }
 
     fun onScanPropertyRequested() {
         if (_uiState.value.commandInFlight) return
-        _events.tryEmit(GameEvent.OpenScanner(CardType.PROPERTY))
+        val request = _uiState.value.scanRequest ?: ScanRequest.property()
+        _events.tryEmit(GameEvent.OpenScanner(request))
     }
 
     fun locationFeeText(): String = formatMoney(definitions.bankingValues.locationFee, definitions)
@@ -238,6 +242,7 @@ class GameViewModel(
         _uiState.update {
             it.copy(
                 result = null,
+                scanRequest = null,
                 scanPrompt = null,
                 expectedCardType = null,
                 message = null,
@@ -273,7 +278,7 @@ class GameViewModel(
                 is WorkflowAction.ExecuteCommand -> executeCommand(action.request)
                 WorkflowAction.Cancelled -> {
                     applyWorkflowState(GameplayWorkflowState.Ready)
-                    _uiState.update { it.copy(cardPresentation = null) }
+                    _uiState.update { it.copy(cardPresentation = null).withScanRequest(null) }
                 }
                 is WorkflowAction.NavigateToAuction -> {
                     workflowController.reset()
@@ -296,7 +301,7 @@ class GameViewModel(
     private fun openScanner(request: WorkflowScanRequest) {
         scanPromptToken = ScanPromptAudio.beginPromptSession()
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
-        when (request.expectedCardType) {
+        when (request.scanRequest.singleExpectedType) {
             CardType.USER -> transientWorkflow.enterWaitingForPlayer()
             CardType.PROPERTY -> {
                 if (_uiState.value.workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
@@ -308,13 +313,8 @@ class GameViewModel(
             CardType.EVENT -> transientWorkflow.enterEventIdentified()
             else -> transientWorkflow.resetToReady()
         }
-        _uiState.update {
-            it.copy(
-                scanPrompt = request.prompt,
-                expectedCardType = request.expectedCardType,
-            )
-        }
-        _events.tryEmit(GameEvent.OpenScanner(request.expectedCardType))
+        _uiState.update { it.withScanRequest(request.scanRequest) }
+        _events.tryEmit(GameEvent.OpenScanner(request.scanRequest))
     }
 
     private fun applyWorkflowState(state: GameplayWorkflowState) {
@@ -334,20 +334,10 @@ class GameViewModel(
                 }
             }
             is GameplayWorkflowState.WaitingForRentPayer -> {
-                _uiState.update {
-                    it.copy(
-                        expectedCardType = CardType.USER,
-                        scanPrompt = "Scan the Player card of the player who landed here.",
-                    )
-                }
+                _uiState.update { it.withScanRequest(ScanRequest.player()) }
             }
             is GameplayWorkflowState.EventIntro -> {
-                _uiState.update {
-                    it.copy(
-                        expectedCardType = null,
-                        scanPrompt = null,
-                    )
-                }
+                _uiState.update { it.withScanRequest(null) }
             }
             is GameplayWorkflowState.Error -> {
                 InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
@@ -357,12 +347,7 @@ class GameViewModel(
                 scanPromptToken = ScanPromptAudio.beginPromptSession()
                 ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
                 transientWorkflow.enterLocationWaitingForDestination()
-                _uiState.update {
-                    it.copy(
-                        expectedCardType = CardType.PROPERTY,
-                        scanPrompt = "Scan the Property card you moved to.",
-                    )
-                }
+                _uiState.update { it.withScanRequest(ScanRequest.property()) }
             }
             else -> Unit
         }

@@ -101,6 +101,8 @@ class SoundPoolGameAudioFeedback(
 
     override fun playUndo() = playOperationSound(GameSound.UNDO)
 
+    override fun playUndoLastAction() = playOperationSound(GameSound.UNDO_LAST_ACTION)
+
     override fun playLostGame() = playMajorSound(GameSound.LOST_GAME)
 
     override fun playWinner() = playMajorSound(GameSound.WINNER)

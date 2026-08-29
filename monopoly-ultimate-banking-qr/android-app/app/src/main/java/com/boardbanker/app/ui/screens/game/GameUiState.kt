@@ -2,6 +2,7 @@ package com.boardbanker.app.ui.screens.game
 
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.model.GameStatus
 
@@ -28,6 +29,7 @@ data class GameUiState(
     val status: GameStatus? = null,
     val players: List<PlayerDashboardUi> = emptyList(),
     val workflowState: GameplayWorkflowState = GameplayWorkflowState.Ready,
+    val scanRequest: ScanRequest? = null,
     val scanPrompt: String? = null,
     val expectedCardType: CardType? = null,
     val result: GameplayResultUiModel? = null,
@@ -41,10 +43,16 @@ data class GameUiState(
 
 sealed class GameEvent {
     data object NavigateHome : GameEvent()
-    data class OpenScanner(val expectedCardType: CardType?) : GameEvent()
+    data class OpenScanner(val request: ScanRequest) : GameEvent()
     data object NavigateToBanking : GameEvent()
     data class NavigateToAuction(val propertyId: String, val startedByPlayerId: String) : GameEvent()
     data object NavigateToDebt : GameEvent()
     data object NavigateToGameOver : GameEvent()
     data class NavigateToPlayerDetails(val playerId: String) : GameEvent()
 }
+
+fun GameUiState.withScanRequest(request: ScanRequest?): GameUiState = copy(
+    scanRequest = request,
+    scanPrompt = request?.instruction,
+    expectedCardType = request?.singleExpectedType,
+)

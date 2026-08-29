@@ -1,5 +1,6 @@
 package com.boardbanker.app.scanner.delivery
 
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.model.ResolvedCard
 import com.boardbanker.core.card.CardType
 import kotlinx.coroutines.flow.first
@@ -110,6 +111,16 @@ class ScanResultDelivererTest {
 
         assertEquals("PRP_01", deliverer.tryConsume(attemptId, ScanResultConsumer.DEBT)?.cardId)
         assertNull(deliverer.tryConsume(attemptId, ScanResultConsumer.DEBT))
+    }
+
+    @Test
+    fun successfulConsumeClearsPendingScanRequest() {
+        deliverer.prepareConsumer(ScanResultConsumer.GAME, ScanRequest.player())
+        assertEquals("Scan a Player Card", deliverer.peekScanRequest()?.instruction)
+        val attemptId = deliverer.nextScanAttemptId()
+        assertTrue(deliverer.stageResolvedCard(attemptId, carCard()))
+        deliverer.tryConsume(attemptId, ScanResultConsumer.GAME)
+        assertNull(deliverer.peekScanRequest())
     }
 
     @Test

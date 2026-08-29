@@ -15,12 +15,17 @@ import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
 import com.boardbanker.app.banking.BankingCommandExecutor
 import com.boardbanker.app.banking.BankingCommitOutcome
 import com.boardbanker.app.banking.BankingResultMapper
+import com.boardbanker.app.banking.UndoAuthorizationController
+import com.boardbanker.app.banking.UndoAuthorizationPhase
+import com.boardbanker.app.banking.UndoAuthorizationPlayer
+import com.boardbanker.app.banking.UndoAuthorizationScanResult
 import com.boardbanker.app.banking.UndoEligibility
 import com.boardbanker.app.game.ActiveGameSessionManager
-import com.boardbanker.app.navigation.BankingScanContext
+import com.boardbanker.app.scanner.ScanRequest
+import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
-import com.boardbanker.core.model.GameSession
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -40,6 +45,7 @@ class AdvancedBankingViewModel(
     private val executor = BankingCommandExecutor(sessionManager)
     private val resultMapper = BankingResultMapper(definitions)
     private val undoEligibility = UndoEligibility(definitions)
+    private val undoAuthorization = UndoAuthorizationController()
 
     private val _uiState = MutableStateFlow(AdvancedBankingUiState())
     val uiState: StateFlow<AdvancedBankingUiState> = _uiState.asStateFlow()
@@ -56,14 +62,14 @@ class AdvancedBankingViewModel(
         _uiState.update {
             it.copy(step = step, result = null, message = null)
         }
-        _events.tryEmit(AdvancedBankingEvent.OpenScanner(BankingScanContext.PLAYER))
+        _events.tryEmit(AdvancedBankingEvent.OpenScanner(ScanRequest.player()))
     }
 
     private fun requestPropertyScan(step: AdvancedBankingStep) {
         scanPromptToken = ScanPromptAudio.beginPromptSession()
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
         _uiState.update { it.copy(step = step) }
-        _events.tryEmit(AdvancedBankingEvent.OpenScanner(BankingScanContext.PROPERTY))
+        _events.tryEmit(AdvancedBankingEvent.OpenScanner(ScanRequest.property()))
     }
 
     init {
@@ -71,10 +77,12 @@ class AdvancedBankingViewModel(
     }
 
     fun onCollectGo() {
+        if (_uiState.value.authorization.active) return
         requestPlayerScan(AdvancedBankingStep.GoScanPlayer)
     }
 
     fun onLocation() {
+        if (_uiState.value.authorization.active) return
         _uiState.update {
             it.copy(step = AdvancedBankingStep.LocationIntro, result = null, message = null)
         }
@@ -89,10 +97,12 @@ class AdvancedBankingViewModel(
     }
 
     fun onGetOutOfJail() {
+        if (_uiState.value.authorization.active) return
         requestPlayerScan(AdvancedBankingStep.GetOutOfJailScanPlayer)
     }
 
     fun onGoToJail() {
+        if (_uiState.value.authorization.active) return
         requestPlayerScan(AdvancedBankingStep.GoToJailScanPlayer)
     }
 
@@ -101,35 +111,91 @@ class AdvancedBankingViewModel(
         if (!undoEligibility.canUndo(session)) {
             InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
             _uiState.update {
-                it.copy(message = "Nothing can currently be undone.")
+                it.copy(message = UndoAuthorizationController.NOTHING_TO_UNDO_MESSAGE)
             }
             return
         }
-        _uiState.update {
-            it.copy(
-                step = AdvancedBankingStep.UndoConfirm,
-                undoDescription = undoEligibility.undoDescription(session),
+        val players = session.players.entries.map { (playerId, _) ->
+            UndoAuthorizationPlayer(
+                playerId = playerId,
+                displayName = PlayerDisplayNames.displayName(session, playerId, definitions),
+                verified = false,
             )
         }
+        val authorization = undoAuthorization.begin(
+            players = players,
+            undoDescription = undoEligibility.undoDescription(session),
+        )
+        _uiState.update {
+            it.copy(
+                step = AdvancedBankingStep.UndoAuthorization,
+                result = null,
+                message = null,
+                authorization = authorization,
+                undoDescription = authorization.undoDescription,
+            )
+        }
+        openUndoAuthorizationScanner(playPrompt = true)
+    }
+
+    fun onCancelUndo() {
+        if (_uiState.value.commandInFlight) return
+        if (undoAuthorization.snapshot().phase == UndoAuthorizationPhase.COMPLETING) return
+        val authorization = undoAuthorization.cancel()
+        _uiState.update {
+            it.copy(
+                step = AdvancedBankingStep.Hub,
+                authorization = authorization,
+                message = null,
+            )
+        }
+        refreshUndoState()
+    }
+
+    fun onRequestUndoScan() {
+        if (!_uiState.value.authorization.active) return
+        if (_uiState.value.authorization.phase != UndoAuthorizationPhase.COLLECTING) {
+            return
+        }
+        openUndoAuthorizationScanner(playPrompt = false)
     }
 
     fun onGameStatus() {
+        if (_uiState.value.authorization.active) return
         _events.tryEmit(AdvancedBankingEvent.NavigateToGameStatus)
     }
 
     fun onHistory() {
+        if (_uiState.value.authorization.active) return
         _events.tryEmit(AdvancedBankingEvent.NavigateToHistory)
     }
 
     fun onBack() {
         when (_uiState.value.step) {
             AdvancedBankingStep.Hub -> _events.tryEmit(AdvancedBankingEvent.NavigateBack)
+            AdvancedBankingStep.UndoAuthorization -> onCancelUndo()
             else -> _uiState.update { it.copy(step = AdvancedBankingStep.Hub, result = null, message = null) }
+        }
+    }
+
+    fun onScanDelivered(cardId: String, cardType: CardType) {
+        if (_uiState.value.authorization.active) {
+            onUndoAuthorizationScan(cardId, cardType)
+            return
+        }
+        when (cardType) {
+            CardType.USER -> onPlayerScanned(cardId)
+            CardType.PROPERTY -> onPropertyScanned(cardId)
+            CardType.EVENT -> Unit
         }
     }
 
     fun onPlayerScanned(playerId: String) {
         ScanPromptAudio.endPromptSession(scanPromptToken)
+        if (_uiState.value.authorization.active) {
+            onUndoAuthorizationScan(playerId, CardType.USER)
+            return
+        }
         if (definitions.players[playerId] == null) {
             _uiState.update { it.copy(message = "Unknown player card.") }
             return
@@ -319,41 +385,152 @@ class AdvancedBankingViewModel(
         }
     }
 
-    fun onConfirmUndo() {
-        val session = sessionManager.currentSession() ?: return
-        val description = undoEligibility.undoDescription(session) ?: "Last action."
-        executeCommand(GameCommand.UndoLastAction) { outcome ->
-            when (outcome) {
-                is BankingCommitOutcome.Success -> resultMapper.mapUndoResult(outcome.result, description)
-                is BankingCommitOutcome.Rejected ->
-                    resultMapper.mapUndoBlocked(
-                        outcome.result.error?.let { it.toString() }
-                            ?: "This action cannot be undone.",
-                    ).also {
-                        InvalidUserActionAudio.notifyInvalidUserActionForGameError(
-                            gameAudioFeedback,
-                            outcome.result.error,
-                        )
-                    }
-                else -> resultMapper.mapUndoBlocked("This action cannot be undone.")
-            }
-        }
-    }
-
     fun onDone() {
         pendingPlayerId = null
+        undoAuthorization.cancel()
         refreshUndoState()
         _uiState.update {
             it.copy(
                 step = AdvancedBankingStep.Hub,
                 result = null,
                 message = null,
+                authorization = undoAuthorization.snapshot(),
             )
         }
     }
 
     fun dismissMessage() {
         _uiState.update { it.copy(message = null) }
+    }
+
+    private fun openUndoAuthorizationScanner(playPrompt: Boolean) {
+        if (playPrompt) {
+            scanPromptToken = ScanPromptAudio.beginPromptSession()
+            ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
+        }
+        val remaining = undoAuthorization.snapshot().waitingPlayers.size
+        _events.tryEmit(AdvancedBankingEvent.OpenScanner(ScanRequest.undoAuthorization(remaining)))
+    }
+
+    private fun onUndoAuthorizationScan(cardId: String, cardType: CardType) {
+        ScanPromptAudio.endPromptSession(scanPromptToken)
+        when (val result = undoAuthorization.onScan(cardType, cardId)) {
+            is UndoAuthorizationScanResult.PlayerVerified -> {
+                _uiState.update { it.copy(authorization = result.state, message = null) }
+                if (result.readyToUndo) {
+                    executeAuthorizedUndo()
+                } else {
+                    openUndoAuthorizationScanner(playPrompt = false)
+                }
+            }
+            is UndoAuthorizationScanResult.AlreadyApproved -> {
+                _uiState.update {
+                    it.copy(
+                        authorization = result.state,
+                        message = UndoAuthorizationController.alreadyApprovedMessage(result.playerName),
+                    )
+                }
+            }
+            is UndoAuthorizationScanResult.WrongCard -> {
+                _uiState.update {
+                    it.copy(
+                        authorization = result.state,
+                        message = UndoAuthorizationController.WRONG_CARD_MESSAGE,
+                    )
+                }
+            }
+            is UndoAuthorizationScanResult.UnregisteredPlayer -> {
+                InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                _uiState.update {
+                    it.copy(
+                        authorization = result.state,
+                        message = UndoAuthorizationController.UNREGISTERED_PLAYER_MESSAGE,
+                    )
+                }
+            }
+            is UndoAuthorizationScanResult.Ignored -> {
+                _uiState.update { it.copy(authorization = result.state) }
+            }
+        }
+    }
+
+    private fun executeAuthorizedUndo() {
+        if (_uiState.value.commandInFlight) return
+        if (undoAuthorization.snapshot().phase != UndoAuthorizationPhase.COMPLETING) return
+        _uiState.update { it.copy(commandInFlight = true) }
+        viewModelScope.launch {
+            val sessionBefore = sessionManager.currentSession()
+            val outcome = executor.execute(GameCommand.UndoLastAction)
+            when (outcome) {
+                is BankingCommitOutcome.Success -> {
+                    if (sessionBefore != null) {
+                        GameplayOutcomeAudio.playCommittedOutcome(
+                            gameAudioFeedback,
+                            outcome.result,
+                            sessionBefore,
+                            CommitAudioTrigger.Banking(GameCommand.UndoLastAction),
+                        )
+                    }
+                    undoAuthorization.markCompleted()
+                    refreshUndoState()
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            step = AdvancedBankingStep.Hub,
+                            authorization = undoAuthorization.snapshot(),
+                            result = resultMapper.mapUndoResult(
+                                outcome.result,
+                                UndoAuthorizationController.SUCCESS_MESSAGE,
+                            ),
+                            message = null,
+                        )
+                    }
+                }
+                is BankingCommitOutcome.Rejected -> {
+                    InvalidUserActionAudio.notifyInvalidUserActionForGameError(
+                        gameAudioFeedback,
+                        outcome.result.error,
+                    )
+                    val failed = undoAuthorization.markFailed(
+                        outcome.result.error?.let { it.toString() }
+                            ?: "This action cannot be undone.",
+                    )
+                    refreshUndoState()
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            step = AdvancedBankingStep.UndoAuthorization,
+                            authorization = failed,
+                            result = null,
+                        )
+                    }
+                }
+                is BankingCommitOutcome.PersistenceFailed -> {
+                    val failed = undoAuthorization.markFailed("Unable to save the game.\nPlease try again.")
+                    refreshUndoState()
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            step = AdvancedBankingStep.UndoAuthorization,
+                            authorization = failed,
+                            result = null,
+                        )
+                    }
+                }
+                else -> {
+                    val failed = undoAuthorization.markFailed("This action cannot be undone.")
+                    refreshUndoState()
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            step = AdvancedBankingStep.UndoAuthorization,
+                            authorization = failed,
+                            result = null,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun executeCommand(

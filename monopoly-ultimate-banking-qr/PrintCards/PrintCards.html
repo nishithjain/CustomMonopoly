@@ -145,10 +145,16 @@
         /* =========================================================
            PREVIEW
         ========================================================= */
-        #preview { padding-top: 20px; }
+        #preview {
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .sheet {
             width: 210mm;
             height: 297mm;
+            box-sizing: border-box;
             background: white;
             margin: 0 auto 30px auto;
             display: grid;
@@ -156,14 +162,17 @@
             grid-template-rows: repeat(5, 54mm);
             column-gap: 8mm;
             row-gap: 3mm;
-            justify-content: center;
-            align-content: center;
+            padding: 7.5mm 15mm;
+            overflow: hidden;
             page-break-after: always;
             box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+            flex-shrink: 0;
         }
         .card {
             width: 86mm;
             height: 54mm;
+            min-width: 0;
+            min-height: 0;
             position: relative;
             overflow: hidden;
             background: white;
@@ -172,7 +181,7 @@
             width: 100%;
             height: 100%;
             display: block;
-            object-fit: fill;
+            object-fit: contain;
         }
         .cut-line {
             position: absolute;
@@ -585,8 +594,23 @@
     function createSheet(files, numbers, width, height, isBack) {
         const sheet = document.createElement("div");
         sheet.className = "sheet";
-        sheet.style.gridTemplateColumns = `repeat(2, ${width}mm)`;
-        sheet.style.gridTemplateRows = `repeat(5, ${height}mm)`;
+
+        const cols = 2;
+        const rows = 5;
+        const colGap = 8;
+        const rowGap = 3;
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const gridWidth = cols * width + (cols - 1) * colGap;
+        const gridHeight = rows * height + (rows - 1) * rowGap;
+        const padX = Math.max(0, (pageWidth - gridWidth) / 2);
+        const padY = Math.max(0, (pageHeight - gridHeight) / 2);
+
+        sheet.style.gridTemplateColumns = `repeat(${cols}, ${width}mm)`;
+        sheet.style.gridTemplateRows = `repeat(${rows}, ${height}mm)`;
+        sheet.style.columnGap = colGap + "mm";
+        sheet.style.rowGap = rowGap + "mm";
+        sheet.style.padding = `${padY}mm ${padX}mm`;
 
         for (let i = 0; i < 10; i++) {
             const file = files[i] || null;

@@ -12,7 +12,7 @@ All bank commands go through `GameCommand` → `GameEngine` → Room persistence
 | **LOCATION** | Pay M100 (`PayLocationFee`), scan destination Property, normal landing workflow |
 | **GO TO JAIL** | Record that physical rules sent a player to Jail (`SendPlayerToJail`) |
 | **GET OUT OF JAIL** | Manage release of a player already in Jail |
-| **UNDO LAST ACTION** | Global undo (also available here) |
+| **UNDO LAST ACTION** | All registered players scan their Player Cards, then one `UndoLastAction` |
 | **GAME STATUS** | Read-only balances |
 | **RECENT BANKING** | Transaction history |
 

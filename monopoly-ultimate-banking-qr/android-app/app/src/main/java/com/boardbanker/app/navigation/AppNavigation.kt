@@ -10,8 +10,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.boardbanker.app.BankingQrApplication
-import com.boardbanker.app.navigation.BankingNavigation
-import com.boardbanker.app.navigation.BankingScanContext
 import com.boardbanker.app.ui.screens.auction.AuctionScreen
 import com.boardbanker.app.ui.screens.auction.AuctionViewModel
 import com.boardbanker.app.ui.screens.auction.AuctionViewModelFactory
@@ -40,11 +38,11 @@ import com.boardbanker.app.ui.screens.resume.ResumeGameScreen
 import com.boardbanker.app.ui.screens.setup.GameSetupViewModel
 import com.boardbanker.app.ui.screens.setup.GameSetupViewModelFactory
 import com.boardbanker.app.ui.screens.setup.PlayerSetupScreen
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.delivery.CollectScanResults
 import com.boardbanker.app.scanner.delivery.ScanResultConsumer
 import com.boardbanker.app.scanner.ui.ScannerScreen
 import com.boardbanker.app.audio.ScanPromptAudio
-import com.boardbanker.core.card.CardType
 
 @Composable
 fun AppNavigation(
@@ -112,7 +110,10 @@ fun AppNavigation(
             PlayerSetupScreen(
                 viewModel = setupViewModel,
                 onScanPlayerCard = {
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.PLAYER_SETUP)
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.PLAYER_SETUP,
+                        ScanRequest.player(),
+                    )
                     ScanPromptAudio.playOnce(
                         app.gameAudioFeedback,
                         ScanPromptAudio.beginPromptSession(),
@@ -132,10 +133,12 @@ fun AppNavigation(
 
         composable(AppDestination.PlayerScanner.route) {
             ScannerScreen(
-                title = "SCAN PLAYER CARD",
-                expectedCardType = CardType.USER,
+                scanRequest = ScanRequest.player(),
                 onCardAccepted = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    app.scanResultDeliverer.clearPendingScanRequest()
+                    navController.popBackStack()
+                },
             )
         }
 
@@ -163,10 +166,8 @@ fun AppNavigation(
                 onNavigateHome = {
                     navController.popBackStack(AppDestination.Home.route, inclusive = false)
                 },
-                onOpenScanner = { expectedCardType ->
-                    backStackEntry.savedStateHandle[GameNavigation.EXPECTED_SCAN_TYPE] =
-                        expectedCardType?.name ?: "ANY"
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.GAME)
+                onOpenScanner = { request ->
+                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.GAME, request)
                     navController.navigate(AppDestination.GameScanner.route)
                 },
                 onNavigateToBanking = {
@@ -218,9 +219,10 @@ fun AppNavigation(
                 viewModel = playerDetailsViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onOpenPropertyScanner = {
-                    backStackEntry.savedStateHandle[BankingNavigation.SCAN_CONTEXT] =
-                        BankingScanContext.PROPERTY.name
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.PLAYER_DETAILS)
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.PLAYER_DETAILS,
+                        ScanRequest.property(),
+                    )
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
                 onNavigateToDebt = {
@@ -250,19 +252,14 @@ fun AppNavigation(
                 deliverer = app.scanResultDeliverer,
                 consumer = ScanResultConsumer.BANKING,
             ) { card ->
-                when (card.cardType) {
-                    CardType.USER -> bankingViewModel.onPlayerScanned(card.cardId)
-                    CardType.PROPERTY -> bankingViewModel.onPropertyScanned(card.cardId)
-                    else -> Unit
-                }
+                bankingViewModel.onScanDelivered(card.cardId, card.cardType)
             }
 
             AdvancedBankingScreen(
                 viewModel = bankingViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onOpenScanner = { context ->
-                    backStackEntry.savedStateHandle[BankingNavigation.SCAN_CONTEXT] = context.name
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.BANKING)
+                onOpenScanner = { request ->
+                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.BANKING, request)
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
                 onNavigateToDebt = {
@@ -284,17 +281,14 @@ fun AppNavigation(
         }
 
         composable(AppDestination.BankingScanner.route) {
-            val parentEntry = navController.previousBackStackEntry ?: return@composable
-            val contextName = parentEntry.savedStateHandle.get<String>(BankingNavigation.SCAN_CONTEXT)
-            val expectedCardType = when (contextName) {
-                BankingScanContext.PROPERTY.name -> CardType.PROPERTY
-                else -> CardType.USER
-            }
+            val request = app.scanResultDeliverer.peekScanRequest() ?: ScanRequest.player()
             ScannerScreen(
-                title = if (expectedCardType == CardType.PROPERTY) "SCAN PROPERTY CARD" else "SCAN PLAYER CARD",
-                expectedCardType = expectedCardType,
+                scanRequest = request,
                 onCardAccepted = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    app.scanResultDeliverer.clearPendingScanRequest()
+                    navController.popBackStack()
+                },
             )
         }
 
@@ -329,9 +323,10 @@ fun AppNavigation(
                 viewModel = auctionViewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onOpenScanner = {
-                    backStackEntry.savedStateHandle[BankingNavigation.SCAN_CONTEXT] =
-                        BankingScanContext.PLAYER.name
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.AUCTION)
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.AUCTION,
+                        ScanRequest.player(),
+                    )
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
                 onNavigateToDebt = {
@@ -367,9 +362,10 @@ fun AppNavigation(
                     navController.navigate(AppDestination.GameOver.route)
                 },
                 onOpenPropertyScanner = {
-                    backStackEntry.savedStateHandle[BankingNavigation.SCAN_CONTEXT] =
-                        BankingScanContext.PROPERTY.name
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.DEBT)
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.DEBT,
+                        ScanRequest.property(),
+                    )
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
             )
@@ -414,24 +410,20 @@ fun AppNavigation(
         }
 
         composable(AppDestination.GameScanner.route) {
-            val parentEntry = navController.previousBackStackEntry ?: return@composable
-            val expectedName = parentEntry.savedStateHandle.get<String>(GameNavigation.EXPECTED_SCAN_TYPE)
-            val expectedCardType = when (expectedName) {
-                CardType.USER.name -> CardType.USER
-                CardType.PROPERTY.name -> CardType.PROPERTY
-                CardType.EVENT.name -> CardType.EVENT
-                else -> null
-            }
+            val request = app.scanResultDeliverer.peekScanRequest() ?: ScanRequest.gameCard()
             ScannerScreen(
-                title = "SCAN GAME CARD",
-                expectedCardType = expectedCardType,
+                scanRequest = request,
                 onCardAccepted = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    app.scanResultDeliverer.clearPendingScanRequest()
+                    navController.popBackStack()
+                },
             )
         }
 
         composable(AppDestination.QrScanner.route) {
             ScannerScreen(
+                scanRequest = ScanRequest.gameCard(),
                 onBack = { navController.popBackStack() },
             )
         }

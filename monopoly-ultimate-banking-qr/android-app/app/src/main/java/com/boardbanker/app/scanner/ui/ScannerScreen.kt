@@ -42,6 +42,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.boardbanker.app.BuildConfig
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.ScannerViewModel
 import com.boardbanker.app.scanner.ScannerViewModelFactory
 import com.boardbanker.app.scanner.camera.CameraPreview
@@ -55,13 +56,12 @@ import com.boardbanker.core.card.CardType
 @Composable
 fun ScannerScreen(
     onBack: () -> Unit,
-    expectedCardType: CardType? = null,
-    title: String = "QR CARD TEST",
+    scanRequest: ScanRequest = ScanRequest.gameCard(),
     onCardAccepted: ((ResolvedCard) -> Unit)? = null,
     viewModel: ScannerViewModel = viewModel(
         factory = ScannerViewModelFactory(
             application = LocalContext.current.applicationContext as android.app.Application,
-            expectedCardType = expectedCardType,
+            scanRequest = scanRequest,
         ),
     ),
 ) {
@@ -125,7 +125,7 @@ fun ScannerScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(title) })
+            TopAppBar(title = { Text(scanRequest.heading) })
         },
     ) { innerPadding ->
         Column(
@@ -188,10 +188,7 @@ fun ScannerScreen(
                     statusText = when (uiModel.state) {
                         ScannerUiState.STARTING_CAMERA -> "Starting camera..."
                         ScannerUiState.PROCESSING -> "Processing..."
-                        else -> when (expectedCardType) {
-                            CardType.USER -> "Scan a Player card"
-                            else -> "Align QR in frame"
-                        }
+                        else -> scanRequest.overlayInstruction
                     },
                 )
             }

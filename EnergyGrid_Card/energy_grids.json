@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "currency": {
+    "code": "INR",
+    "symbol": "₹"
+  },
+  "groupId": "RENEWABLE_ENERGY_GRID",
+  "groupName": "Renewable Energy Grid",
+  "purchasePrice": 20000,
+  "rent": [
+    {
+      "ownedCount": 1,
+      "amount": 5000
+    },
+    {
+      "ownedCount": 2,
+      "amount": 12000
+    },
+    {
+      "ownedCount": 3,
+      "amount": 25000
+    },
+    {
+      "ownedCount": 4,
+      "amount": 40000
+    }
+  ],
+  "energyGrids": [
+    {
+      "energyGridId": "ENG_01",
+      "energyName": "Solar Energy",
+      "artwork": "Solar.png"
+    },
+    {
+      "energyGridId": "ENG_02",
+      "energyName": "Wind Energy",
+      "artwork": "Wind.png"
+    },
+    {
+      "energyGridId": "ENG_03",
+      "energyName": "Hydroelectric Energy",
+      "artwork": "Hydroelectric.png"
+    },
+    {
+      "energyGridId": "ENG_04",
+      "energyName": "Biomass Energy",
+      "artwork": "Biomass.png"
+    }
+  ]
+}

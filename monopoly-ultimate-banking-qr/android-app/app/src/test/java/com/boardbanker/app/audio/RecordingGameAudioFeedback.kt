@@ -56,6 +56,8 @@ class RecordingGameAudioFeedback : GameAudioFeedback {
 
     override fun playUndo() = record("UNDO")
 
+    override fun playUndoLastAction() = record("UNDO_LAST_ACTION")
+
     override fun playLostGame() = record("LOST_GAME")
 
     override fun playWinner() = record("WINNER")

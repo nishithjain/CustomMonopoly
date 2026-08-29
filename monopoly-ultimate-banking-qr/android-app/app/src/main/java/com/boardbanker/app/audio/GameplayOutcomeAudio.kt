@@ -18,6 +18,7 @@ enum class GameplayAudioCue {
     KA_CHING,
     MONEY_LOST,
     UNDO,
+    UNDO_LAST_ACTION,
     LOST_GAME,
     WINNER,
     AUCTION_BEGINS,
@@ -91,6 +92,7 @@ object GameplayOutcomeAudio {
             GameplayAudioCue.KA_CHING -> audio.playKaChing()
             GameplayAudioCue.MONEY_LOST -> audio.playMoneyLost()
             GameplayAudioCue.UNDO -> audio.playUndo()
+            GameplayAudioCue.UNDO_LAST_ACTION -> audio.playUndoLastAction()
             GameplayAudioCue.LOST_GAME -> audio.playLostGame()
             GameplayAudioCue.WINNER -> audio.playWinner()
             GameplayAudioCue.AUCTION_BEGINS -> audio.playAuctionBegins()
@@ -110,7 +112,7 @@ object GameplayOutcomeAudio {
         is GameCommand.PayJailFee -> GameplayAudioCue.KA_CHING
         is GameCommand.UndoLastAction ->
             if (result.transactions.any { it.transactionType == TransactionType.UNDO }) {
-                GameplayAudioCue.UNDO
+                GameplayAudioCue.UNDO_LAST_ACTION
             } else {
                 null
             }

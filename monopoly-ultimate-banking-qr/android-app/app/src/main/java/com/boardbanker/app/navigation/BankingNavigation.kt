@@ -9,4 +9,5 @@ object BankingNavigation {
 enum class BankingScanContext {
     PLAYER,
     PROPERTY,
+    UNDO_AUTHORIZATION,
 }

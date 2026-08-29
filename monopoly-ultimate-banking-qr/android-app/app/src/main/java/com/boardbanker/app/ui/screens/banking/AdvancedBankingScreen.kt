@@ -1,7 +1,9 @@
 package com.boardbanker.app.ui.screens.banking
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,8 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.app.banking.UndoAuthorizationController
+import com.boardbanker.app.banking.UndoAuthorizationPhase
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
-import com.boardbanker.app.navigation.BankingScanContext
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
@@ -38,7 +42,7 @@ import com.boardbanker.app.ui.components.PlayerIconSize
 fun AdvancedBankingScreen(
     viewModel: AdvancedBankingViewModel,
     onNavigateBack: () -> Unit,
-    onOpenScanner: (BankingScanContext) -> Unit,
+    onOpenScanner: (ScanRequest) -> Unit,
     onNavigateToDebt: () -> Unit,
     onNavigateToGameOver: () -> Unit,
     onNavigateToGameStatus: () -> Unit,
@@ -47,11 +51,15 @@ fun AdvancedBankingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    BackHandler(enabled = uiState.step == AdvancedBankingStep.UndoAuthorization) {
+        viewModel.onCancelUndo()
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 AdvancedBankingEvent.NavigateBack -> onNavigateBack()
-                is AdvancedBankingEvent.OpenScanner -> onOpenScanner(event.context)
+                is AdvancedBankingEvent.OpenScanner -> onOpenScanner(event.request)
                 AdvancedBankingEvent.NavigateToDebt -> onNavigateToDebt()
                 AdvancedBankingEvent.NavigateToGameOver -> onNavigateToGameOver()
                 AdvancedBankingEvent.NavigateToGameStatus -> onNavigateToGameStatus()
@@ -141,7 +149,7 @@ fun AdvancedBankingScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
                         Text("SCAN PLAYER CARD")
                     }
                 }
@@ -185,7 +193,7 @@ fun AdvancedBankingScreen(
                 }
                 AdvancedBankingStep.LocationScanPlayer -> {
                     Text("Scan the Player card.", style = MaterialTheme.typography.bodyLarge)
-                    Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
                         Text("SCAN PLAYER CARD")
                     }
                 }
@@ -213,7 +221,7 @@ fun AdvancedBankingScreen(
                         "Scan the Player card\nto send to Jail.",
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
                         Text("SCAN PLAYER CARD")
                     }
                 }
@@ -239,7 +247,7 @@ fun AdvancedBankingScreen(
                         "Scan the jailed Player card.",
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Button(onClick = { onOpenScanner(BankingScanContext.PLAYER) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
                         Text("SCAN PLAYER CARD")
                     }
                 }
@@ -278,16 +286,11 @@ fun AdvancedBankingScreen(
                         onCancel = viewModel::onBack,
                     )
                 }
-                AdvancedBankingStep.UndoConfirm -> {
-                    Text(
-                        "UNDO LAST ACTION?\n\n${uiState.undoDescription ?: ""}",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    BankingActionBar(
-                        confirmLabel = BankingActionLabels.confirm("UNDO"),
-                        onConfirm = viewModel::onConfirmUndo,
-                        cancelLabel = BankingActionLabels.cancel(),
-                        onCancel = viewModel::onBack,
+                AdvancedBankingStep.UndoAuthorization -> {
+                    UndoAuthorizationContent(
+                        uiState = uiState,
+                        onScan = viewModel::onRequestUndoScan,
+                        onCancel = viewModel::onCancelUndo,
                     )
                 }
             }
@@ -296,6 +299,74 @@ fun AdvancedBankingScreen(
                 BankingResultContent(result = result, onDone = viewModel::onDone)
             }
         }
+    }
+}
+
+@Composable
+private fun UndoAuthorizationContent(
+    uiState: AdvancedBankingUiState,
+    onScan: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    val authorization = uiState.authorization
+    Text(
+        UndoAuthorizationController.ALL_PLAYERS_MUST_APPROVE_TITLE,
+        style = MaterialTheme.typography.titleLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+        UndoAuthorizationController.ALL_PLAYERS_MUST_APPROVE_BODY,
+        style = MaterialTheme.typography.bodyLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+        UndoAuthorizationController.progressLabel(authorization.verifiedCount, authorization.totalCount),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    authorization.players.forEach { player ->
+        val waiting = !player.verified
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                if (player.verified) "✓" else "○",
+                style = MaterialTheme.typography.titleMedium,
+                color = if (waiting) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            )
+            PlayerIdentity(
+                playerId = player.playerId,
+                playerName = player.displayName,
+                iconSize = PlayerIconSize.Small,
+            )
+            Text(
+                if (player.verified) "Verified" else "Waiting to scan",
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (waiting) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+    authorization.scanMessage?.takeIf { authorization.phase != UndoAuthorizationPhase.FAILED }?.let { scanMessage ->
+        Text(scanMessage, style = MaterialTheme.typography.bodyMedium)
+    }
+    if (authorization.phase == UndoAuthorizationPhase.FAILED) {
+        Text(
+            authorization.scanMessage ?: "This action cannot be undone.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+    if (authorization.phase == UndoAuthorizationPhase.COLLECTING) {
+        Button(onClick = onScan, modifier = Modifier.fillMaxWidth()) {
+            Text("SCAN PLAYER CARD")
+        }
+    }
+    Button(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+        Text("CANCEL UNDO")
     }
 }
 

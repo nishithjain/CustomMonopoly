@@ -1,6 +1,7 @@
 package com.boardbanker.app.gameplay.workflow
 
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
@@ -82,9 +83,13 @@ sealed class GameplayWorkflowState {
 }
 
 data class WorkflowScanRequest(
-    val expectedCardType: CardType,
-    val prompt: String,
-)
+    val scanRequest: ScanRequest,
+) {
+    val expectedCardType: CardType
+        get() = scanRequest.singleExpectedType ?: CardType.USER
+    val prompt: String
+        get() = scanRequest.instruction
+}
 
 data class WorkflowCommandRequest(
     val command: GameCommand,
@@ -344,10 +349,7 @@ class GameplayWorkflowController(
         return listOf(
             WorkflowAction.StateChanged(state),
             WorkflowAction.RequestScan(
-                WorkflowScanRequest(
-                    expectedCardType = CardType.USER,
-                    prompt = "Scan the Player card of the player who landed on this property.",
-                ),
+                WorkflowScanRequest(ScanRequest.player()),
             ),
         )
     }
@@ -368,10 +370,7 @@ class GameplayWorkflowController(
         return listOf(
             WorkflowAction.StateChanged(state),
             WorkflowAction.RequestScan(
-                WorkflowScanRequest(
-                    expectedCardType = CardType.USER,
-                    prompt = "Scan the Player card of the player who landed on this property.",
-                ),
+                WorkflowScanRequest(ScanRequest.player()),
             ),
         )
     }
@@ -408,10 +407,7 @@ class GameplayWorkflowController(
             return listOf(
                 WorkflowAction.StateChanged(state),
                 WorkflowAction.RequestScan(
-                    WorkflowScanRequest(
-                        expectedCardType = CardType.USER,
-                        prompt = "Scan the Player card of the player who landed on this property.",
-                    ),
+                    WorkflowScanRequest(ScanRequest.player()),
                 ),
             )
         }
@@ -565,10 +561,7 @@ class GameplayWorkflowController(
     private fun scanRequestForEventStep(current: GameplayWorkflowState.EventCollectingTargets): WorkflowAction.RequestScan {
         val step = current.plan.steps[current.stepIndex]
         return WorkflowAction.RequestScan(
-            WorkflowScanRequest(
-                expectedCardType = EventWorkflowPlanner.expectedCardType(step) ?: CardType.USER,
-                prompt = EventWorkflowPlanner.scanPrompt(step),
-            ),
+            WorkflowScanRequest(EventWorkflowPlanner.scanRequest(step)),
         )
     }
 

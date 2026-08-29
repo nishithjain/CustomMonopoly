@@ -45,6 +45,8 @@ interface GameAudioFeedback {
 
     fun playUndo()
 
+    fun playUndoLastAction()
+
     fun playLostGame()
 
     fun playWinner()

@@ -49,9 +49,9 @@ Tap **BANK ACTIONS** on the game screen:
 | **COLLECT GO** | Player passed or landed on GO during normal movement |
 | **LOCATION** | Player pays M100 to move to a chosen property (no GO) |
 | **JAIL** | Manage jailed player (fee, doubles release) |
-| **UNDO LAST ACTION** | Cancel the most recent eligible banking transaction |
+| **UNDO LAST ACTION** | Cancel the most recent eligible banking transaction after every player scans their Player Card |
 | **GAME STATUS** | Balances, jail, properties, active effects |
-| **RECENT BANKING** | Transaction history |
+| **RECENT BANKING** | Transaction history: last 30 actions, newest first, with time, players, property, event card name, and amounts. An undo appears as its own entry naming what it reverted, and the reverted action is marked **UNDONE** |
 
 ## Auction
 

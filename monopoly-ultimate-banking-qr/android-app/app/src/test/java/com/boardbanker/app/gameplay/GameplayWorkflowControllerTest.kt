@@ -2,7 +2,6 @@ package com.boardbanker.app.gameplay.workflow
 
 import com.boardbanker.app.AppTestSupport
 import com.boardbanker.core.command.GameCommand
-import com.boardbanker.core.model.EventEngineRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -27,6 +26,19 @@ class EventWorkflowPlannerTest {
     fun evt13IsEventOnly() {
         val rule = definitions.events["EVT_13"]!!.engineRule
         assertEquals(EventWorkflowPattern.EVENT_ONLY, EventWorkflowPlanner.classify(rule))
+    }
+
+    @Test
+    fun boomTownScanStepsArePlayerThenProperty() {
+        val rule = definitions.events["EVT_01"]!!.engineRule
+        val plan = EventWorkflowPlanner.plan("EVT_01", rule)
+        assertEquals(EventWorkflowPattern.MOVE_THEN_PROPERTY_CHOICE, plan.pattern)
+        assertEquals(
+            listOf(EventScanStep.ACTING_PLAYER, EventScanStep.PROPERTY),
+            plan.steps,
+        )
+        assertEquals("Scan a Player Card", EventWorkflowPlanner.scanRequest(plan.steps[0]).instruction)
+        assertEquals("Scan a Property Card", EventWorkflowPlanner.scanRequest(plan.steps[1]).instruction)
     }
 }
 
@@ -110,4 +122,61 @@ class GameplayWorkflowControllerTest {
         controller.onEventContinue()
         assertTrue(controller.currentState() is GameplayWorkflowState.EventCollectingTargets)
     }
+
+    @Test
+    fun boomTownFirstScanIsPlayerCard() {
+        controller.onEventScanned("EVT_01")
+        val actions = controller.onEventContinue()
+        assertEquals("Scan a Player Card", actions.scanInstruction())
+        assertEquals(setOf(com.boardbanker.core.card.CardType.USER), actions.scanRequest().acceptedCardTypes)
+    }
+
+    @Test
+    fun boomTownAfterPlayerScanRequestsPropertyCard() {
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_01")
+        controller.onEventContinue()
+        val actions = controller.onUserScanned("USR_01", session)
+        assertEquals("Scan a Property Card", actions.scanInstruction())
+        assertEquals(setOf(com.boardbanker.core.card.CardType.PROPERTY), actions.scanRequest().acceptedCardTypes)
+    }
+
+    @Test
+    fun grandDesignsUpdatesInstructionAfterPlayerScan() {
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05")
+        assertEquals("Scan a Player Card", controller.onEventContinue().scanInstruction())
+        assertEquals("Scan a Property Card", controller.onUserScanned("USR_01", session).scanInstruction())
+    }
+
+    @Test
+    fun hauntedHouseUpdatesInstructionAfterEachScan() {
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_06")
+        assertEquals("Scan a Player Card", controller.onEventContinue().scanInstruction())
+        assertEquals("Scan a Player Card", controller.onUserScanned("USR_01", session).scanInstruction())
+        assertEquals("Scan a Property Card", controller.onUserScanned("USR_02", session).scanInstruction())
+        assertEquals("Scan a Property Card", controller.onEventPropertyScanned("PRP_01").scanInstruction())
+        val afterSecondProperty = controller.onEventPropertyScanned("PRP_02")
+        assertTrue(afterSecondProperty.none { it is WorkflowAction.RequestScan })
+        assertTrue(controller.currentState() is GameplayWorkflowState.EventConfirm)
+    }
+
+    @Test
+    fun wrongCardDuringBoomTownKeepsPlayerInstruction() {
+        controller.onEventScanned("EVT_01")
+        controller.onEventContinue()
+        val wrong = controller.onEventPropertyScanned("PRP_01")
+        assertTrue(wrong.any { it is WorkflowAction.WrongCardType })
+        val collecting = controller.currentState() as GameplayWorkflowState.EventCollectingTargets
+        assertEquals(
+            "Scan a Player Card",
+            EventWorkflowPlanner.scanRequest(collecting.plan.steps[collecting.stepIndex]).instruction,
+        )
+    }
 }
+
+private fun List<WorkflowAction>.scanInstruction(): String = scanRequest().instruction
+
+private fun List<WorkflowAction>.scanRequest() =
+    filterIsInstance<WorkflowAction.RequestScan>().single().request.scanRequest

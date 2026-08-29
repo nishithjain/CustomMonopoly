@@ -11,11 +11,11 @@ Found:    4
 
 Other sound sources
 Expected: 18
-Found:    18
+Found:    19
 
 Android raw resources
 Expected: 22
-Found:    22
+Found:    23
 
 Audio outside game-core
 Expected: YES
