@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -129,7 +131,13 @@ fun PlayerDetailsScreen(
                             .padding(vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text(property.propertyName, style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = property.propertyName,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.semantics {
+                                contentDescription = "Property ${property.propertyName}"
+                            },
+                        )
                         Text(property.colorGroup, style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "Rent Level:\n${property.rentLevel} / ${property.maxRentLevel}",

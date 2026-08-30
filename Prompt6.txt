@@ -1,0 +1,387 @@
+Implement edition-aware saved-game restoration in the Customized Monopoly / Monopoly Ultimate Banking QR Android project.
+
+## Problem
+
+Persistence is currently initialized using the default UK edition definitions. During restore, the saved game may therefore be validated against UK before its actual `editionId` is loaded.
+
+India currently works only because UK and India share identifiers such as:
+
+```text
+PRP_01–PRP_22
+EVT_01–EVT_23
+```
+
+A future custom edition may use a different board size/order and identifiers such as:
+
+```text
+PROPERTY_MUMBAI_01
+EVENT_FESTIVAL_01
+```
+
+Such a saved game could be incorrectly rejected against UK definitions before the custom edition is loaded.
+
+The restored edition is a complete package: edition metadata, card registry, board layout, Properties, Events, banking values, board relationships, game rules, and edition-aware artwork metadata. No edition-dependent part of restore may be initialized from UK or the current catalogue default.
+
+## Required restore order
+
+The restore process must be:
+
+```text
+Read saved JSON
+    ↓
+Extract saved editionId and editionDefinitionVersion
+    ↓
+Load that edition’s definitions
+    ↓
+Check edition-definition version compatibility
+    ↓
+Deserialize/map the complete saved session
+    ↓
+Validate the saved session against that edition
+    ↓
+Create the game engine and resume
+```
+
+Do not stop after analysis. Inspect the actual repository, implement the change, add tests, and run the relevant test suites.
+
+## Scope and sequence
+
+This is Prompt 6. Run it after Prompt 5 has added `editionDefinitionVersion`. This task owns definition-neutral persistence reading and restore orchestration. Do not add new gameplay rules or Event mechanics here.
+
+## 1. Inspect the existing restore architecture
+
+Locate:
+
+* Saved-game JSON reader and writer.
+* Room entities, converters, repositories, and DAOs.
+* Persistence dependency-injection setup.
+* Any serializer or validator constructed with the default UK definitions.
+* Resume Game use case and ViewModel flow.
+* `GameSession` deserialization and domain mapping.
+* Edition loader and validator.
+* `EditionIds.DEFAULT`, `"uk"`, or UK definitions used during persistence initialization.
+* Validation of property, Event Card, Player Card, ownership, rent-level, and board references.
+* Game-engine creation during restore.
+* Existing restore, persistence, Room, and migration tests.
+
+Document the current call sequence before changing it.
+
+## 2. Separate structural parsing from edition validation
+
+Persistence must be definition-neutral.
+
+Reading JSON and extracting saved-game metadata must not require UK or any other edition definitions.
+
+Introduce or refactor toward a lightweight metadata model equivalent to:
+
+```kotlin
+data class SavedGameMetadata(
+    val editionId: String,
+    val editionDefinitionVersion: Int
+)
+```
+
+Use the project’s existing names and serialization library.
+
+The metadata reader should inspect only definition-independent fields needed to select the edition.
+
+It must not validate:
+
+* Property IDs.
+* Event IDs.
+* Player Card IDs.
+* Ownership references.
+* Rent levels.
+* Board relationships.
+* Edition card counts.
+* Board-space count, order, types, positions, target references, decks, regions, sides, or Location destinations.
+* Other edition-specific values.
+
+Do not create a temporary `GameSession` using UK just to obtain `editionId`.
+
+It is acceptable to parse the raw JSON into a persistence DTO before loading the edition, provided no edition-dependent validation or domain mapping happens during that initial parse.
+
+## 3. Remove UK from persistence initialization
+
+Find dependency-injection or construction code equivalent to:
+
+```kotlin
+SavedGameRepository(
+    validator = GameSessionValidator(ukEdition)
+)
+```
+
+or:
+
+```kotlin
+persistence.initialize(defaultEditionDefinitions)
+```
+
+Remove the default-edition dependency from the persistence layer.
+
+The persistence store should be responsible for:
+
+* Reading raw saved data.
+* Writing saved data.
+* Performing format/schema parsing.
+* Returning definition-independent DTOs or raw JSON.
+* Reporting corrupted or unreadable data.
+
+It should not decide which edition definitions apply.
+
+Do not replace UK with a different global edition or the edition-catalogue default.
+
+## 4. Orchestrate restore using the saved editionId
+
+Move edition selection and semantic validation into the Resume Game orchestration layer, repository coordinator, or use case that has access to both persistence and the edition loader.
+
+Implement the flow conceptually as:
+
+```kotlin
+val rawSave = savedGameStore.read()
+
+val metadata = savedGameMetadataReader.read(rawSave)
+
+val edition = editionLoader.load(metadata.editionId)
+
+editionVersionValidator.requireCompatible(
+    savedVersion = metadata.editionDefinitionVersion,
+    installedVersion = edition.definitionVersion
+)
+
+val savedGameDto = savedGameSerializer.deserialize(rawSave)
+
+val session = savedGameMapper.toDomain(
+    dto = savedGameDto,
+    edition = edition
+)
+
+gameSessionValidator.validate(
+    session = session,
+    edition = edition
+)
+
+val engine = gameEngineFactory.create(
+    session = session,
+    edition = edition
+)
+```
+
+Adapt this to the existing architecture instead of copying it literally.
+
+The explicit saved `editionId` must always take precedence over:
+
+* The edition catalogue’s `defaultEditionId`.
+* UK fallback configuration.
+* The most recently selected New Game edition.
+* Any globally cached edition.
+* Any currently active session.
+
+## 5. Integrate definition-version validation
+
+If edition-definition versioning has been implemented, compare versions after loading the saved edition but before edition-dependent session validation or game-engine creation.
+
+Required order:
+
+```text
+Load edition by saved editionId
+→ Compare saved and installed definition versions
+→ Validate saved IDs and state
+```
+
+If versions differ, return the existing typed incompatibility result containing:
+
+```text
+editionId
+savedVersion
+installedVersion
+```
+
+Do not validate a version-1 save against version-2 definitions and then report misleading missing-property or invalid-rent errors.
+
+Do not overwrite the saved version with the installed version.
+
+## 6. Legacy save handling
+
+If older saves genuinely have no `editionId`, preserve an isolated legacy rule that assigns `"uk"`.
+
+Apply that fallback only when the field is absent in a known legacy save format.
+
+Do not use UK when:
+
+* `editionId` is present and valid.
+* A custom edition cannot be found.
+* The saved edition is disabled.
+* Edition loading fails.
+* Edition validation fails.
+
+If the saved `editionId` is blank or malformed outside the recognized legacy format, return a clear corrupted-save error.
+
+If an older save has no `editionDefinitionVersion`, handle it according to the edition-version migration policy—normally legacy version `1`. Never replace a missing version with the currently installed version.
+
+## 7. Validate against the loaded edition
+
+All semantic restore validation must receive the definitions loaded from the saved `editionId`.
+
+Validate saved references against that edition’s:
+
+* Property definitions.
+* Event definitions.
+* Player Card definitions or common Player Card registry.
+* Board relationships.
+* Board layout and space references.
+* Edition-owned card registry and Event deck/action definitions.
+* Banking values where applicable.
+* Rent-level configuration.
+* Edition card-count configuration.
+* Other edition-specific registries.
+
+For example, a custom-edition property ID should be accepted when it exists in that custom edition, even when it does not exist in UK.
+
+Conversely, a UK property ID must be rejected if it is not valid for the saved custom edition.
+
+Do not merge UK definitions into custom definitions as a fallback.
+
+## 8. Save-path consistency
+
+Audit autosave and manual-save flows as well.
+
+When validating before writing a save:
+
+* Use the active session’s `editionId`.
+* Use the already loaded active edition or load that exact edition.
+* Never validate the session against the catalogue default.
+
+Ensure the persisted `editionId` and `editionDefinitionVersion` match the edition used by the active game engine.
+
+Undo snapshots, restored state, and copied sessions must preserve both fields.
+
+## 9. Caching and state isolation
+
+Inspect any edition-definition cache.
+
+A cached UK definition must not be returned for an India or custom-edition request.
+
+Cache definitions by at least `editionId`. If versioned definitions can coexist in the future, use an appropriate composite key.
+
+Starting or resuming a second game with another edition must not reuse the previous game’s validator or engine definitions.
+
+Avoid global mutable “current edition” state in persistence.
+
+## 10. Typed restore failures
+
+Keep restore failures distinct:
+
+* Saved JSON cannot be read.
+* Saved metadata is malformed.
+* Saved edition is missing.
+* Edition definition cannot be loaded.
+* Edition-definition versions are incompatible.
+* Saved session fails validation against the correct edition.
+* Game engine cannot be created.
+
+Do not convert all failures into “invalid saved game.”
+
+Include the saved `editionId` in edition-loading and semantic-validation errors when available.
+
+The app must not delete, overwrite, or partially modify the saved game when restore fails.
+
+## 11. Tests
+
+Add or update tests covering:
+
+### Restore ordering
+
+Use fakes or spies to verify:
+
+```text
+read save
+→ extract metadata
+→ load saved edition
+→ check version
+→ validate session
+→ create engine
+```
+
+Verify that semantic validation is never invoked before the saved edition loads.
+
+### UK and India
+
+* A UK save loads UK definitions.
+* An India save loads India definitions.
+* An India restore never requests UK definitions.
+* The catalogue default does not affect restore.
+
+### Custom edition with different IDs
+
+Create a test edition using a materially different board layout and identifiers not present in UK, for example:
+
+```text
+PROPERTY_CUSTOM_01
+PROPERTY_CUSTOM_02
+EVENT_CUSTOM_01
+SPACE_CUSTOM_GO
+SPACE_CUSTOM_EVENT_A
+```
+
+Verify:
+
+* The custom saved game restores successfully.
+* Its board size, order, typed spaces, Event deck, and relationships come from the custom edition.
+* It would fail against UK, proving that UK pre-validation has been removed.
+* The loader receives the saved custom `editionId`.
+* The validator receives the loaded custom definitions.
+* The engine is created with the same custom definitions.
+* A same-ID card or space in another edition cannot leak into validation.
+
+Add a negative test where the save contains an ID absent from its own custom edition. It must fail only after custom-edition validation.
+
+### Version handling
+
+* Matching saved and installed versions resume successfully.
+* Version mismatch stops before semantic validation.
+* Version mismatch stops before game-engine creation.
+* The saved game remains unchanged after rejection.
+
+### Legacy and error handling
+
+* A recognized legacy save without `editionId` uses UK.
+* A normal save with an unknown edition does not fall back to UK.
+* A disabled edition can resume when its version matches.
+* Corrupted JSON fails before edition loading.
+* Missing edition data produces an edition-loading error.
+* Validation failure identifies the correct edition.
+* Failed restore does not delete or overwrite the save.
+
+### Save flow
+
+* India sessions are validated with India definitions before save.
+* Custom sessions are validated with custom definitions before save.
+* Autosave preserves edition ID and definition version.
+* Undo/session copying preserves both fields.
+
+## Acceptance criteria
+
+The task is complete when:
+
+1. Persistence is no longer initialized with UK definitions.
+2. Saved-game metadata can be read without edition-specific validation.
+3. The saved `editionId` determines which definitions are loaded.
+4. Version compatibility is checked before deep validation.
+5. Semantic validation uses only the saved game’s loaded edition.
+6. A custom edition with non-UK IDs can save and restore successfully.
+7. A custom edition with a different board layout and Event deck restores using those exact definitions.
+8. Unknown editions do not fall back to UK.
+9. Disabled editions remain resumable when compatible.
+10. The game engine is created only after successful edition-aware validation.
+11. Existing and new game-core, app, Room, persistence, and restore tests pass.
+
+After implementation, report:
+
+* The old and new restore call sequences.
+* Files created or modified.
+* Every place where persistence or restore previously depended on UK.
+* How legacy saves are handled.
+* The custom-edition test identifiers used.
+* Test commands executed and their results.
+* Confirmation that failed restore leaves the saved game untouched.

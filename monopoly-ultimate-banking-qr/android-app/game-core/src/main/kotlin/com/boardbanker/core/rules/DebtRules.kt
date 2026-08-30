@@ -7,6 +7,7 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
 import com.boardbanker.core.model.PropertyState
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.transaction.TransactionFactory
@@ -334,8 +335,9 @@ class DebtRules(
                 return purchase
             }
             playerId -> {
+                val oldLevel = propertyState.currentRentLevel
                 val newLevel = RentLevelOperations.increaseLevel(
-                    propertyState.currentRentLevel,
+                    oldLevel,
                     1,
                     definitions.rulesConfig.maximumRentLevel,
                 )
@@ -351,6 +353,8 @@ class DebtRules(
                     playerId = playerId,
                     propertyId = propertyId,
                     amount = newLevel,
+                    stateBefore = RentLevelChangeSnapshot.stateBefore(oldLevel),
+                    stateAfter = RentLevelChangeSnapshot.stateAfter(newLevel),
                 )
                 transactions += tx
                 updatedSession = sessionAfter
@@ -429,8 +433,9 @@ class DebtRules(
         val transactions = mutableListOf<Transaction>()
         var updatedSession = session
 
+        val oldLevel = propertyState.currentRentLevel
         val newLevel = RentLevelOperations.increaseLevel(
-            propertyState.currentRentLevel,
+            oldLevel,
             1,
             rules.maximumRentLevel,
         )
@@ -445,6 +450,8 @@ class DebtRules(
             playerId = creditorId,
             propertyId = propertyId,
             amount = newLevel,
+            stateBefore = RentLevelChangeSnapshot.stateBefore(oldLevel),
+            stateAfter = RentLevelChangeSnapshot.stateAfter(newLevel),
         )
         transactions += levelTx
         updatedSession = sessionAfterLevel

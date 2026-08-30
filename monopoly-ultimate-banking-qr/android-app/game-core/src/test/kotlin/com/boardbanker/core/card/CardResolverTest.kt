@@ -35,7 +35,7 @@ class CardResolverTest {
         val success = result as CardResolution.Success
         assertEquals("PRP_01", success.cardId)
         assertEquals(CardType.PROPERTY, success.cardType)
-        assertEquals("Old Kent Road", success.displayName)
+        assertEquals("[1] Old Kent Road", success.displayName)
     }
 
     @Test
@@ -88,9 +88,16 @@ class CardResolverTest {
             when (val result = resolver.resolve(card.qrPayload)) {
                 is CardResolution.Success -> {
                     resolved++
+                    val expectedDisplayName = if (card.cardType == CardType.PROPERTY) {
+                        definitions.properties[card.cardId]?.let {
+                            com.boardbanker.core.model.PropertyDisplayNames.displayNameWithNumber(it)
+                        } ?: card.name
+                    } else {
+                        card.name
+                    }
                     if (result.cardId != card.cardId ||
                         result.cardType != card.cardType ||
-                        result.displayName != card.name
+                        result.displayName != expectedDisplayName
                     ) {
                         mismatches++
                     }

@@ -1,0 +1,303 @@
+Implement dynamic edition discovery and edition selection for New Game in the Customized Monopoly / Monopoly Ultimate Banking QR Android project.
+
+## Objective
+
+The edition loader can already load an edition using an `editionId`, but normal New Game creation always uses the default UK edition. The code also has an `EditionIds` object or equivalent that explicitly lists only UK and India.
+
+Replace hard-coded edition discovery with a JSON edition catalogue so that adding another edition does not require a Kotlin code change.
+
+## Project direction
+
+Treat every edition as an independent edition package, not merely as a regional reskin. Different editions may have different:
+
+* Board-space count, order, types, IDs, regions, and relationships.
+* Property, Event, and Player Card counts.
+* Property and Event IDs.
+* Event definitions and supported Event actions.
+* Rent-level counts.
+* Artwork and board visuals.
+* Banking values, money formatting, and supported typed rule modes.
+
+UK and India must retain their current Ultimate Banking data and behaviour. The catalogue selects an edition package; it must not contain or duplicate gameplay definitions.
+
+## Scope and sequence
+
+This is Prompt 1 of the refactor. It owns only catalogue discovery, New Game selection, and passing/persisting the selected `editionId`. Do not implement the board-layout schema, Event Engine, money-formatting cleanup, or rule-policy refactor here; later prompts own those changes. Keep the selection flow open to those edition-owned files by avoiding UK-specific assumptions.
+
+Do not stop after analysis. Inspect the repository, implement the change, update tests, and run the relevant test suites.
+
+## 1. Inspect the existing implementation
+
+Before changing code, locate and understand:
+
+* The existing `data/editions/uk/` and `data/editions/india/` directories.
+* Existing `board_layout.json`, `board_relationships.json`, `card_registry.json`, `events.json`, and `game_rules.json` files, wherever they currently live.
+* The actual Android assets/resources path containing those directories.
+* `EditionIds` or other hard-coded UK/India edition constants.
+* The edition data loader and its public interface.
+* The New Game screen, state holder/ViewModel, and game-creation flow.
+* Every place where `"uk"`, `EditionIds.UK`, or another default edition is passed during game creation.
+* How `editionId` is stored in active-game state, Room entities, saved games, and resume-game logic.
+* Tests covering edition loading, New Game creation, persistence, and resume.
+* The edition-aware card artwork changes, if already implemented.
+
+Use the project’s existing architecture, JSON parser, dependency injection, state-management pattern, and naming conventions. Do not introduce an unrelated framework.
+
+## 2. Add the edition catalogue
+
+Create this file alongside the existing edition directories at the project’s real runtime data path:
+
+`data/editions/index.json`
+
+Use this initial content:
+
+```json
+{
+  "defaultEditionId": "uk",
+  "editions": [
+    {
+      "editionId": "uk",
+      "name": "UK Edition",
+      "enabled": true
+    },
+    {
+      "editionId": "india",
+      "name": "India Edition",
+      "enabled": true
+    }
+  ]
+}
+```
+
+Make sure the file is included in the packaged Android application and can be loaded using the same asset/resource mechanism as the existing edition JSON files.
+
+Do not create a duplicate data tree if the repository already maps a source directory to the logical `data/editions/` path.
+
+## 3. Add catalogue models and loading
+
+Add models equivalent to:
+
+```kotlin
+data class EditionCatalog(
+    val defaultEditionId: String,
+    val editions: List<EditionCatalogEntry>
+)
+
+data class EditionCatalogEntry(
+    val editionId: String,
+    val name: String,
+    val enabled: Boolean
+)
+```
+
+Use names and serialization annotations consistent with the existing project.
+
+Extend the edition data layer with an operation such as:
+
+```kotlin
+fun loadEditionCatalog(): EditionCatalog
+```
+
+or an equivalent suspend/result-based API consistent with the current loader.
+
+The catalogue loader must:
+
+* Read `data/editions/index.json`.
+* Preserve the JSON ordering of editions.
+* Reject a blank `defaultEditionId`.
+* Reject blank edition IDs or names.
+* Reject duplicate edition IDs.
+* Require the default edition to exist in the catalogue.
+* Require the default edition to be enabled.
+* Return only enabled entries to the New Game UI.
+* Produce a useful error containing the catalogue path and validation problem.
+
+Do not silently replace an invalid or missing catalogue with hard-coded UK data. The catalogue must become the source of truth for editions available to new games.
+
+## 4. Remove hard-coded edition discovery
+
+Find all uses of `EditionIds` and determine their purpose.
+
+Remove or refactor any hard-coded list used to:
+
+* Populate available editions.
+* Select the default edition.
+* Start every new game with UK.
+* Decide which edition data or card artwork to load.
+
+If `EditionIds` must temporarily remain for compatibility with unrelated code, it must not be used for edition discovery or New Game selection.
+
+After this change, adding:
+
+```json
+{
+  "editionId": "custom-edition",
+  "name": "Custom Edition",
+  "enabled": true
+}
+```
+
+together with the corresponding edition data directory must not require editing Kotlin source code.
+
+Do not add a Kotlin enum or sealed class containing UK, India, or future editions.
+
+## 5. Add edition selection to New Game
+
+Update the New Game screen so it loads the catalogue and displays enabled editions.
+
+Requirements:
+
+* Add an edition selector with a clear label such as `Game edition`.
+* Display each edition’s catalogue `name`, not its raw ID.
+* Keep `editionId` as the stored value.
+* Preserve catalogue order.
+* Preselect `defaultEditionId` when opening a fresh New Game screen.
+* Resolve the edition before validating/scanning Player Cards because a custom edition may add edition-specific Player Cards or use a different available-card count.
+* If only one edition is enabled, it may appear as a fixed selected value or disabled dropdown, but the edition must still come from the catalogue.
+* Do not show disabled editions.
+* Preserve the existing New Game player-card scanning and player-name flow.
+* Keep the selected edition during New Game configuration changes and normal recompositions.
+* Disable Start Game until the catalogue has loaded and a valid edition is selected.
+* If catalogue loading fails, show a clear error on the New Game screen and keep Start Game disabled.
+* If loading the selected edition’s data fails, show a useful error instead of silently starting UK.
+* If the user changes editions after Player Cards have been scanned, do not retain registrations that are invalid in the new edition. Either require confirmation and clear incompatible New Game player state, or lock edition selection after the first player is registered and provide an explicit reset flow. Follow the existing UX style and test the chosen behaviour.
+
+Use the project’s existing Compose controls and visual style. Do not redesign unrelated parts of the screen.
+
+## 6. Pass the selection into game creation
+
+Trace the complete Start Game call chain and replace the hard-coded UK edition with the selected catalogue entry’s `editionId`.
+
+The flow must effectively be:
+
+```text
+Edition catalogue
+    → New Game UI selection
+    → New Game state/ViewModel
+    → game creation use case
+    → active game state
+    → edition data loader
+```
+
+Verify that changing the selector from UK to India results in India-backed data being loaded through the existing loader. Where edition-owned card registry, board layout, typed game rules, or artwork support already exists, verify those components receive the selected `editionId`; do not build their full schema/refactor in this prompt.
+
+Do not merge selected-edition data with UK data as a fallback. Only explicitly common resources, such as genuinely shared Player Card definitions or artwork, may come from the common package.
+
+Do not keep UK as an invisible fallback after the user selects India or another valid edition.
+
+## 7. Persist the edition with the game
+
+Verify that every newly created game stores its selected `editionId`.
+
+When resuming a saved game:
+
+* Load the edition using the saved game’s `editionId`.
+* Do not use the current catalogue default.
+* Do not replace the saved edition with UK.
+* A previously started game should remain resumable if its catalogue entry is later disabled. The `enabled` flag controls creation of new games, not existing saved games.
+
+For legacy saved games created before `editionId` was persisted:
+
+* Treat a missing or blank edition ID as `"uk"` only as a backward-compatibility migration rule.
+* Keep this compatibility rule isolated and documented.
+* Do not destructively recreate the Room database.
+* Add a safe Room migration if the schema needs to change.
+
+If the game already persists `editionId`, do not add an unnecessary schema migration; just verify the behavior with tests.
+
+## 8. Integrate with edition-aware artwork
+
+If the earlier artwork edition-aware change is present, ensure card-front lookup receives the selected or saved active game `editionId`.
+
+The runtime lookup must use both:
+
+```text
+editionId + cardId
+```
+
+The New Game catalogue default must not override the active game’s saved edition during card-image lookup.
+
+Common Player Card artwork should continue using the common artwork location.
+
+## 9. Tests
+
+Add or update tests covering at least:
+
+### Catalogue parsing
+
+* Loads UK and India successfully.
+* Preserves catalogue order.
+* Returns UK as the default.
+* Filters disabled editions from New Game choices.
+* Rejects duplicate edition IDs.
+* Rejects a missing default edition.
+* Rejects a disabled default edition.
+* Rejects blank IDs and names.
+* Reports malformed or missing JSON clearly.
+
+### New Game state
+
+* UK is initially selected because it is the catalogue default.
+* Selecting India updates New Game state.
+* Starting a game passes `"india"` through the complete game-creation flow.
+* No production code path forces `"uk"` after India is selected.
+* Start Game remains disabled when catalogue loading fails.
+* Disabled editions cannot be selected for a new game.
+
+### Persistence and resume
+
+* A UK game resumes as UK.
+* An India game resumes as India.
+* A game using an edition that is now disabled can still resume.
+* A legacy saved game with no edition ID resolves to UK.
+
+### Extensibility
+
+Using test resources, add a temporary third catalogue entry and matching minimal edition data supported by the repository at this stage. Prove that the catalogue loader and New Game state discover/select it without changing a Kotlin edition list, enum, or edition-specific branch. The later board-layout prompt will prove materially different IDs and layouts.
+
+### Artwork integration
+
+If edition-aware artwork is already implemented, verify that identical card IDs in UK and India resolve to their respective edition artwork.
+
+## 10. Cleanup and documentation
+
+* Remove obsolete hard-coded edition-selection logic.
+* Remove unused imports and dead code.
+* Do not modify unrelated gameplay rules.
+* Do not rename existing edition IDs.
+* Do not break current saved games.
+* Add a short developer note explaining how to add an edition:
+
+```text
+1. Add data/editions/<editionId>/ with the required edition JSON files.
+2. Add the edition to data/editions/index.json.
+3. Define its edition metadata, card registry, board layout, properties, Events, banking values, board relationships, and game rules.
+4. Add edition-specific card and board artwork under the matching edition artwork path.
+5. Run asset synchronization, edition validation, and tests.
+6. No Kotlin source change should be necessary when the edition uses already supported space types, rule modes, and Event action types.
+7. A genuinely new space type, rule mode, or Event mechanic requires a typed Kotlin implementation and tests; never place executable code in JSON.
+```
+
+## Acceptance criteria
+
+The implementation is complete only when all of the following are true:
+
+1. New Game displays `UK Edition` and `India Edition`.
+2. UK is selected initially from `defaultEditionId`.
+3. Selecting India starts a genuinely India-backed game.
+4. Selected edition data and artwork remain correct after app restart and Resume Game.
+5. Disabled editions do not appear when creating a new game.
+6. Existing games can resume even if their edition is later disabled.
+7. Edition discovery and selection do not require adding an edition ID to Kotlin. Later prompts may add different IDs, layout, counts, Events, and artwork without changing this catalogue/selection code.
+8. There is no production New Game path that unconditionally supplies `"uk"`.
+9. Existing game-engine and Android tests still pass.
+10. All new catalogue, selection, persistence, and resume tests pass.
+
+After implementation, provide:
+
+* A summary of the architecture changes.
+* The complete list of files created or modified.
+* Any Room migration added.
+* All hard-coded UK/default-edition references found and how each was handled.
+* Test commands executed and their results.
+* Confirmation that adding another enabled catalogue entry and supported edition package requires no edition-specific Kotlin change.

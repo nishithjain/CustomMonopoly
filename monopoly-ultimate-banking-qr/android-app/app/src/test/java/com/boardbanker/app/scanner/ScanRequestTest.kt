@@ -74,7 +74,7 @@ class ScanRequestTest {
     @Test
     fun namedPropertyUsesFriendlyName() {
         val request = ScanRequest.forPropertyId("PRP_01", definitions)
-        assertEquals("Scan Old Kent Road Property Card", request.instruction)
+        assertEquals("Scan [1] Old Kent Road Property Card", request.instruction)
         assertFalse(request.instruction.contains("PRP_01"))
         assertFalse(request.instruction.contains("E01_"))
         assertFalse(request.instruction.contains("Back_QR"))

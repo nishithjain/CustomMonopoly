@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.core.model.EntityRef
@@ -72,7 +74,13 @@ fun GameplayResultPresentation(
         result.propertyChanges.forEach { change ->
             if (change.ownerPlayerId != null && change.ownerName != null) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(change.propertyName, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = change.propertyName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Property ${change.propertyName}"
+                        },
+                    )
                     Text("Owner:", style = MaterialTheme.typography.labelMedium)
                     PlayerIdentity(
                         playerId = change.ownerPlayerId,

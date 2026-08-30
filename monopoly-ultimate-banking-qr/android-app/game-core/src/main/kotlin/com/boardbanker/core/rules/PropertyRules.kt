@@ -4,6 +4,7 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PlayerState
 import com.boardbanker.core.model.PropertyState
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.transaction.TransactionFactory
 
@@ -98,12 +99,13 @@ class PropertyRules(
             return LandingResult.success(session, emptyList())
         }
 
+        val oldLevel = propertyState.currentRentLevel
         val newLevel = RentLevelOperations.increaseLevel(
-            propertyState.currentRentLevel,
+            oldLevel,
             1,
             rules.maximumRentLevel,
         )
-        if (newLevel == propertyState.currentRentLevel) {
+        if (newLevel == oldLevel) {
             return LandingResult.success(session, emptyList())
         }
 
@@ -118,6 +120,8 @@ class PropertyRules(
             playerId = playerId,
             propertyId = propertyId,
             amount = newLevel,
+            stateBefore = RentLevelChangeSnapshot.stateBefore(oldLevel),
+            stateAfter = RentLevelChangeSnapshot.stateAfter(newLevel),
         )
         updatedSession = sessionAfterTx
 

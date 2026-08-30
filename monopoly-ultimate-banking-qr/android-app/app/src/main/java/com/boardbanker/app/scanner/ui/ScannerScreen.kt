@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.ui.components.PlayerIdentity
@@ -279,7 +281,12 @@ private fun ResolvedContent(
             vertical = true,
         )
     } else {
-        Text("Name:\n${card.displayName}")
+        Text(
+            text = "Name:\n${card.displayName}",
+            modifier = Modifier.semantics {
+                contentDescription = "Property ${card.displayName}"
+            },
+        )
     }
     Button(onClick = onScanAnother, modifier = Modifier.fillMaxWidth()) {
         Text("SCAN ANOTHER CARD")

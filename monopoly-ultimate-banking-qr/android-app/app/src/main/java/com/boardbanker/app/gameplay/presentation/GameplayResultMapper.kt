@@ -8,7 +8,9 @@ import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.displayNameWithNumber
 
 class GameplayResultMapper(
     private val definitions: GameDefinitions,
@@ -33,7 +35,11 @@ class GameplayResultMapper(
         val colorBonus = result.transactions
             .filter { it.transactionType == TransactionType.COLOR_SET_COMPLETION_BONUS }
         val bonusMessage = if (colorBonus.isNotEmpty()) {
-            val affected = colorBonus.mapNotNull { definitions.properties[it.propertyId]?.name }
+            val affected = colorBonus.mapNotNull {
+                it.propertyId?.let { propertyId ->
+                    PropertyDisplayNames.displayNameWithNumber(propertyId, definitions)
+                }
+            }
             "COLOR SET COMPLETED\n\n${property.colorGroup} group completed.\n\n" +
                 affected.joinToString("\n") { "• $it" }
         } else {
@@ -45,7 +51,7 @@ class GameplayResultMapper(
             primaryPlayerId = playerId,
             primaryPlayerName = resolvePlayerName,
             primaryMessage = buildString {
-                append("bought\n${property.name}\n\n")
+                append("bought\n${property.displayNameWithNumber()}\n\n")
                 append("Paid: M${property.purchasePrice}\n")
                 append("Balance: M$balanceAfter\n")
                 append("Rent: Level $rentLevel — M$rentAmount")
@@ -56,7 +62,7 @@ class GameplayResultMapper(
             ),
             propertyChanges = listOf(
                 PropertyChangeUi(
-                    propertyName = property.name,
+                    propertyName = property.displayNameWithNumber(),
                     ownerName = resolvePlayerName,
                     ownerPlayerId = playerId,
                     rentLevelAfter = rentLevel,
@@ -99,13 +105,13 @@ class GameplayResultMapper(
                 primaryPlayerId = ownerId,
                 primaryPlayerName = ownerName,
                 primaryMessage = buildString {
-                    append("${property.name}\n\n")
+                    append("${property.displayNameWithNumber()}\n\n")
                     append("Rent Level:\n$levelBefore → $levelAfter\n\n")
                     append("New Rent: M$rentAfter")
                 },
                 propertyChanges = listOf(
                     PropertyChangeUi(
-                        propertyName = property.name,
+                        propertyName = property.displayNameWithNumber(),
                         ownerName = ownerName,
                         ownerPlayerId = ownerId,
                         rentLevelBefore = levelBefore,
@@ -131,7 +137,7 @@ class GameplayResultMapper(
                 },
                 propertyChanges = listOf(
                     PropertyChangeUi(
-                        propertyName = property.name,
+                        propertyName = property.displayNameWithNumber(),
                         ownerName = ownerName,
                         ownerPlayerId = ownerId,
                         rentLevelBefore = levelBefore,
@@ -157,7 +163,7 @@ class GameplayResultMapper(
             secondaryPlayerName = ownerName,
             primaryMessage = buildString {
                 append("M${rentTx?.amount ?: rentAmount}\n\n")
-                append("${property.name}\n\n")
+                append("${property.displayNameWithNumber()}\n\n")
                 append("Rent Level:\n$levelBefore → $levelAfter\n\n")
                 append("New Rent: M$rentAfter")
                 if (evt13Message != null) append("\n\n$evt13Message")
@@ -184,7 +190,7 @@ class GameplayResultMapper(
             },
             propertyChanges = listOf(
                 PropertyChangeUi(
-                    propertyName = property.name,
+                    propertyName = property.displayNameWithNumber(),
                     ownerName = ownerName,
                     ownerPlayerId = ownerId,
                     rentLevelBefore = levelBefore,
@@ -211,7 +217,7 @@ class GameplayResultMapper(
                 val property = definitions.properties[tx.propertyId ?: return@mapNotNull null] ?: return@mapNotNull null
                 val afterLevel = result.session.properties[property.propertyId]?.currentRentLevel
                 PropertyChangeUi(
-                    propertyName = property.name,
+                    propertyName = property.displayNameWithNumber(),
                     rentLevelAfter = afterLevel,
                 )
             }

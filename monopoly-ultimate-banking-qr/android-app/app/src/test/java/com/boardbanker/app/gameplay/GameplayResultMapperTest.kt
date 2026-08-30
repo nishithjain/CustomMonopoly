@@ -21,7 +21,7 @@ class GameplayResultMapperTest {
         val ui = mapper.mapPurchaseResult(result, "USR_01", "PRP_01", before)
         assertEquals("PRP_01", ui.displayCardId)
         assertTrue(ui.primaryMessage.contains("1440"))
-        assertTrue(ui.primaryMessage.contains("Old Kent Road"))
+        assertTrue(ui.primaryMessage.contains("[1] Old Kent Road"))
     }
 
     @Test

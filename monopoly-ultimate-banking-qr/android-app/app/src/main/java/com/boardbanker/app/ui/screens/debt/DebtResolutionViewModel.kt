@@ -17,6 +17,8 @@ import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.PropertyDisplayNames
+import com.boardbanker.core.model.displayNameWithNumber
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -65,11 +67,11 @@ class DebtResolutionViewModel(
                 val def = definitions.properties[state.propertyId] ?: return@mapNotNull null
                 DebtPropertyOption(
                     propertyId = state.propertyId,
-                    propertyName = def.name,
+                    propertyName = def.displayNameWithNumber(),
                     debtValue = def.purchasePrice,
                 )
             }
-            .sortedBy { it.propertyName }
+            .sortedBy { PropertyDisplayNames.propertyNumber(it.propertyId) ?: Int.MAX_VALUE }
         val ownedPropertyIds = ownedProperties.map { it.propertyId }.toSet()
         val preservedSelection = if (clearSelection) {
             emptySet()

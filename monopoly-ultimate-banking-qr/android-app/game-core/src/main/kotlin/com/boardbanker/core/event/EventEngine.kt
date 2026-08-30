@@ -6,6 +6,7 @@ import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PendingEventChoice
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TemporaryEffect
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
@@ -148,6 +149,8 @@ class EventEngine(
             return EventResult.success(session, emptyList())
         }
 
+        val oldLevel = propertyState.currentRentLevel
+        val newLevel = changes[propertyId] ?: oldLevel
         val updatedProperties = RentLevelOperations.applyRentLevelChanges(session.properties, changes)
         var updatedSession = session.copy(properties = updatedProperties)
         val (tx, sessionAfter) = transactionFactory.create(
@@ -164,6 +167,9 @@ class EventEngine(
             timestamp = timestamp,
             playerId = actingPlayerId,
             propertyId = propertyId,
+            amount = newLevel,
+            stateBefore = RentLevelChangeSnapshot.stateBefore(oldLevel),
+            stateAfter = RentLevelChangeSnapshot.stateAfter(newLevel),
         )
         return EventResult.success(finalSession, listOf(tx, levelTx))
     }

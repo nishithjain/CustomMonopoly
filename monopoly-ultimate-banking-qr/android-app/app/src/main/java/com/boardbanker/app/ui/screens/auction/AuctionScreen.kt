@@ -21,6 +21,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.ui.components.BankingActionBar
@@ -97,7 +99,13 @@ fun AuctionScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (uiState.result == null) {
-                Text(uiState.propertyName, style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = uiState.propertyName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Property ${uiState.propertyName}"
+                    },
+                )
                 Text(
                     "Current Bid:\n${viewModel.money(uiState.currentBid)}",
                     style = MaterialTheme.typography.bodyLarge,

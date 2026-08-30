@@ -6,6 +6,7 @@ import com.boardbanker.app.ui.screens.playerdetails.OwnedPropertyUi
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.rules.RentLevelOperations
 
 object ActiveGamePresentation {
@@ -44,7 +45,7 @@ object ActiveGamePresentation {
                 )
                 OwnedPropertyUi(
                     propertyId = propertyState.propertyId,
-                    propertyName = definition.name,
+                    propertyName = definition.displayNameWithNumber(),
                     colorGroup = definition.colorGroup,
                     rentLevel = propertyState.currentRentLevel,
                     maxRentLevel = definition.maximumRentLevel,

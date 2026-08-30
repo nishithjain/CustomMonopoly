@@ -4,6 +4,7 @@ import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PropertyDisplayNames
 
 enum class ScanContext {
     ANY_GAME_CARD,
@@ -125,7 +126,9 @@ data class ScanRequest(
         }
 
         fun forPropertyId(propertyId: String, definitions: GameDefinitions): ScanRequest {
-            val name = definitions.properties[propertyId]?.name?.takeIf { it.isNotBlank() }
+            val name = definitions.properties[propertyId]
+                ?.let { PropertyDisplayNames.displayNameWithNumber(it) }
+                ?.takeIf { it.isNotBlank() }
             return if (name == null) property() else property(propertyId, name)
         }
 

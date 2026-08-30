@@ -10,8 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.ui.components.PlayerIconSize
@@ -52,11 +53,8 @@ fun TransactionHistoryScreen(
             if (entries.isEmpty()) {
                 Text("No transactions yet.", style = MaterialTheme.typography.bodyLarge)
             } else {
-                entries.forEachIndexed { index, entry ->
-                    TransactionHistoryEntryRow(entry = entry)
-                    if (index < entries.lastIndex) {
-                        HorizontalDivider()
-                    }
+                entries.forEach { entry ->
+                    TransactionHistoryEntryCard(entry = entry)
                 }
             }
             Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
@@ -67,73 +65,115 @@ fun TransactionHistoryScreen(
 }
 
 @Composable
-private fun TransactionHistoryEntryRow(entry: HistoryEntry) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+private fun TransactionHistoryEntryCard(entry: HistoryEntry) {
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    entry.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    textDecoration = if (entry.undone) TextDecoration.LineThrough else null,
-                )
-                if (entry.undone) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f),
+                ) {
                     Text(
-                        "UNDONE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
+                        text = entry.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        textDecoration = if (entry.undone) TextDecoration.LineThrough else null,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    if (entry.undone) {
+                        Text(
+                            text = "UNDONE",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                 }
+                Text(
+                    text = entry.time,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
-            Text(entry.time, style = MaterialTheme.typography.labelSmall)
-        }
-        entry.subtitle?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall)
-        }
-        entry.propertyName?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium)
-        }
-        entry.lines.forEach { line ->
-            TransactionHistoryLineRow(line = line)
+            entry.subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            HistoryDetailRow(detail = entry.detail)
         }
     }
 }
 
 @Composable
-private fun TransactionHistoryLineRow(line: HistoryLine) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("${line.label}:", style = MaterialTheme.typography.labelMedium)
-            if (line.fromPlayerName != null && line.toPlayerName != null) {
-                CompactParty(playerId = line.fromPlayerId, name = line.fromPlayerName)
-                Text("→", style = MaterialTheme.typography.bodyMedium)
-                CompactParty(playerId = line.toPlayerId, name = line.toPlayerName)
-            } else if (line.playerName != null) {
-                CompactParty(playerId = line.playerId, name = line.playerName)
-            }
-            line.detail?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        line.propertyName?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall)
+private fun HistoryDetailRow(detail: HistoryDetail) {
+    when (detail) {
+        is HistoryDetail.PlayerTransfer -> InlinePlayerTransferDetail(detail = detail)
+        is HistoryDetail.RentLevelChange -> InlineRentLevelChangeDetail(detail = detail)
+        is HistoryDetail.Text -> {
+            Text(
+                text = detail.value,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
 
 @Composable
-private fun CompactParty(playerId: String?, name: String) {
+private fun InlinePlayerTransferDetail(detail: HistoryDetail.PlayerTransfer) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        InlineParty(playerId = detail.fromPlayerId, name = detail.fromPlayerName)
+        Text("→", style = MaterialTheme.typography.bodyMedium)
+        InlineParty(playerId = detail.toPlayerId, name = detail.toPlayerName)
+        if (detail.amount.isNotBlank()) {
+            Text(
+                text = detail.amount,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun InlineRentLevelChangeDetail(detail: HistoryDetail.RentLevelChange) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        InlineParty(playerId = detail.playerId, name = detail.playerName)
+        Text(":", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = "${detail.propertyName} ${detail.levelChangeText}",
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+    }
+}
+
+@Composable
+private fun InlineParty(playerId: String?, name: String) {
     if (playerId == null) {
-        Text(name, style = MaterialTheme.typography.bodyMedium)
+        Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
     } else {
         PlayerIdentity(
             playerId = playerId,

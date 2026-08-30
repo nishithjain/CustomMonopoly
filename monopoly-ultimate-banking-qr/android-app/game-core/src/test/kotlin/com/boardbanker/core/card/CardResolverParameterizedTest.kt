@@ -1,6 +1,7 @@
 package com.boardbanker.core.card
 
 import com.boardbanker.core.TestFixtures
+import com.boardbanker.core.model.PropertyDisplayNames
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,11 +28,19 @@ class CardResolverParameterizedTest(
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun cards(): List<Array<Any>> =
-      TestFixtures.definitions.cards.values
+    fun cards(): List<Array<Any>> {
+      val definitions = TestFixtures.definitions
+      return definitions.cards.values
         .sortedBy { it.cardId }
         .map { card ->
-          arrayOf(card.cardId, card.qrPayload, card.cardType, card.name)
+          val expectedDisplayName = if (card.cardType == CardType.PROPERTY) {
+            definitions.properties[card.cardId]?.let { PropertyDisplayNames.displayNameWithNumber(it) }
+              ?: card.name
+          } else {
+            card.name
+          }
+          arrayOf(card.cardId, card.qrPayload, card.cardType, expectedDisplayName)
         }
+    }
   }
 }

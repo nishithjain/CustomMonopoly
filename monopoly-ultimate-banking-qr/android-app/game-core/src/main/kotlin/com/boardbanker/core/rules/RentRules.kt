@@ -3,6 +3,7 @@ package com.boardbanker.core.rules
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TemporaryEffect
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
@@ -82,8 +83,9 @@ class RentRules(
         transactions += rentTx
         updatedSession = sessionAfterRent
 
+        val oldLevel = propertyState.currentRentLevel
         val newLevel = RentLevelOperations.increaseLevel(
-            propertyState.currentRentLevel,
+            oldLevel,
             1,
             rules.maximumRentLevel,
         )
@@ -98,6 +100,8 @@ class RentRules(
             playerId = ownerId,
             propertyId = propertyId,
             amount = newLevel,
+            stateBefore = RentLevelChangeSnapshot.stateBefore(oldLevel),
+            stateAfter = RentLevelChangeSnapshot.stateAfter(newLevel),
         )
         transactions += levelTx
         updatedSession = sessionAfterLevel

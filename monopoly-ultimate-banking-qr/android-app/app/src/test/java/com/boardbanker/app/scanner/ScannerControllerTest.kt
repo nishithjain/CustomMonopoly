@@ -31,7 +31,7 @@ class ScannerControllerTest {
         assertTrue(result is ScanProcessorResult.CardResolved)
         val resolved = result as ScanProcessorResult.CardResolved
         assertEquals("PRP_07", resolved.resolution.cardId)
-        assertEquals("Whitehall", resolved.resolution.displayName)
+        assertEquals("[7] Whitehall", resolved.resolution.displayName)
     }
 
     @Test

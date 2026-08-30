@@ -3,6 +3,8 @@ package com.boardbanker.app.ui.screens.history
 import com.boardbanker.app.AppTestSupport
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
+import com.boardbanker.core.model.PropertyDisplayNames
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.money.MoneyFormatter
@@ -17,7 +19,7 @@ class TransactionHistoryEntriesTest {
     private val definitions = AppTestSupport.definitions
 
     @Test
-    fun rentEntryShowsPayerOwnerPropertyAndMoney() {
+    fun rentPaymentUsesSingleInlineTransferDetailRow() {
         var session = AppTestSupport.newGame()
         session = AppTestSupport.engine.process(
             session,
@@ -31,18 +33,18 @@ class TransactionHistoryEntriesTest {
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
         ).session
 
-        val entry = TransactionHistoryEntries.build(session, definitions).first()
+        val entries = TransactionHistoryEntries.build(session, definitions)
+        val rentEntry = entries.first { it.title == "Rent payment" }
 
-        assertEquals("Rent payment", entry.title)
-        assertEquals("Old Kent Road", entry.propertyName)
-        val rentLine = entry.lines.first { it.label == "Rent payment" }
-        assertEquals("Aditya", rentLine.fromPlayerName)
-        assertEquals("Nishith", rentLine.toPlayerName)
-        assertEquals(MoneyFormatter.format(expectedRent, definitions), rentLine.detail)
+        assertEquals("Rent payment", rentEntry.title)
+        val detail = rentEntry.detail as HistoryDetail.PlayerTransfer
+        assertEquals("Aditya", detail.fromPlayerName)
+        assertEquals("Nishith", detail.toPlayerName)
+        assertEquals(MoneyFormatter.format(expectedRent, definitions), detail.amount)
     }
 
     @Test
-    fun rentLevelChangeIsNotShownAsMoney() {
+    fun rentPaymentAndLevelChangeAreSeparateCompactEntries() {
         var session = AppTestSupport.newGame()
         session = AppTestSupport.engine.process(
             session,
@@ -53,12 +55,111 @@ class TransactionHistoryEntriesTest {
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
         ).session
 
-        val entry = TransactionHistoryEntries.build(session, definitions).first()
-        val levelLine = entry.lines.first { it.label == "Rent level change" }
+        val entries = TransactionHistoryEntries.build(session, definitions)
 
-        val newLevel = session.properties["PRP_01"]!!.currentRentLevel
-        assertEquals("Rent level $newLevel", levelLine.detail)
-        assertFalse(levelLine.detail!!.contains(definitions.bankingValues.currency.symbol))
+        assertTrue(entries.any { it.title == "Rent payment" })
+        assertTrue(entries.any { it.title == "Property rent level change" })
+    }
+
+    @Test
+    fun rentLevelIncreaseShowsPropertyNumberAndLevelTransition() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.PROPERTY_RENT_LEVEL_CHANGE,
+                    playerId = "USR_01",
+                    propertyId = "PRP_15",
+                    amount = 4,
+                    stateBefore = RentLevelChangeSnapshot.stateBefore(3),
+                    stateAfter = RentLevelChangeSnapshot.stateAfter(4),
+                ),
+            ),
+        )
+
+        val levelEntry = TransactionHistoryEntries.build(session, definitions).single()
+        val detail = levelEntry.detail as HistoryDetail.RentLevelChange
+
+        assertEquals("Property rent level change", levelEntry.title)
+        assertEquals(PropertyDisplayNames.displayNameWithNumber("PRP_15", definitions), detail.propertyName)
+        assertEquals(3, detail.oldLevel)
+        assertEquals(4, detail.newLevel)
+        assertEquals("From L3 → L4", detail.levelChangeText)
+        assertFalse(detail.levelChangeText.contains("M"))
+    }
+
+    @Test
+    fun rentPaymentRecordsOldAndNewRentLevelsInTransactionLog() {
+        var session = AppTestSupport.newGame()
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.PurchaseProperty("USR_01", "PRP_01"),
+        ).session
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
+        ).session
+
+        val levelTx = session.transactions.last {
+            it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE
+        }
+
+        assertEquals(1, RentLevelChangeSnapshot.oldLevel(levelTx))
+        assertEquals(2, RentLevelChangeSnapshot.newLevel(levelTx))
+    }
+
+    @Test
+    fun rentLevelDecreaseDisplaysCorrectTransition() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.PROPERTY_RENT_LEVEL_CHANGE,
+                    playerId = "USR_01",
+                    propertyId = "PRP_15",
+                    amount = 3,
+                    stateBefore = RentLevelChangeSnapshot.stateBefore(4),
+                    stateAfter = RentLevelChangeSnapshot.stateAfter(3),
+                ),
+            ),
+        )
+
+        val detail = TransactionHistoryEntries.build(session, definitions).single().detail
+            as HistoryDetail.RentLevelChange
+
+        assertEquals("From L4 → L3", detail.levelChangeText)
+        assertEquals("[15] Leicester Square", detail.propertyName)
+    }
+
+    @Test
+    fun legacyRentLevelWithoutOldLevelUsesToLevelFallback() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.PROPERTY_RENT_LEVEL_CHANGE,
+                    playerId = "USR_01",
+                    propertyId = "PRP_15",
+                    amount = 4,
+                ),
+            ),
+        )
+
+        val detail = TransactionHistoryEntries.build(session, definitions).single().detail
+            as HistoryDetail.RentLevelChange
+
+        assertEquals(null, detail.oldLevel)
+        assertEquals(4, detail.newLevel)
+        assertEquals("To L4", detail.levelChangeText)
     }
 
     @Test
@@ -77,11 +178,11 @@ class TransactionHistoryEntriesTest {
 
         assertEquals("Event: Love Is In The Air", entry.title)
         assertNotNull(entry.subtitle)
+        val detail = entry.detail as HistoryDetail.Text
         val payout = MoneyFormatter.format(definitions.bankingValues.eventAmounts.m200, definitions)
-        val payoutLines = entry.lines.filter { it.detail == payout }
-        assertEquals(2, payoutLines.size)
-        assertEquals(listOf("Nishith", "Aditya"), payoutLines.map { it.toPlayerName })
-        assertTrue(entry.lines.none { it.label == "Event" })
+        assertTrue(detail.value.contains("Nishith"))
+        assertTrue(detail.value.contains("Aditya"))
+        assertTrue(detail.value.contains(payout))
     }
 
     @Test
@@ -99,7 +200,22 @@ class TransactionHistoryEntriesTest {
         val entry = TransactionHistoryEntries.build(session, definitions).first()
 
         assertEquals("Event: Pick Your Own", entry.title)
-        assertTrue(entry.lines.any { it.label == "Jail" && it.playerName == "Aditya" })
+        assertTrue((entry.detail as HistoryDetail.Text).value.contains("Aditya"))
+    }
+
+    @Test
+    fun propertyPurchaseUsesInlineTransferDetail() {
+        var session = AppTestSupport.newGame()
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.PurchaseProperty("USR_01", "PRP_01"),
+        ).session
+
+        val purchaseEntry = TransactionHistoryEntries.build(session, definitions)
+            .single { it.title == "Property purchase" }
+        val detail = purchaseEntry.detail
+
+        assertTrue(detail.toString(), detail is HistoryDetail.PlayerTransfer)
     }
 
     @Test
@@ -115,13 +231,14 @@ class TransactionHistoryEntriesTest {
 
         assertEquals("Undo", undoEntry.title)
         assertEquals("Reverted: Property purchase", undoEntry.subtitle)
-        assertEquals("Old Kent Road", undoEntry.propertyName)
-        val purchaseLine = undoEntry.lines.single { it.label == "Property purchase" }
-        assertEquals("Nishith", purchaseLine.fromPlayerName)
-        assertEquals("Bank", purchaseLine.toPlayerName)
+        val detail = undoEntry.detail
+        assertTrue(detail is HistoryDetail.PlayerTransfer)
+        detail as HistoryDetail.PlayerTransfer
+        assertEquals("Nishith", detail.fromPlayerName)
+        assertEquals("Bank", detail.toPlayerName)
         assertEquals(
             MoneyFormatter.format(definitions.properties["PRP_01"]!!.purchasePrice, definitions),
-            purchaseLine.detail,
+            detail.amount,
         )
     }
 
@@ -132,7 +249,6 @@ class TransactionHistoryEntriesTest {
             session,
             GameCommand.PurchaseProperty("USR_01", "PRP_01"),
         ).session
-        // History groups transactions that share a millisecond timestamp.
         Thread.sleep(5)
         session = AppTestSupport.engine.process(
             session,
@@ -141,15 +257,13 @@ class TransactionHistoryEntriesTest {
         Thread.sleep(5)
         session = AppTestSupport.engine.process(session, GameCommand.UndoLastAction).session
 
-        val angel = definitions.properties["PRP_03"]!!.name
-        val kent = definitions.properties["PRP_01"]!!.name
         val entries = TransactionHistoryEntries.build(session, definitions)
+        val purchases = entries.filter { it.title == "Property purchase" }
 
         assertEquals("Undo", entries[0].title)
-        assertEquals(angel, entries[0].propertyName)
-        assertTrue(entries[1].undone)
-        assertEquals(angel, entries[1].propertyName)
-        assertFalse(entries.single { it.propertyName == kent }.undone)
+        assertTrue(purchases.any { it.undone })
+        assertEquals(1, purchases.count { it.undone })
+        assertEquals(1, purchases.count { !it.undone })
         assertFalse(entries[0].undone)
     }
 
@@ -176,11 +290,11 @@ class TransactionHistoryEntriesTest {
         assertTrue(entries.all { it.title == "Bank payout" })
         assertEquals(
             MoneyFormatter.format(total, definitions),
-            entries.first().lines.single().detail,
+            (entries.first().detail as HistoryDetail.PlayerTransfer).amount,
         )
         assertEquals(
             MoneyFormatter.format(total - TransactionHistoryEntries.MAX_ENTRIES + 1, definitions),
-            entries.last().lines.single().detail,
+            (entries.last().detail as HistoryDetail.PlayerTransfer).amount,
         )
     }
 
@@ -211,6 +325,6 @@ class TransactionHistoryEntriesTest {
 
         assertEquals(1, entries.size)
         assertEquals("Jail", entries.single().title)
-        assertEquals(2, entries.single().lines.size)
+        assertTrue((entries.single().detail as HistoryDetail.Text).value.isNotBlank())
     }
 }

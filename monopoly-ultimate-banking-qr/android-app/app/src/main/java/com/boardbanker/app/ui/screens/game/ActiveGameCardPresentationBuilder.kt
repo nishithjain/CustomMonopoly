@@ -4,6 +4,7 @@ import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.displayNameWithNumber
 
 object ActiveGameCardPresentationBuilder {
     fun build(
@@ -33,7 +34,7 @@ object ActiveGameCardPresentationBuilder {
             val property = definitions.properties[state.propertyId] ?: return null
             CardPresentationUi(
                 cardTypeLabel = "PROPERTY",
-                title = property.name,
+                title = property.displayNameWithNumber(),
                 body = "Purchase Price:\n${formatMoney(property.purchasePrice, definitions)}\n\nStatus:\nUNOWNED",
                 buyAmount = property.purchasePrice,
             )
@@ -45,7 +46,7 @@ object ActiveGameCardPresentationBuilder {
             val currentRent = property.rentLevels.firstOrNull { it.level == rentLevel }?.amount
             CardPresentationUi(
                 cardTypeLabel = "PROPERTY",
-                title = property.name,
+                title = property.displayNameWithNumber(),
                 body = buildString {
                     append("Current Rent Level: $rentLevel\n\n")
                     append("Current Rent: ${formatMoney(currentRent ?: 0, definitions)}\n\n")

@@ -19,6 +19,7 @@ import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.PropertyDisplayNames
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -55,7 +56,7 @@ class AuctionViewModel(
     private var auctionEndingPlayed = false
 
     init {
-        val propertyName = definitions.properties[propertyId]?.name ?: propertyId
+        val propertyName = PropertyDisplayNames.displayNameWithNumber(propertyId, definitions)
         _uiState.update {
             it.copy(
                 propertyId = propertyId,

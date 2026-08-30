@@ -10,7 +10,9 @@ import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.rules.WinnerCalculator
 
 class BankingResultMapper(
@@ -179,7 +181,7 @@ class BankingResultMapper(
             primaryPlayerId = winnerId,
             primaryPlayerName = winnerName,
             primaryMessage = buildString {
-                append("won:\n${property.name}\n\n")
+                append("won:\n${property.displayNameWithNumber()}\n\n")
                 append("Winning Bid:\n${money(bid)}\n\n")
                 append("Balance:\n${money(balanceBefore)} → ${money(balanceAfter)}\n\n")
                 append("Rent Level:\n$rentLevel\n\n")
@@ -190,7 +192,7 @@ class BankingResultMapper(
             ),
             propertyChanges = listOf(
                 PropertyChangeUi(
-                    propertyName = property.name,
+                    propertyName = property.displayNameWithNumber(),
                     ownerName = winnerName,
                     ownerPlayerId = winnerId,
                     rentLevelAfter = rentLevel,
@@ -211,7 +213,7 @@ class BankingResultMapper(
         } else {
             resolvePlayerName(debt.creditorPlayerId, result.session)
         }
-        val propertyNames = propertyIds.mapNotNull { definitions.properties[it]?.name }
+        val propertyNames = propertyIds.map { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
         val propertySummary = when (propertyNames.size) {
             0 -> "Selected properties"
             1 -> propertyNames.single()
@@ -232,10 +234,10 @@ class BankingResultMapper(
             val property = definitions.properties[propertyId] ?: return@mapNotNull null
             val rentLevel = result.session.properties[propertyId]?.currentRentLevel ?: 1
             if (debt.creditorPlayerId == EntityRef.BANK) {
-                PropertyChangeUi(propertyName = property.name, ownerName = null, rentLevelAfter = rentLevel)
+                PropertyChangeUi(propertyName = property.displayNameWithNumber(), ownerName = null, rentLevelAfter = rentLevel)
             } else {
                 PropertyChangeUi(
-                    propertyName = property.name,
+                    propertyName = property.displayNameWithNumber(),
                     ownerName = creditorName,
                     ownerPlayerId = debt.creditorPlayerId,
                     rentLevelAfter = rentLevel,

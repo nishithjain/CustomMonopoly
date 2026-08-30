@@ -6,6 +6,7 @@ import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.displayNameWithNumber
 
 sealed class GameplayWorkflowState {
     data object Ready : GameplayWorkflowState()
@@ -214,7 +215,7 @@ class GameplayWorkflowController(
                 WorkflowAction.StateChanged(
                     GameplayWorkflowState.PropertySummary(
                         propertyId = propertyId,
-                        propertyName = propertyDef.name,
+                        propertyName = propertyDef.displayNameWithNumber(),
                         ownerName = ownerName,
                         isUnowned = false,
                         purchasePrice = propertyDef.purchasePrice,
@@ -489,7 +490,7 @@ class GameplayWorkflowController(
         val propertyDef = definitions.properties[propertyId]!!
         return GameplayWorkflowState.PropertySummary(
             propertyId = propertyId,
-            propertyName = propertyDef.name,
+            propertyName = propertyDef.displayNameWithNumber(),
             ownerName = null,
             isUnowned = true,
             purchasePrice = propertyDef.purchasePrice,

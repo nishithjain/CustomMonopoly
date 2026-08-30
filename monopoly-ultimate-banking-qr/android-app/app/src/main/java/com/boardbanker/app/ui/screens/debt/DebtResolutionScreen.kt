@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -165,7 +166,12 @@ internal fun DebtResolutionActiveContent(
                 checked = property.propertyId in uiState.selectedPropertyIds,
                 onCheckedChange = { onToggleProperty(property.propertyId) },
             )
-            Text("${property.propertyName}       ${formatMoney(property.debtValue)}")
+            Text(
+                text = "${property.propertyName}       ${formatMoney(property.debtValue)}",
+                modifier = Modifier.semantics {
+                    contentDescription = "Property ${property.propertyName}, value ${formatMoney(property.debtValue)}"
+                },
+            )
         }
     }
     Button(onClick = onScanPropertyRequested, modifier = Modifier.fillMaxWidth()) {

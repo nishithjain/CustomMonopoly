@@ -5,30 +5,41 @@ import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PropertyDisplayNames
+import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-internal data class HistoryLine(
-    val label: String,
-    val fromPlayerId: String? = null,
-    val fromPlayerName: String? = null,
-    val toPlayerId: String? = null,
-    val toPlayerName: String? = null,
-    val playerId: String? = null,
-    val playerName: String? = null,
-    val propertyName: String? = null,
-    val detail: String? = null,
-)
+internal sealed interface HistoryDetail {
+    data class PlayerTransfer(
+        val fromPlayerId: String?,
+        val fromPlayerName: String,
+        val toPlayerId: String?,
+        val toPlayerName: String,
+        val amount: String,
+    ) : HistoryDetail
+
+    data class RentLevelChange(
+        val playerId: String?,
+        val playerName: String,
+        val propertyName: String,
+        val oldLevel: Int?,
+        val newLevel: Int,
+    ) : HistoryDetail {
+        val levelChangeText: String get() = RentLevelChangeSnapshot.levelChangeText(oldLevel, newLevel)
+    }
+
+    data class Text(val value: String) : HistoryDetail
+}
 
 internal data class HistoryEntry(
     val title: String,
     val time: String,
+    val detail: HistoryDetail,
     val subtitle: String? = null,
-    val propertyName: String? = null,
-    val lines: List<HistoryLine> = emptyList(),
     /** True when a later UNDO transaction rolled this action back. */
     val undone: Boolean = false,
 )
@@ -93,11 +104,25 @@ internal object TransactionHistoryEntries {
         val undoTargets = mapUndoTargets(groups)
         val revertedGroups = undoTargets.values.toSet()
         return groups
-            .mapIndexed { index, group ->
+            .flatMapIndexed { index, group ->
                 if (group.isUndoOnly()) {
-                    buildUndoEntry(group, undoTargets[index]?.let { groups[it] }, session, definitions, zone)
+                    listOf(
+                        buildUndoEntry(
+                            group,
+                            undoTargets[index]?.let { groups[it] },
+                            session,
+                            definitions,
+                            zone,
+                        ),
+                    )
                 } else {
-                    buildEntry(group, session, definitions, zone, undone = index in revertedGroups)
+                    buildEntries(
+                        group,
+                        session,
+                        definitions,
+                        zone,
+                        undone = index in revertedGroups,
+                    )
                 }
             }
             .takeLast(MAX_ENTRIES)
@@ -110,7 +135,7 @@ internal object TransactionHistoryEntries {
         TransactionType.RENT_PAYMENT -> "Rent payment"
         TransactionType.BANK_CREDIT -> "Bank payout"
         TransactionType.BANK_DEBIT -> "Bank charge"
-        TransactionType.PROPERTY_RENT_LEVEL_CHANGE -> "Rent level change"
+        TransactionType.PROPERTY_RENT_LEVEL_CHANGE -> "Property rent level change"
         TransactionType.PROPERTY_OWNERSHIP_CHANGE -> "Ownership transfer"
         TransactionType.PROPERTY_SWAP -> "Property swap"
         TransactionType.COLOR_SET_COMPLETION_BONUS -> "Color set bonus"
@@ -147,29 +172,68 @@ internal object TransactionHistoryEntries {
         definitions: GameDefinitions,
         zone: ZoneId,
     ): HistoryEntry {
-        val reverted = revertedGroup?.let { buildEntry(it, session, definitions, zone) }
+        val revertedPrimary = revertedGroup?.let { buildEntries(it, session, definitions, zone).firstOrNull() }
+        val revertedDetail = revertedGroup?.let {
+            buildSingleDetail(headline(it), session, definitions)
+        } ?: HistoryDetail.Text("Reverted the previous action.")
         return HistoryEntry(
             title = label(TransactionType.UNDO),
             time = formatTime(group.first().timestamp, zone),
-            subtitle = reverted?.let { "Reverted: ${it.title}" }
+            subtitle = revertedPrimary?.let { "Reverted: ${it.title}" }
                 ?: "Reverted the previous action.",
-            propertyName = reverted?.propertyName
-                ?: reverted?.lines?.mapNotNull { it.propertyName }?.distinct()?.singleOrNull(),
-            lines = reverted?.lines ?: emptyList(),
+            detail = revertedDetail,
         )
     }
 
-    private fun buildEntry(
+    private fun buildEntries(
         group: List<Transaction>,
         session: GameSession,
         definitions: GameDefinitions,
         zone: ZoneId,
         undone: Boolean = false,
-    ): HistoryEntry {
+    ): List<HistoryEntry> {
+        val time = formatTime(group.first().timestamp, zone)
+        val rentTx = group.firstOrNull { it.transactionType == TransactionType.RENT_PAYMENT }
+        val levelTx = group.firstOrNull { it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE }
         val eventTx = group.firstOrNull {
             it.transactionType == TransactionType.EVENT_APPLIED && it.eventId != null
         } ?: group.firstOrNull { it.eventId != null }
         val event = eventTx?.eventId?.let { definitions.events[it] }
+
+        if (rentTx != null) {
+            val entries = mutableListOf(
+                HistoryEntry(
+                    title = label(TransactionType.RENT_PAYMENT),
+                    time = time,
+                    detail = buildTransferDetail(rentTx, session, definitions),
+                    undone = undone,
+                ),
+            )
+            if (levelTx != null) {
+                entries += HistoryEntry(
+                    title = label(TransactionType.PROPERTY_RENT_LEVEL_CHANGE),
+                    time = time,
+                    detail = buildRentLevelDetail(levelTx, session, definitions),
+                    undone = undone,
+                )
+            }
+            return entries
+        }
+
+        if (levelTx != null && group.all {
+                it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE ||
+                    it.transactionType == TransactionType.TEMPORARY_EFFECT_CONSUMED
+            }
+        ) {
+            return listOf(
+                HistoryEntry(
+                    title = label(TransactionType.PROPERTY_RENT_LEVEL_CHANGE),
+                    time = time,
+                    detail = buildRentLevelDetail(levelTx, session, definitions),
+                    undone = undone,
+                ),
+            )
+        }
 
         val title = if (event != null) {
             "Event: ${event.name}"
@@ -181,62 +245,128 @@ internal object TransactionHistoryEntries {
                 ?: it.eventDescription.takeIf { text -> text.isNotBlank() }
         }
 
-        val propertyNames = group
-            .mapNotNull { tx -> tx.propertyId?.let { definitions.properties[it]?.name } }
-            .distinct()
-        val sharedProperty = propertyNames.singleOrNull()
-
-        // The event line adds nothing once its money movements are listed.
         val detailTransactions = group.filterNot {
             it.transactionType == TransactionType.EVENT_APPLIED && group.size > 1
         }
-        val lines = detailTransactions.map {
-            buildLine(it, session, definitions, hideProperty = sharedProperty != null)
+        val headlineTx = headline(group)
+        val detail = when (headlineTx.transactionType) {
+            TransactionType.RENT_PAYMENT,
+            TransactionType.PROPERTY_PURCHASE,
+            TransactionType.AUCTION_WIN,
+            TransactionType.AUCTION_PURCHASE,
+            -> buildTransferDetail(headlineTx, session, definitions)
+            TransactionType.PROPERTY_RENT_LEVEL_CHANGE ->
+                buildRentLevelDetail(headlineTx, session, definitions)
+            else -> buildCombinedDetail(detailTransactions, session, definitions)
         }
 
-        return HistoryEntry(
-            title = title,
-            time = formatTime(group.first().timestamp, zone),
-            subtitle = subtitle,
-            propertyName = sharedProperty,
-            lines = lines,
-            undone = undone,
+        return listOf(
+            HistoryEntry(
+                title = title,
+                time = time,
+                subtitle = subtitle,
+                detail = detail,
+                undone = undone,
+            ),
         )
+    }
+
+    private fun buildTransferDetail(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail.PlayerTransfer {
+        val amount = tx.amount?.let { formatMoney(it, definitions) } ?: ""
+        return HistoryDetail.PlayerTransfer(
+            fromPlayerId = tx.fromEntity?.takeIf { it != EntityRef.BANK },
+            fromPlayerName = tx.fromEntity?.let { entityName(it, session, definitions) } ?: "",
+            toPlayerId = tx.toEntity?.takeIf { it != EntityRef.BANK },
+            toPlayerName = tx.toEntity?.let { entityName(it, session, definitions) } ?: "",
+            amount = amount,
+        )
+    }
+
+    private fun buildRentLevelDetail(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail.RentLevelChange {
+        val propertyName = tx.propertyId
+            ?.let { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
+            ?: "Property"
+        val newLevel = RentLevelChangeSnapshot.newLevel(tx) ?: 1
+        return HistoryDetail.RentLevelChange(
+            playerId = tx.playerId,
+            playerName = tx.playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) } ?: "",
+            propertyName = propertyName,
+            oldLevel = RentLevelChangeSnapshot.oldLevel(tx),
+            newLevel = newLevel,
+        )
+    }
+
+    private fun buildCombinedDetail(
+        transactions: List<Transaction>,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail {
+        if (transactions.size == 1) {
+            return buildSingleDetail(transactions.single(), session, definitions)
+        }
+        val parts = transactions.mapNotNull { tx ->
+            when (val detail = buildSingleDetail(tx, session, definitions)) {
+                is HistoryDetail.PlayerTransfer ->
+                    "${detail.fromPlayerName} → ${detail.toPlayerName} ${detail.amount}".trim()
+                is HistoryDetail.RentLevelChange ->
+                    "${detail.playerName}: ${detail.propertyName} ${detail.levelChangeText}"
+                is HistoryDetail.Text -> detail.value.takeIf { it.isNotBlank() }
+            }
+        }
+        return HistoryDetail.Text(parts.joinToString(" • "))
+    }
+
+    private fun buildSingleDetail(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail {
+        if (tx.fromEntity != null && tx.toEntity != null &&
+            tx.transactionType in moneyTypes &&
+            tx.amount != null
+        ) {
+            return buildTransferDetail(tx, session, definitions)
+        }
+        if (tx.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE) {
+            return buildRentLevelDetail(tx, session, definitions)
+        }
+        val propertyName = tx.propertyId
+            ?.let { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
+        val playerName = tx.playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
+        val detailText = detailText(tx, definitions)
+        val value = buildString {
+            if (playerName != null) {
+                append(playerName)
+                if (propertyName != null || detailText != null) append(": ")
+            }
+            if (propertyName != null) {
+                append(propertyName)
+                if (detailText != null) append(' ')
+            }
+            if (detailText != null) append(detailText)
+        }.trim()
+        return HistoryDetail.Text(value.ifBlank { label(tx.transactionType) })
     }
 
     private fun formatTime(epochMillis: Long, zone: ZoneId): String =
         Instant.ofEpochMilli(epochMillis).atZone(zone).format(timeFormatter)
 
-    private fun buildLine(
-        tx: Transaction,
-        session: GameSession,
-        definitions: GameDefinitions,
-        hideProperty: Boolean,
-    ): HistoryLine = HistoryLine(
-        label = label(tx.transactionType),
-        fromPlayerId = tx.fromEntity?.takeIf { it != EntityRef.BANK },
-        fromPlayerName = tx.fromEntity?.let { entityName(it, session, definitions) },
-        toPlayerId = tx.toEntity?.takeIf { it != EntityRef.BANK },
-        toPlayerName = tx.toEntity?.let { entityName(it, session, definitions) },
-        playerId = tx.playerId,
-        playerName = tx.playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) },
-        propertyName = tx.propertyId
-            ?.let { definitions.properties[it]?.name }
-            ?.takeIf { !hideProperty },
-        detail = detailText(tx, definitions),
-    )
-
     private fun detailText(tx: Transaction, definitions: GameDefinitions): String? {
         val amount = tx.amount ?: return null
         return when (tx.transactionType) {
             in moneyTypes -> formatMoney(amount, definitions)
-            TransactionType.PROPERTY_RENT_LEVEL_CHANGE -> "Rent level $amount"
             TransactionType.TEMPORARY_EFFECT_CREATED ->
                 "Active for $amount ${plural(amount, "rent payment")}"
             TransactionType.TEMPORARY_EFFECT_CONSUMED ->
                 if (amount == 0) "Effect finished" else "$amount ${plural(amount, "use")} left"
-            // EVENT_APPLIED stores money for some events and a rent level for
-            // others, so its amount is never rendered as currency.
             else -> null
         }
     }

@@ -4,6 +4,7 @@ import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.rules.UndoSupport
 import com.boardbanker.core.transaction.TransactionFactory
@@ -19,7 +20,9 @@ class UndoEligibility(private val definitions: GameDefinitions) {
             ?: return null
         return when (lastTx.transactionType) {
             TransactionType.PROPERTY_PURCHASE -> {
-                val propertyName = lastTx.propertyId?.let { definitions.properties[it]?.name } ?: "property"
+                val propertyName = lastTx.propertyId
+                    ?.let { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
+                    ?: "property"
                 val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
                 "Property purchase:\n$playerName bought $propertyName."
             }

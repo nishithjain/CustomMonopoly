@@ -1,0 +1,532 @@
+Implement typed, edition-aware game-rule configuration and a reusable Event Engine for the Customized Monopoly / Monopoly Ultimate Banking QR project.
+
+## Customization boundary
+
+Use this design boundary:
+
+* Known gameplay behaviours and parameters must be configurable per edition through `game_rules.json`.
+* Kotlin continues to implement the actual mechanics through typed policies and handlers.
+* Editions may select supported modes and provide supported parameters.
+* JSON must not contain executable scripts, Kotlin class names, reflection targets, or arbitrary expressions.
+* A completely new rule or Event mechanic still requires a Kotlin implementation, validation, and tests.
+* New Events that only combine existing supported `actionType` values should require JSON changes only.
+* Editions may define different Event IDs, Event counts, decks, text, targets, and ordered combinations of supported actions.
+* Editions may use different board layouts. Event and rule handlers must use the active edition's typed `board_layout.json` and `board_relationships.json`, never UK positions or ID ranges.
+
+This provides safe customization without building an unrestricted scripting engine.
+
+Do not stop after analysis. Inspect the repository, implement the refactor, update edition data and tests, and run all relevant test suites.
+
+## Scope and sequence
+
+This is Prompt 7. Run it after the catalogue, artwork, money-formatting, board-layout/registry, versioning, and restore prompts. This task owns typed gameplay policies and executable Event semantics. Reuse the established edition package and restore flow rather than creating parallel loaders, registries, or persistence models.
+
+## 1. Audit the existing rule coverage
+
+Inspect:
+
+* Every `game_rules.json`.
+* Kotlin models currently reading it.
+* Edition loader and validator.
+* Game engine, use cases, reducers, and rule services.
+* Jail logic.
+* Auction logic.
+* Debt, property-transfer, change, and bankruptcy logic.
+* GO pass-versus-land behaviour.
+* Winner calculation and tie-breaking.
+* Rent-level and colour-set handling.
+* Undo configuration.
+* Event Engine `actionType` parsing and dispatch.
+* Event deck/schema loading, Event follow-up workflows, and persistence of any pending Event interaction.
+* Board layout, movement, Location, side/region, neighbour, and Property-target resolution used by rules or Events.
+* UI code that independently decides whether an action is available.
+* Hard-coded rule constants and branching decisions.
+* Existing rule and Event Engine tests.
+
+Classify each `game_rules.json` field as:
+
+1. Enforced by Kotlin.
+2. Parsed but unused.
+3. Descriptive documentation only.
+4. Unsupported or ambiguous.
+
+Include this coverage table in the final implementation report.
+
+Do not assume that a JSON field is safe to activate merely because it exists. Compare its value with the current engine behaviour first.
+
+## 2. Add typed rule configuration
+
+Refactor the loaded edition rules toward a structure equivalent to:
+
+```kotlin
+data class GameRules(
+    val players: PlayerRules,
+    val rent: RentRules,
+    val colourSets: ColourSetRules,
+    val undo: UndoRules,
+    val jail: JailRules,
+    val auction: AuctionRules,
+    val debt: DebtRules,
+    val go: GoRules,
+    val winner: WinnerRules
+)
+```
+
+Use names and grouping that fit the existing JSON and codebase.
+
+Do not create one large map such as:
+
+```kotlin
+Map<String, Any>
+```
+
+Do not access gameplay rules with raw string keys.
+
+Use:
+
+* Typed data classes for parameters.
+* Enums or sealed types for supported behaviour modes.
+* Explicit validation for each mode and its required fields.
+* Exhaustive Kotlin handling for every supported mode.
+* Clear errors for unknown or unsupported modes.
+
+Conceptual examples of typed modes include:
+
+```kotlin
+enum class WinnerCondition {
+    LAST_SOLVENT_PLAYER,
+    HIGHEST_TOTAL_VALUE
+}
+
+enum class GoRewardMode {
+    ON_PASS_OR_LAND,
+    ON_LAND_ONLY,
+    ON_PASS_ONLY
+}
+
+enum class DebtResolutionMode {
+    CASH_THEN_PROPERTY_TRANSFER,
+    IMMEDIATE_BANKRUPTCY
+}
+```
+
+Do not add modes unless they correspond to existing rules or a clearly required supported variation. Inspect the current JSON before finalizing exact names.
+
+## 3. Preserve sources of truth
+
+Do not duplicate configuration across files.
+
+Follow these principles:
+
+* `game_rules.json` controls behaviour.
+* `banking_values.json` remains the source of monetary amounts if those values already live there.
+* `board_layout.json` is the source of ordered physical spaces and typed space references.
+* `board_relationships.json` is the source of named regions/sides, neighbours, groups, and destinations that reference the layout; it must not duplicate an independent board order.
+* `edition.json` remains the source of edition metadata, definition version, and declared card/rent configuration.
+* `card_registry.json` remains the source of scannable edition-owned card identities and types.
+* Event files remain the source of Event deck membership, display content, and typed action definitions.
+
+For example, a jail rule may determine whether a release fee is required, while the actual fee amount should continue to come from `banking_values.json` if that is its existing canonical location.
+
+Do not hard-code edition IDs inside rule processing.
+
+Do not duplicate board layout, Event actions, or card identity inside `game_rules.json`.
+
+## 4. Convert existing rule areas
+
+Convert the following areas to consume typed configuration.
+
+### Player limits
+
+Ensure minimum and maximum players continue coming from the typed rules.
+
+Validate:
+
+```text
+minimumPlayers > 0
+maximumPlayers >= minimumPlayers
+```
+
+Do not connect the maximum-player rule to Player Card count unless the existing game rules explicitly require that relationship.
+
+### Rent levels
+
+Ensure minimum, maximum, increase, decrease, and clamping behaviour use typed rules where those settings exist.
+
+Do not assume five rent levels in engine logic. The edition validator should validate the edition’s configured rent-level count.
+
+### Colour-set bonuses
+
+Replace hard-coded colour-set rent effects with the typed configured behaviour.
+
+Validate that configured bonuses cannot create invalid rent levels.
+
+### Undo
+
+Continue using configured undo depth everywhere, including UI availability and restored sessions.
+
+### Jail
+
+Move existing configurable Jail decisions into a typed `JailRules` policy, including only the behaviours represented by current data, such as:
+
+* How a player enters Jail.
+* Whether a release fee is required.
+* Allowed release methods.
+* Any turn restrictions.
+* Whether movement or card actions are permitted while jailed.
+
+Monetary amounts must use `banking_values.json` and the edition-aware `MoneyFormatter`.
+
+Do not add arbitrary Jail scripting.
+
+### Auctions
+
+Move supported auction decisions into typed configuration, such as:
+
+* When an auction starts.
+* Whether declining a purchase triggers an auction.
+* Minimum bid or bid increment behaviour.
+* Ending and winner conditions already supported by the engine.
+
+Use configured banking values for monetary amounts.
+
+Ensure the auction UI uses the same loaded rules as the engine.
+
+### Debt
+
+Move supported debt behaviour into typed configuration, including applicable choices such as:
+
+* Whether cash is applied before property transfer.
+* Whether multiple properties may be selected.
+* How transferred property value is calculated.
+* Whether excess property value produces change.
+* When bankruptcy occurs.
+* Whether debt is owed to a player or the bank.
+
+Keep all calculations numeric and format displayed amounts through `MoneyFormatter`.
+
+Preserve the existing rent-shortfall behaviour where the creditor supplies any required change when transferred property value exceeds the remaining debt.
+
+### GO
+
+Move pass-versus-land reward behaviour into typed configuration.
+
+The engine must distinguish:
+
+* Passing GO.
+* Landing directly on GO.
+* Moving to GO through an Event or Location action.
+
+Use the configured GO banking amount rather than duplicating the value in `game_rules.json`.
+
+The GO space must be resolved from the loaded typed board layout or a validated semantic GO reference, not from a fixed numeric board position.
+
+### Board-aware targeting and movement
+
+Any existing rule or Event that moves to, selects, or affects board content must use typed references from the active edition.
+
+Support existing mechanics through concepts such as:
+
+* Space ID or semantic space type.
+* Property ID.
+* Colour/property group ID.
+* Named side or region ID.
+* Neighbour relation.
+* Location/destination ID.
+* Event deck ID.
+
+Use the actual concepts already present in the repository. Do not encode UK partitions such as `PRP_01–PRP_05` in Kotlin.
+
+Validate all targets when the edition loads. An Event must not begin and fail later because its configured space, region, Property, group, deck, or destination does not exist.
+
+### Winner calculation
+
+Move supported winner selection and valuation behaviour into typed configuration, such as:
+
+* Last solvent player.
+* Highest cash balance.
+* Cash plus configured property valuation.
+* Existing tie-breaking behaviour.
+
+Do not add scoring formulas expressed as JSON code. Support formulas only through explicit typed Kotlin modes.
+
+## 5. Introduce rule-policy boundaries
+
+Avoid scattering checks such as:
+
+```kotlin
+if (editionId == "india")
+```
+
+Create edition-independent rule policies or services that consume the loaded `GameRules`.
+
+Conceptually:
+
+```kotlin
+class JailPolicy(private val rules: JailRules)
+class AuctionPolicy(private val rules: AuctionRules)
+class DebtPolicy(private val rules: DebtRules)
+class GoPolicy(private val rules: GoRules)
+class WinnerPolicy(private val rules: WinnerRules)
+```
+
+Use fewer classes if the existing architecture supports a cleaner arrangement, but keep rule decisions centralized and testable.
+
+The active game engine must receive rules from the loaded edition.
+
+Resume Game must use:
+
+```text
+saved editionId
+→ saved definition version check
+→ loaded edition rules
+→ engine construction
+```
+
+It must not use the catalogue default or globally initialized UK rules.
+
+## 6. Update game_rules.json
+
+Update UK and India `game_rules.json` so all newly typed fields explicitly reproduce the current Ultimate Banking behaviour.
+
+The refactor must not change UK or India gameplay.
+
+Do not copy descriptive prose directly into fields intended for engine execution. Replace ambiguous settings with explicit typed values, or keep them under a clearly marked documentation section that the engine does not parse as executable configuration.
+
+Do not silently apply default values to missing gameplay-critical fields. Missing required rules should fail edition validation with the edition ID and JSON path.
+
+Optional fields may have documented defaults only when omission is intentionally supported.
+
+## 7. Validate rule combinations
+
+Extend edition validation to reject invalid or unsupported configurations.
+
+Examples include:
+
+* Minimum players greater than maximum players.
+* Invalid rent-level boundaries.
+* Negative undo depth.
+* Unknown Jail, auction, debt, GO, or winner mode.
+* A mode missing a required parameter.
+* A parameter supplied for a mode that cannot use it.
+* Winner valuation requiring property values that are unavailable.
+* Auction increment enabled without a valid configured banking value.
+* Debt change enabled without a supported valuation rule.
+* Conflicting GO reward settings.
+
+Errors must include:
+
+```text
+editionId
+game_rules.json field path
+invalid value
+supported values or required constraint
+```
+
+Do not allow unknown modes to fall back to Ultimate Banking behaviour.
+
+## 8. Event Engine and edition-owned Event decks
+
+Audit every currently supported Event `actionType`, every UK/India Event definition, and every follow-up scan or selection flow.
+
+Event definitions must be scoped to the loaded edition and separated into:
+
+```text
+identity and deck membership
+display content
+ordered typed actions
+```
+
+Refactor toward a canonical schema equivalent to:
+
+```json
+{
+  "eventId": "EVENT_CUSTOM_01",
+  "deckId": "main",
+  "name": "Power Surge",
+  "description": "Increase one owned Energy Grid by one rent level.",
+  "actions": [
+    {
+      "actionType": "CHANGE_PROPERTY_RENT",
+      "targetSelection": "CURRENT_PLAYER_PROPERTY",
+      "change": 1
+    }
+  ]
+}
+```
+
+This is conceptual. Reuse the repository's current payload fields and names where sound. If the current format has one top-level `actionType`, either migrate all bundled Events to the canonical non-empty `actions` list or provide a clearly deprecated compatibility reader while keeping one canonical in-memory model. Do not retain two independent executable definitions for the same Event.
+
+The `actions` list must preserve JSON order. A new Event that sequences existing supported actions must require edition JSON and validation changes only, not an edition-specific Kotlin branch.
+
+Represent supported Event actions with typed definitions or a typed parser and handler registry consistent with the current architecture.
+
+Each supported `actionType` must have:
+
+* A stable JSON identifier.
+* Typed payload parsing.
+* Payload validation.
+* A Kotlin handler.
+* Unit tests.
+* A clear failure for invalid fields.
+* Explicit execution semantics when used in an ordered multi-action Event.
+
+The dispatcher must reject an unknown `actionType` during edition validation. It must not ignore it or treat it as a no-op.
+
+Existing reusable action types should remain data-driven. An edition should be able to create new Event Cards using existing actions without Kotlin changes.
+
+Validate Event packages across files:
+
+* Event IDs are non-blank and unique within the edition.
+* Deck IDs are valid and deck membership is unambiguous.
+* Registry type and Event definition agree.
+* Artwork manifest entries, when required, resolve within the same edition.
+* `actions` is non-empty unless an explicit supported display-only Event type exists.
+* Every action payload contains exactly the fields required by its typed mode.
+* Property, group, region, side, neighbour, space, Location, player, and deck targets resolve against the same edition.
+* Event count is validated from edition configuration but is not assumed to be 23.
+* Board Event-space count is not incorrectly equated to Event deck size.
+
+Runtime Event lookup and scanning must use the active `editionId` plus the edition-owned registry. A card valid only in another edition must be rejected as wrong/unknown for the active edition and must never resolve through UK fallback.
+
+For ordered actions:
+
+* Apply immediate actions in declared order through normal engine commands/reducers.
+* Model required scans or user choices as typed pending Event steps using the existing interaction architecture.
+* Preserve pending Event state through autosave/restore if the current app can be interrupted mid-Event.
+* Define failure/atomicity behaviour explicitly; never leave silently half-applied state because a later action was malformed. Static payload/target errors should be rejected during edition validation before play.
+* Preserve duplicate-scan and double-submit protections.
+
+Document the extension process for a genuinely new Event mechanic:
+
+```text
+1. Add the new typed action definition.
+2. Add JSON parsing and payload validation.
+3. Implement the Kotlin handler.
+4. Register it with the dispatcher.
+5. Add engine and edition-validation tests.
+6. Increment the edition definitionVersion when used by an existing edition.
+```
+
+Do not implement arbitrary scripting, reflection-based handler loading, or class names supplied by JSON.
+
+## 9. UI consistency
+
+Audit UI decisions related to rules.
+
+The UI must use the same edition rules as the engine when deciding:
+
+* Whether an action is visible or enabled.
+* Jail actions.
+* Auction controls and bid increments.
+* Debt-settlement choices.
+* Undo availability.
+* GO result messages.
+* Winner presentation.
+* Which Event follow-up card type or target is expected.
+* Which board spaces, Properties, regions, groups, or Locations may be selected.
+
+The UI must not independently reproduce engine rules with hard-coded conditions.
+
+The engine remains authoritative. Invalid UI requests must still be rejected by the engine.
+
+All money output must use the edition-aware `MoneyFormatter`.
+
+Event UI content must come from the active edition's Event definition. Scan prompts should use the typed pending step to state the exact expected input, such as Player Card, Property Card, Event Card, or another supported target, rather than a generic UK-oriented prompt.
+
+## 10. Saved-game versioning
+
+This refactor must work with `editionDefinitionVersion`.
+
+If UK and India configurations are added only to describe their existing behaviour exactly, do not bump the version merely because Kotlin was refactored.
+
+If activating a previously ignored JSON value changes gameplay behaviour, increment that edition’s `definitionVersion`.
+
+Also increment the version when changing gameplay board layout/order/references, Event action types/order/parameters/targets, Event deck membership when it affects play, or edition-owned card identities. Artwork-only and display-text-only changes normally do not require a bump.
+
+Saved games must resume using the saved edition’s rules only when the installed definition version is compatible.
+
+Do not persist a duplicate copy of all rules inside `GameSession`; persist the edition ID and definition version as already designed.
+
+## 11. Tests
+
+Add tests covering:
+
+### Regression
+
+* UK behaviour remains unchanged.
+* India behaviour remains unchanged.
+* All existing 23 Event Cards retain their current results.
+* Existing game-core tests continue passing.
+
+### Custom rule configurations
+
+Create test editions demonstrating supported variations for:
+
+* Player limits.
+* Rent-level limits.
+* Colour-set bonuses.
+* Undo depth.
+* Jail behaviour.
+* Auction behaviour.
+* Debt resolution.
+* GO pass-versus-land reward behaviour.
+* Winner calculation.
+* A board layout with different space count/order and non-UK IDs.
+
+Each test must prove that changing JSON configuration changes the applicable engine policy without checking the edition ID in Kotlin.
+
+### Validation
+
+Test missing, invalid, conflicting, and unknown rule settings.
+
+### Event Engine
+
+* Every supported `actionType` parses and executes.
+* Existing actions can be reused by a new Event definition without Kotlin changes.
+* A custom edition can use a different number of Events, different Event IDs, and multiple decks if the schema supports decks.
+* An Event can execute an ordered combination of existing action types without edition-specific Kotlin code.
+* Event targets resolve against a custom board layout and its relationships.
+* Board Event-space count and Event deck size may differ.
+* A cross-edition Event/Property/space reference fails validation.
+* Pending multi-step Event state survives restore where applicable.
+* Unknown action types fail edition validation.
+* Invalid payloads fail with precise errors.
+* No unsupported action becomes a silent no-op.
+
+### Restore
+
+* Custom-edition rules are used after restore.
+* UK rules are not used to validate or run a custom-edition save.
+* Definition-version mismatch is rejected before engine creation.
+
+## Acceptance criteria
+
+The task is complete when:
+
+1. `game_rules.json` gameplay settings have typed Kotlin models.
+2. Jail, auction, debt, GO, and winner decisions consume the loaded edition rules.
+3. UK and India behaviour remains unchanged.
+4. Custom editions can select supported rule modes without Kotlin changes.
+5. The engine contains no edition-ID-specific rule branches.
+6. Missing or unknown rule modes fail validation clearly.
+7. UI availability and engine enforcement use the same rules.
+8. Existing Event action types remain reusable from JSON.
+9. A new Event using existing action types requires no Kotlin change.
+10. Editions may change Event IDs, counts, decks, display content, targets, and ordered supported actions through data.
+11. Event and movement targets use the active edition's board layout/relationships rather than UK ranges or positions.
+12. A genuinely new mechanic has a documented Kotlin extension path.
+13. No arbitrary JSON scripting or reflection is introduced.
+14. Existing and new game-core, app, persistence, and restore tests pass.
+
+After implementation, report:
+
+* The rule-coverage table.
+* The final typed rule model.
+* Files created or modified.
+* Hard-coded rule decisions removed.
+* Fields that remain documentation-only and why.
+* Supported Event `actionType` values and handlers.
+* The final Event/deck schema, ordered-action semantics, and target-validation rules.
+* Any gameplay behaviour change and related definition-version bump.
+* Test commands executed and their results.
