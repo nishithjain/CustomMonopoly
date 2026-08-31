@@ -1,23 +1,33 @@
 {
   "schemaVersion": 1,
   "editionId": "india",
+  "definitionVersion": 1,
   "name": "India Edition",
   "countryCode": "IN",
   "currency": {
     "code": "INR",
-    "symbol": "₹",
+    "symbol": "\u20b9",
     "scale": 100
   },
   "data": {
     "properties": "properties.json",
     "bankingValues": "banking_values.json",
     "events": "events.json",
-    "boardRelationships": "board_relationships.json"
+    "boardRelationships": "board_relationships.json",
+    "boardLayout": "board_layout.json",
+    "cardRegistry": "card_registry.json",
+    "gameRules": "game_rules.json"
   },
   "resources": {
     "propertyCards": "Editions/india/PropertyCards",
     "eventCards": "Editions/india/EventCards"
   },
-  "artworkStatus": "INCOMPLETE",
-  "notes": "Event text currently matches the UK baseline. India-specific Event artwork/text may be added later. Do not treat this edition as READY_FOR_PLAY until artwork exists."
+  "artworkStatus": "READY",
+  "notes": "Event text currently matches the UK baseline. India-specific Event artwork/text may be added later. Do not treat this edition as READY_FOR_PLAY until artwork exists.",
+  "cardConfiguration": {
+    "playerCardCount": 4,
+    "propertyCardCount": 22,
+    "eventCardCount": 23,
+    "rentLevelsPerProperty": 5
+  }
 }

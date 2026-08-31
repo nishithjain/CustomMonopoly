@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
-"""Generate Android runtime card-front assets from the master card registry."""
+"""Generate edition-aware Android runtime card-front assets and manifests."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
 
 try:
     from PIL import Image
-except ImportError as exc:  # pragma: no cover - runtime dependency check
+except ImportError as exc:  # pragma: no cover
     raise SystemExit(
         "Pillow is required. Install with: python -m pip install Pillow",
     ) from exc
 
-EXPECTED_COUNTS = {
-    "USER": 4,
-    "PROPERTY": 22,
-    "EVENT": 23,
-}
-EXPECTED_TOTAL = 49
 MAX_PORTRAIT_WIDTH = 1024
 MAX_LANDSCAPE_WIDTH = 1024
-MANIFEST_NAME = "android_card_front_manifest.json"
+COMMON_MANIFEST_NAME = "android_card_front_manifest.json"
 FRONT_SUFFIXES = (".png", ".jpg", ".jpeg")
+CARD_TYPE_FOLDERS = {
+    "PROPERTY": "property",
+    "EVENT": "event",
+}
 
 
 def find_workspace_root(tools_dir: Path) -> Path:
@@ -49,40 +48,63 @@ def find_project_root(workspace_root: Path) -> Path:
     raise FileNotFoundError("Could not locate android-app project root")
 
 
-def load_cards(project_root: Path) -> list[dict]:
-    registry_path = project_root / "data" / "common" / "card_registry.json"
-    with registry_path.open(encoding="utf-8") as handle:
-        payload = json.load(handle)
-    cards = payload["cards"]
-    uk_properties = json.loads(
-        (project_root / "data" / "editions" / "uk" / "properties.json").read_text(encoding="utf-8")
+def load_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def discover_edition_ids(project_root: Path, edition_filter: str | None) -> list[str]:
+    if edition_filter:
+        return [edition_filter]
+    index_path = project_root / "data" / "editions" / "index.json"
+    if index_path.is_file():
+        payload = load_json(index_path)
+        return [entry["editionId"] for entry in payload["editions"]]
+    editions_dir = project_root / "data" / "editions"
+    return sorted(
+        path.name
+        for path in editions_dir.iterdir()
+        if path.is_dir()
+    )
+
+
+def load_registry_cards(project_root: Path) -> list[dict]:
+    payload = load_json(project_root / "data" / "common" / "card_registry.json")
+    return payload["cards"]
+
+
+def load_edition_manifest(project_root: Path, edition_id: str) -> dict:
+    return load_json(project_root / "data" / "editions" / edition_id / "edition.json")
+
+
+def load_edition_cards(project_root: Path, edition_id: str) -> list[dict]:
+    edition = load_edition_manifest(project_root, edition_id)
+    properties = load_json(
+        project_root / "data" / "editions" / edition_id / edition["data"]["properties"],
     )["properties"]
-    uk_events = json.loads(
-        (project_root / "data" / "editions" / "uk" / "events.json").read_text(encoding="utf-8")
+    events = load_json(
+        project_root / "data" / "editions" / edition_id / edition["data"]["events"],
     )["events"]
-    property_fronts = {item["propertyId"]: item.get("frontAsset") for item in uk_properties}
-    event_fronts = {item["eventId"]: item.get("frontAsset") for item in uk_events}
-    merged = []
-    for card in cards:
-        card_type = card["cardType"]
-        item = dict(card)
-        if card_type == "USER":
-            merged.append(item)
-            continue
-        assets = dict(item.get("assets") or {})
-        if card_type == "PROPERTY":
-            assets["front"] = property_fronts.get(card["cardId"])
-        elif card_type == "EVENT":
-            assets["front"] = event_fronts.get(card["cardId"])
-        item["assets"] = assets
-        if card_type == "PROPERTY":
-            name = next((p["name"] for p in uk_properties if p["propertyId"] == card["cardId"]), card.get("name"))
-            item["name"] = name
-        if card_type == "EVENT":
-            name = next((e["name"] for e in uk_events if e["eventId"] == card["cardId"]), card.get("name"))
-            item["name"] = name
-        merged.append(item)
-    return merged
+    cards: list[dict] = []
+    for item in properties:
+        cards.append(
+            {
+                "cardId": item["propertyId"],
+                "cardType": "PROPERTY",
+                "name": item["name"],
+                "frontAsset": item.get("frontAsset"),
+            },
+        )
+    for item in events:
+        cards.append(
+            {
+                "cardId": item["eventId"],
+                "cardType": "EVENT",
+                "name": item["name"],
+                "frontAsset": item.get("frontAsset"),
+            },
+        )
+    return cards
 
 
 def validate_front_path(front_rel: str) -> None:
@@ -97,8 +119,12 @@ def validate_front_path(front_rel: str) -> None:
         )
 
 
-def runtime_filename(card_id: str) -> str:
-    return f"{card_id.lower()}.png"
+def runtime_asset_rel(card_type: str, edition_id: str, card_id: str) -> str:
+    filename = f"{card_id.lower()}.png"
+    if card_type == "USER":
+        return f"cards/common/user/{filename}"
+    folder = CARD_TYPE_FOLDERS[card_type]
+    return f"cards/editions/{edition_id}/{folder}/{filename}"
 
 
 def convert_working(image: Image.Image) -> Image.Image:
@@ -161,76 +187,133 @@ def process_image(source_path: Path, destination_path: Path, card_type: str) -> 
     return process_portrait_image(source_path, destination_path)
 
 
-def main() -> int:
-    tools_dir = Path(__file__).resolve().parent
-    workspace_root = find_workspace_root(tools_dir)
-    project_root = find_project_root(workspace_root)
-    cards = load_cards(project_root)
+def should_process_card(source_path: Path, destination_path: Path) -> bool:
+    if not destination_path.is_file():
+        return True
+    return source_path.stat().st_mtime > destination_path.stat().st_mtime
 
-    destination_dir = (
-        project_root
-        / "android-app"
-        / "app"
-        / "src"
-        / "main"
-        / "assets"
-        / "cards"
-        / "fronts"
-    )
-    data_manifest_path = project_root / "data" / MANIFEST_NAME
-    android_manifest_path = (
-        project_root
-        / "android-app"
-        / "app"
-        / "src"
-        / "main"
-        / "assets"
-        / "cards"
-        / MANIFEST_NAME
-    )
 
-    counts: dict[str, int] = {"USER": 0, "PROPERTY": 0, "EVENT": 0}
+def write_manifest(path: Path, edition_id: str, cards: dict[str, dict]) -> None:
+    payload = {
+        "schemaVersion": 2,
+        "editionId": edition_id,
+        "generatedBy": "tools/sync_android_card_images.py",
+        "cards": cards,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+
+
+def sync_common_user_cards(
+    workspace_root: Path,
+    project_root: Path,
+    assets_root: Path,
+    problems: list[str],
+) -> dict[str, dict]:
     manifest: dict[str, dict] = {}
-    problems: list[str] = []
-
-    print(f"Workspace root: {workspace_root}")
-    print(f"Project root:   {project_root}")
-    print(f"Destination:    {destination_dir}")
-
-    for card in cards:
+    for card in load_registry_cards(project_root):
+        if card["cardType"] != "USER":
+            continue
         card_id = card["cardId"]
-        card_type = card["cardType"]
-        assets = card.get("assets") or {}
-        front_rel = assets.get("front")
+        front_rel = (card.get("assets") or {}).get("front")
         if not front_rel:
-            problems.append(f"{card_id}: missing assets.front in card registry/edition data")
+            problems.append(f"common/{card_id}: missing assets.front in card registry")
             continue
         try:
             validate_front_path(front_rel)
         except ValueError as exc:
-            problems.append(f"{card_id}: {exc}")
+            problems.append(f"common/{card_id}: {exc}")
             continue
-
         source_path = workspace_root / front_rel
         if not source_path.is_file():
-            problems.append(f"{card_id}: missing source front asset: {front_rel}")
+            problems.append(f"common/{card_id}: missing source front asset: {front_rel}")
             continue
-
-        runtime_name = runtime_filename(card_id)
-        runtime_rel = f"cards/fronts/{runtime_name}"
-        destination_path = destination_dir / runtime_name
-
+        runtime_rel = runtime_asset_rel("USER", "common", card_id)
+        destination_path = assets_root / runtime_rel
         try:
-            orientation, rotation_applied, dimensions = process_image(
-                source_path,
-                destination_path,
-                card_type,
-            )
-        except Exception as exc:  # noqa: BLE001 - report per-card failures
-            problems.append(f"{card_id}: failed to process {front_rel}: {exc}")
+            if should_process_card(source_path, destination_path):
+                orientation, rotation_applied, dimensions = process_image(
+                    source_path,
+                    destination_path,
+                    "USER",
+                )
+            else:
+                with Image.open(destination_path) as image:
+                    width, height = image.size
+                    orientation = "LANDSCAPE"
+                    rotation_applied = False
+                    dimensions = (width, height)
+        except Exception as exc:  # noqa: BLE001
+            problems.append(f"common/{card_id}: failed to process {front_rel}: {exc}")
             continue
+        manifest[card_id] = {
+            "cardId": card_id,
+            "cardType": "USER",
+            "name": card["name"],
+            "sourceFrontPath": front_rel.replace("\\", "/"),
+            "runtimeAssetPath": runtime_rel,
+            "asset": runtime_rel,
+            "orientation": orientation,
+            "rotationApplied": rotation_applied,
+            "width": dimensions[0],
+            "height": dimensions[1],
+        }
+        print(f"  common/{card_id} -> {runtime_rel}")
+    return manifest
 
-        counts[card_type] = counts.get(card_type, 0) + 1
+
+def sync_edition_cards(
+    workspace_root: Path,
+    project_root: Path,
+    assets_root: Path,
+    edition_id: str,
+    problems: list[str],
+) -> dict[str, dict]:
+    edition = load_edition_manifest(project_root, edition_id)
+    artwork_status = edition.get("artworkStatus", "READY")
+    manifest: dict[str, dict] = {}
+    for card in load_edition_cards(project_root, edition_id):
+        card_id = card["cardId"]
+        card_type = card["cardType"]
+        front_rel = card.get("frontAsset")
+        if not front_rel:
+            msg = f"{edition_id}/{card_type}/{card_id}: missing frontAsset in edition data"
+            if artwork_status == "READY":
+                problems.append(msg)
+            else:
+                print(f"  SKIP {msg}")
+            continue
+        try:
+            validate_front_path(front_rel)
+        except ValueError as exc:
+            problems.append(f"{edition_id}/{card_type}/{card_id}: {exc}")
+            continue
+        source_path = workspace_root / front_rel
+        if not source_path.is_file():
+            msg = f"{edition_id}/{card_type}/{card_id}: missing source front asset: {front_rel}"
+            if artwork_status == "READY":
+                problems.append(msg)
+            else:
+                print(f"  SKIP {msg}")
+            continue
+        runtime_rel = runtime_asset_rel(card_type, edition_id, card_id)
+        destination_path = assets_root / runtime_rel
+        try:
+            if should_process_card(source_path, destination_path):
+                orientation, rotation_applied, dimensions = process_image(
+                    source_path,
+                    destination_path,
+                    card_type,
+                )
+            else:
+                with Image.open(destination_path) as image:
+                    width, height = image.size
+                    orientation = "PORTRAIT" if card_type != "USER" else "LANDSCAPE"
+                    rotation_applied = False
+                    dimensions = (width, height)
+        except Exception as exc:  # noqa: BLE001
+            problems.append(f"{edition_id}/{card_type}/{card_id}: failed to process {front_rel}: {exc}")
+            continue
         manifest[card_id] = {
             "cardId": card_id,
             "cardType": card_type,
@@ -243,19 +326,69 @@ def main() -> int:
             "width": dimensions[0],
             "height": dimensions[1],
         }
-        print(
-            f"  {card_id} -> {runtime_rel} ({dimensions[0]}x{dimensions[1]}, {orientation})",
-        )
+        print(f"  {edition_id}/{card_type}/{card_id} -> {runtime_rel}")
+    return manifest
 
-    if len(manifest) != EXPECTED_TOTAL:
-        problems.append(
-            f"Total processed card fronts mismatch: expected {EXPECTED_TOTAL}, found {len(manifest)}",
+
+def remove_legacy_assets(project_root: Path, assets_root: Path) -> None:
+    legacy_manifest = assets_root / "cards" / COMMON_MANIFEST_NAME
+    if legacy_manifest.is_file():
+        legacy_manifest.unlink()
+    legacy_fronts = assets_root / "cards" / "fronts"
+    if legacy_fronts.is_dir():
+        for path in legacy_fronts.glob("*"):
+            if path.is_file():
+                path.unlink()
+        legacy_fronts.rmdir()
+    legacy_data_manifest = project_root / "data" / COMMON_MANIFEST_NAME
+    if legacy_data_manifest.is_file():
+        legacy_data_manifest.unlink()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--edition",
+        help="Sync only the specified edition id (common user cards are always synced)",
+    )
+    args = parser.parse_args()
+
+    tools_dir = Path(__file__).resolve().parent
+    workspace_root = find_workspace_root(tools_dir)
+    project_root = find_project_root(workspace_root)
+    assets_root = project_root / "android-app" / "app" / "src" / "main" / "assets"
+    data_cards_root = project_root / "data" / "cards"
+
+    edition_ids = discover_edition_ids(project_root, args.edition)
+    problems: list[str] = []
+
+    print(f"Workspace root: {workspace_root}")
+    print(f"Project root:   {project_root}")
+    print(f"Assets root:    {assets_root}")
+    print("Syncing common user cards:")
+    common_manifest = sync_common_user_cards(workspace_root, project_root, assets_root, problems)
+    common_manifest_path = data_cards_root / "common" / COMMON_MANIFEST_NAME
+    android_common_manifest_path = assets_root / "cards" / "common" / COMMON_MANIFEST_NAME
+    write_manifest(common_manifest_path, "common", common_manifest)
+    write_manifest(android_common_manifest_path, "common", common_manifest)
+
+    for edition_id in edition_ids:
+        print(f"Syncing edition '{edition_id}':")
+        edition_manifest = sync_edition_cards(
+            workspace_root,
+            project_root,
+            assets_root,
+            edition_id,
+            problems,
         )
-    for card_type, expected in EXPECTED_COUNTS.items():
-        if counts.get(card_type, 0) != expected:
-            problems.append(
-                f"{card_type} front count mismatch: expected {expected}, found {counts.get(card_type, 0)}",
-            )
+        edition_manifest_path = data_cards_root / "editions" / edition_id / COMMON_MANIFEST_NAME
+        android_edition_manifest_path = (
+            assets_root / "cards" / "editions" / edition_id / COMMON_MANIFEST_NAME
+        )
+        write_manifest(edition_manifest_path, edition_id, edition_manifest)
+        write_manifest(android_edition_manifest_path, edition_id, edition_manifest)
+
+    remove_legacy_assets(project_root, assets_root)
 
     if problems:
         print("\nFAIL:")
@@ -263,24 +396,12 @@ def main() -> int:
             print(f"  - {problem}")
         return 1
 
-    payload = {
-        "schemaVersion": 1,
-        "generatedBy": "tools/sync_android_card_images.py",
-        "cards": manifest,
-    }
-    data_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    android_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    encoded = json.dumps(payload, indent=2, sort_keys=False)
-    data_manifest_path.write_text(encoded + "\n", encoding="utf-8")
-    android_manifest_path.write_text(encoded + "\n", encoding="utf-8")
-
     print("\nPASS:")
-    print(f"  User fronts:     {counts['USER']} / {EXPECTED_COUNTS['USER']}")
-    print(f"  Property fronts: {counts['PROPERTY']} / {EXPECTED_COUNTS['PROPERTY']}")
-    print(f"  Event fronts:    {counts['EVENT']} / {EXPECTED_COUNTS['EVENT']}")
-    print(f"  Total:           {len(manifest)} / {EXPECTED_TOTAL}")
-    print(f"  Manifest:        {data_manifest_path}")
-    print(f"  Android manifest:{android_manifest_path}")
+    print(f"  Common user fronts: {len(common_manifest)}")
+    for edition_id in edition_ids:
+        manifest_path = data_cards_root / "editions" / edition_id / COMMON_MANIFEST_NAME
+        count = len(load_json(manifest_path)["cards"])
+        print(f"  {edition_id} fronts: {count}")
     return 0
 
 

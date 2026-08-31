@@ -38,13 +38,9 @@ class DebtResolutionViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeGameSessionRepository()
-        store = CommittedGameSessionStore(repository)
-        sessionManager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = store,
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        val (manager, committedStore) = AppTestSupport.sessionManagerWithStore(repository)
+        sessionManager = manager
+        store = committedStore
         audio = RecordingGameAudioFeedback()
     }
 

@@ -8,7 +8,10 @@ import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.app.scanner.model.ResolvedCard
 import com.boardbanker.core.card.CardType
+import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameStatus
+import com.boardbanker.core.model.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -43,14 +46,9 @@ class PlayerSetupUserCardFrontTest {
             Path.of("../../../"),
             Path.of("../../../../monopoly-ultimate-banking-qr"),
             Path.of("c:/Personal/Monopoly/monopoly-ultimate-banking-qr"),
-        ).first { it.resolve("data/android_card_front_manifest.json").toFile().exists() }
+        ).first { it.resolve("data/cards/common/android_card_front_manifest.json").toFile().exists() }
         val repository = FakeGameSessionRepository()
-        sessionManager = ActiveGameSessionManager(
-            definitions = definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        sessionManager = AppTestSupport.sessionManager(repository)
     }
 
     @After
@@ -95,13 +93,14 @@ class PlayerSetupUserCardFrontTest {
 
     @Test
     fun scanningUserCardStagesNameEntryWithFrontMetadata() = runTest {
-        sessionManager.createNewGame()
+        sessionManager.createNewGame(EditionIds.UK)
         val viewModel = GameSetupViewModel(
             sessionManager = sessionManager,
-            definitions = definitions,
+            activeDefinitions = definitions,
             createNewGame = false,
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
+            editionRepository = AppTestSupport.editionRepository,
         )
         advanceUntilIdle()
         viewModel.onPlayerCardScanned(
@@ -119,18 +118,19 @@ class PlayerSetupUserCardFrontTest {
         assertEquals("Car", pending.tokenName)
         val entry = loadManifestCards().getValue("USR_01")
         assertEquals("LANDSCAPE", entry["orientation"]!!.jsonPrimitive.content)
-        assertTrue(entry["asset"]!!.jsonPrimitive.content.endsWith("usr_01.png"))
+        assertTrue(entry["asset"]!!.jsonPrimitive.content == "cards/common/user/usr_01.png")
     }
 
     @Test
     fun cancelClearsPendingRegistrationWithoutMutation() = runTest {
-        sessionManager.createNewGame()
+        sessionManager.createNewGame(EditionIds.UK)
         val viewModel = GameSetupViewModel(
             sessionManager = sessionManager,
-            definitions = definitions,
+            activeDefinitions = definitions,
             createNewGame = false,
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
+            editionRepository = AppTestSupport.editionRepository,
         )
         advanceUntilIdle()
         viewModel.onPlayerIdScanned("USR_04")
@@ -144,7 +144,7 @@ class PlayerSetupUserCardFrontTest {
 
     private fun loadManifestCards(): Map<String, kotlinx.serialization.json.JsonObject> {
         val payload = Json.parseToJsonElement(
-            projectRoot.resolve("data/android_card_front_manifest.json").readText(),
+            projectRoot.resolve("data/cards/common/android_card_front_manifest.json").readText(),
         ).jsonObject
         return payload["cards"]!!.jsonObject.mapValues { it.value.jsonObject }
     }

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Validate generated Android card-front assets and manifest coverage."""
+"""Validate edition-aware Android card-front assets and manifests."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -14,20 +15,12 @@ except ImportError as exc:  # pragma: no cover
         "Pillow is required. Install with: python -m pip install Pillow",
     ) from exc
 
-EXPECTED_COUNTS = {
-    "USER": 4,
-    "PROPERTY": 22,
-    "EVENT": 23,
-}
-EXPECTED_TOTAL = 49
-USER_IDS = {
-    "USR_01": "Car",
-    "USR_02": "Helicopter",
-    "USR_03": "Ship",
-    "USR_04": "Aeroplane",
-}
-MANIFEST_NAME = "android_card_front_manifest.json"
+COMMON_MANIFEST_NAME = "android_card_front_manifest.json"
 REPORT_NAME = "card_front_asset_validation.txt"
+CARD_TYPE_FOLDERS = {
+    "PROPERTY": "property",
+    "EVENT": "event",
+}
 
 
 def find_workspace_root(tools_dir: Path) -> Path:
@@ -40,7 +33,7 @@ def find_workspace_root(tools_dir: Path) -> Path:
         if resources.is_dir() and project.is_dir():
             return candidate
     raise FileNotFoundError(
-        "Could not locate workspace root containing Resources/Cards and android-app/",
+        "Could not locate workspace root containing Resources/Common and android-app/",
     )
 
 
@@ -53,16 +46,65 @@ def find_project_root(workspace_root: Path) -> Path:
     raise FileNotFoundError("Could not locate android-app project root")
 
 
-def load_manifest(project_root: Path) -> dict:
-    manifest_path = project_root / "data" / MANIFEST_NAME
-    with manifest_path.open(encoding="utf-8") as handle:
-        payload = json.load(handle)
-    return payload["cards"]
+def load_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
 
 
-def load_cards(project_root: Path) -> list[dict]:
-    with (project_root / "data" / "common" / "card_registry.json").open(encoding="utf-8") as handle:
-        return json.load(handle)["cards"]
+def discover_edition_ids(project_root: Path, edition_filter: str | None) -> list[str]:
+    if edition_filter:
+        return [edition_filter]
+    index_path = project_root / "data" / "editions" / "index.json"
+    payload = load_json(index_path)
+    return [entry["editionId"] for entry in payload["editions"] if entry.get("enabled", True)]
+
+
+def load_edition_index(project_root: Path) -> dict[str, dict]:
+    index_path = project_root / "data" / "editions" / "index.json"
+    payload = load_json(index_path)
+    return {entry["editionId"]: entry for entry in payload["editions"]}
+
+
+def load_registry_cards(project_root: Path) -> list[dict]:
+    return load_json(project_root / "data" / "common" / "card_registry.json")["cards"]
+
+
+def load_edition_cards(project_root: Path, edition_id: str) -> list[dict]:
+    edition = load_json(project_root / "data" / "editions" / edition_id / "edition.json")
+    properties = load_json(
+        project_root / "data" / "editions" / edition_id / edition["data"]["properties"],
+    )["properties"]
+    events = load_json(
+        project_root / "data" / "editions" / edition_id / edition["data"]["events"],
+    )["events"]
+    cards = []
+    for item in properties:
+        cards.append(
+            {
+                "cardId": item["propertyId"],
+                "cardType": "PROPERTY",
+                "name": item["name"],
+                "frontAsset": item.get("frontAsset"),
+            },
+        )
+    for item in events:
+        cards.append(
+            {
+                "cardId": item["eventId"],
+                "cardType": "EVENT",
+                "name": item["name"],
+                "frontAsset": item.get("frontAsset"),
+            },
+        )
+    return cards
+
+
+def orientation_ok(card_type: str, width: int, height: int, expected_orientation: str) -> bool:
+    if expected_orientation == "LANDSCAPE":
+        return width > height
+    if expected_orientation == "PORTRAIT":
+        return height > width
+    return False
 
 
 def scan_game_core_for_images(project_root: Path) -> list[str]:
@@ -76,37 +118,33 @@ def scan_game_core_for_images(project_root: Path) -> list[str]:
         suffix = path.suffix.lower()
         if suffix in {".png", ".jpg", ".jpeg", ".webp"}:
             hits.append(str(path.relative_to(project_root)))
-        if path.name.lower() in {"cardfrontimageprovider.kt", "cardfrontregistry.kt"}:
-            hits.append(str(path.relative_to(project_root)))
     return hits
 
 
-def orientation_ok(card_type: str, width: int, height: int, expected_orientation: str) -> bool:
-    if expected_orientation == "LANDSCAPE":
-        return width > height
-    if expected_orientation == "PORTRAIT":
-        return height > width
-    return False
-
-
-def main() -> int:
-    tools_dir = Path(__file__).resolve().parent
-    workspace_root = find_workspace_root(tools_dir)
-    project_root = find_project_root(workspace_root)
-    manifest = load_manifest(project_root)
-    cards = load_cards(project_root)
-    report_path = project_root / "data" / REPORT_NAME
-    assets_root = project_root / "android-app" / "app" / "src" / "main" / "assets"
-
-    problems: list[str] = []
+def validate_manifest(
+    project_root: Path,
+    assets_root: Path,
+    manifest_path: Path,
+    expected_edition_id: str,
+    expected_cards: list[dict],
+    artwork_status: str,
+    problems: list[str],
+) -> dict[str, int]:
     counts = {"USER": 0, "PROPERTY": 0, "EVENT": 0}
-    back_usage: list[str] = []
-    duplicate_assets: dict[str, list[str]] = {}
-    user_lines: list[str] = []
+    if not manifest_path.is_file():
+        if artwork_status == "READY":
+            problems.append(
+                f"{expected_edition_id}: missing manifest at {manifest_path.relative_to(project_root)}",
+            )
+        return counts
 
-    card_ids = [card["cardId"] for card in cards]
-    if len(set(card_ids)) != len(card_ids):
-        problems.append("Duplicate card IDs in cards.json")
+    payload = load_json(manifest_path)
+    if payload.get("editionId") != expected_edition_id:
+        problems.append(
+            f"{expected_edition_id}: manifest editionId '{payload.get('editionId')}' mismatch",
+        )
+    manifest = payload.get("cards", {})
+    duplicate_assets: dict[str, list[str]] = {}
 
     for card_id, entry in manifest.items():
         card_type = entry.get("cardType")
@@ -117,114 +155,136 @@ def main() -> int:
         expected_orientation = entry.get("orientation", "")
         lowered_source = source_front.replace("\\", "/").lower()
         if "_back_qr" in lowered_source or "_back." in lowered_source:
-            back_usage.append(f"{card_id}: source={source_front}")
+            problems.append(
+                f"{expected_edition_id}/{card_type}/{card_id}: back asset referenced as front",
+            )
         if not asset_rel:
-            problems.append(f"{card_id}: missing asset path in manifest")
+            problems.append(f"{expected_edition_id}/{card_type}/{card_id}: missing asset path")
             continue
         duplicate_assets.setdefault(asset_rel, []).append(card_id)
         asset_path = assets_root / asset_rel
         if not asset_path.is_file():
-            problems.append(f"{card_id}: missing runtime asset {asset_rel}")
+            problems.append(
+                f"{expected_edition_id}/{card_type}/{card_id}: missing runtime asset {asset_rel}",
+            )
             continue
         with Image.open(asset_path) as image:
             width, height = image.size
             if not orientation_ok(card_type, width, height, expected_orientation):
                 problems.append(
-                    f"{card_id}: orientation mismatch ({expected_orientation}, {width}x{height})",
+                    f"{expected_edition_id}/{card_type}/{card_id}: orientation mismatch "
+                    f"({expected_orientation}, {width}x{height})",
                 )
-        if card_type == "USER":
-            if expected_orientation != "LANDSCAPE":
-                problems.append(f"{card_id}: USER front must be LANDSCAPE in manifest")
-            if entry.get("rotationApplied"):
-                problems.append(f"{card_id}: USER front must not be rotated")
-            if not lowered_source.endswith((".jpg", ".jpeg", ".png")):
-                problems.append(f"{card_id}: USER source must be JPG/PNG front asset")
-            name = USER_IDS.get(card_id, entry.get("name", card_id))
-            status = "PASS" if card_id not in [p.split(":")[0] for p in problems] else "FAIL"
-            user_lines.append(f"{card_id} {name:<11} LANDSCAPE {status}")
 
     for asset_rel, ids in duplicate_assets.items():
         if len(ids) > 1:
-            problems.append(f"Duplicate runtime asset mapping {asset_rel}: {', '.join(ids)}")
-
-    for card_type, expected in EXPECTED_COUNTS.items():
-        if counts.get(card_type, 0) != expected:
             problems.append(
-                f"{card_type} runtime front count mismatch: expected {expected}, found {counts.get(card_type, 0)}",
+                f"{expected_edition_id}: duplicate runtime asset mapping {asset_rel}: {', '.join(ids)}",
             )
 
-    if len(manifest) != EXPECTED_TOTAL:
+    expected_by_id = {card["cardId"]: card for card in expected_cards}
+    manifest_ids = set(manifest.keys())
+    expected_ids = set(expected_by_id.keys())
+    if artwork_status == "READY":
+        missing = sorted(expected_ids - manifest_ids)
+        if missing:
+            problems.append(
+                f"{expected_edition_id}: missing manifest entries: {', '.join(missing)}",
+            )
+    extra = sorted(manifest_ids - expected_ids)
+    if extra:
         problems.append(
-            f"Manifest card count mismatch: expected {EXPECTED_TOTAL}, found {len(manifest)}",
+            f"{expected_edition_id}: unexpected manifest entries: {', '.join(extra)}",
         )
 
-    registry_ids = {card["cardId"] for card in cards}
-    manifest_ids = set(manifest.keys())
-    missing_in_manifest = sorted(registry_ids - manifest_ids)
-    extra_in_manifest = sorted(manifest_ids - registry_ids)
-    if missing_in_manifest:
-        problems.append(f"Missing manifest entries: {', '.join(missing_in_manifest)}")
-    if extra_in_manifest:
-        problems.append(f"Unexpected manifest entries: {', '.join(extra_in_manifest)}")
+    for card_id, entry in manifest.items():
+        expected = expected_by_id.get(card_id)
+        if expected is None:
+            continue
+        if entry.get("cardType") != expected["cardType"]:
+            problems.append(
+                f"{expected_edition_id}/{expected['cardType']}/{card_id}: "
+                f"manifest type '{entry.get('cardType')}' != registry '{expected['cardType']}'",
+            )
 
-    image_hits = scan_game_core_for_images(project_root)
-    if image_hits:
-        problems.append(f"game-core contains image dependencies: {', '.join(image_hits)}")
+    return counts
 
-    if back_usage:
-        problems.append(f"Back/Back_QR referenced as front: {', '.join(back_usage)}")
 
-    user_pass = counts.get("USER", 0) == EXPECTED_COUNTS["USER"] and all(
-        manifest.get(card_id, {}).get("orientation") == "LANDSCAPE"
-        for card_id in USER_IDS
-    )
-    property_pass = counts.get("PROPERTY", 0) == EXPECTED_COUNTS["PROPERTY"]
-    event_pass = counts.get("EVENT", 0) == EXPECTED_COUNTS["EVENT"]
-    total_pass = len(manifest) == EXPECTED_TOTAL and not problems
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--edition", help="Validate only the specified edition id")
+    args = parser.parse_args()
 
+    tools_dir = Path(__file__).resolve().parent
+    workspace_root = find_workspace_root(tools_dir)
+    project_root = find_project_root(workspace_root)
+    assets_root = project_root / "android-app" / "app" / "src" / "main" / "assets"
+    report_path = project_root / "data" / REPORT_NAME
+    problems: list[str] = []
     lines = [
         "CARD FRONT VALIDATION",
         f"Workspace root: {workspace_root}",
         f"Project root:   {project_root}",
         "",
-        "USER",
     ]
-    for card_id, name in USER_IDS.items():
-        entry = manifest.get(card_id, {})
-        orientation = entry.get("orientation", "?")
-        rotated = entry.get("rotationApplied", True)
-        source = entry.get("sourceFrontPath", "")
-        ok = (
-            card_id in manifest
-            and orientation == "LANDSCAPE"
-            and not rotated
-            and source.lower().endswith((".jpg", ".jpeg", ".png"))
-        )
-        lines.append(f"{card_id} {name:<11} {orientation:<9} {'PASS' if ok else 'FAIL'}")
-    lines.extend(
-        [
-            "",
-            f"User fronts:     {counts.get('USER', 0)} / {EXPECTED_COUNTS['USER']} {'PASS' if user_pass else 'FAIL'}",
-            f"Property fronts: {counts.get('PROPERTY', 0)} / {EXPECTED_COUNTS['PROPERTY']} {'PASS' if property_pass else 'FAIL'}",
-            f"Event fronts:    {counts.get('EVENT', 0)} / {EXPECTED_COUNTS['EVENT']} {'PASS' if event_pass else 'FAIL'}",
-            f"Total:           {len(manifest)} / {EXPECTED_TOTAL} {'PASS' if total_pass else 'FAIL'}",
-            f"game-core image dependencies: {len(image_hits)}",
-            "",
-        ]
+
+    user_cards = [card for card in load_registry_cards(project_root) if card["cardType"] == "USER"]
+    common_counts = validate_manifest(
+        project_root,
+        assets_root,
+        assets_root / "cards" / "common" / COMMON_MANIFEST_NAME,
+        "common",
+        user_cards,
+        "READY",
+        problems,
     )
+    lines.append("COMMON USER")
+    lines.append(
+        f"User fronts: {common_counts.get('USER', 0)} / {len(user_cards)}",
+    )
+
+    edition_ids = discover_edition_ids(project_root, args.edition)
+    edition_index = load_edition_index(project_root)
+    for edition_id in edition_ids:
+        edition = load_json(project_root / "data" / "editions" / edition_id / "edition.json")
+        artwork_status = edition.get("artworkStatus", "READY")
+        enabled = edition_index.get(edition_id, {}).get("enabled", True)
+        if enabled and artwork_status != "READY":
+            problems.append(
+                f"{edition_id}: enabled production edition has artworkStatus={artwork_status}; required artwork is incomplete",
+            )
+        expected_cards = load_edition_cards(project_root, edition_id)
+        counts = validate_manifest(
+            project_root,
+            assets_root,
+            assets_root / "cards" / "editions" / edition_id / COMMON_MANIFEST_NAME,
+            edition_id,
+            expected_cards,
+            "READY" if enabled else artwork_status,
+            problems,
+        )
+        lines.append("")
+        lines.append(f"EDITION {edition_id} ({artwork_status})")
+        lines.append(
+            f"Property fronts: {counts.get('PROPERTY', 0)} / "
+            f"{sum(1 for card in expected_cards if card['cardType'] == 'PROPERTY')}",
+        )
+        lines.append(
+            f"Event fronts:    {counts.get('EVENT', 0)} / "
+            f"{sum(1 for card in expected_cards if card['cardType'] == 'EVENT')}",
+        )
+
+    image_hits = scan_game_core_for_images(project_root)
+    if image_hits:
+        problems.append(f"game-core contains image dependencies: {', '.join(image_hits)}")
+
+    lines.append("")
     if problems:
         lines.append("RESULT: FAIL")
         lines.extend(f"- {problem}" for problem in problems)
     else:
         lines.append("RESULT: PASS")
-        lines.append("- All runtime assets exist")
-        lines.append("- USER fronts remain landscape without rotation")
-        lines.append("- EVENT/PROPERTY fronts use portrait canonical orientation")
-        lines.append("- JPG User-card sources accepted")
-        lines.append("- No Back/Back_QR front mappings")
-        lines.append("- cardId mappings unique")
-        lines.append("- Source Resources images unchanged (sync tool copies only)")
-        lines.append("- game-core contains no image dependencies")
+        lines.append("- Edition-aware manifests and runtime assets validated")
 
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))

@@ -238,6 +238,7 @@ class PlayerDetailsViewModel(
         val player = session.players[playerId] ?: return
         _uiState.update {
             it.copy(
+                editionId = session.editionId,
                 playerId = playerId,
                 playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
                 tokenName = definitions.players[playerId]?.displayName.orEmpty(),

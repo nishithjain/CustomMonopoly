@@ -11,6 +11,7 @@ data/
     game_rules.json         # shared rule configuration
     event_engine_rules.json # ID-based Event Engine behaviour
   editions/
+    index.json              # catalogue for New Game edition discovery
     uk/
     india/
       edition.json
@@ -46,7 +47,11 @@ Resources/
 ## Runtime
 
 ```text
-EditionRepository.load("uk" | "india")
+EditionRepository.loadEditionCatalog()
+        ↓
+New Game UI (enabled editions only)
+        ↓
+EditionRepository.load(editionId)
         ↓
 GameDefinitions
         ↓
@@ -55,19 +60,20 @@ GameEngine
 
 The Game Engine does not branch on country. It only consumes `GameDefinitions`.
 
-Default edition for New Game is `uk`. `GameSession.editionId` is persisted. Saves without `editionId` are treated as `uk`.
+`data/editions/index.json` is the source of truth for editions available to New Game. The catalogue selects an edition package; it does not contain gameplay definitions.
+
+Default edition for New Game comes from `defaultEditionId` in the catalogue (currently `uk`). `GameSession.editionId` is persisted with every saved game.
+
+**Legacy migration:** saved games created before `editionId` was persisted deserialize with a missing or blank edition ID treated as `"uk"` only. This rule lives in `EditionIds.normalize()` and `GameSession`'s default parameter; it does not rewrite stored saves.
+
+Disabled catalogue entries cannot be selected for new games, but an existing saved game remains resumable even if its edition is later disabled.
 
 ## Adding a future edition
 
-1. Create `data/editions/<id>/`
-2. Add `edition.json`
-3. Add `properties.json`
-4. Add `banking_values.json`
-5. Add `events.json`
-6. Add `board_relationships.json`
-7. Add `Resources/Editions/<id>/PropertyCards` and `EventCards`
-8. Run `python tools/validate_editions.py`
-
-No Game Engine rule code should normally need modification.
-
-India is data-complete but artwork-incomplete. It is not exposed in New Game and is not READY_FOR_PLAY until original artwork exists.
+1. Add `data/editions/<editionId>/` with the required edition JSON files.
+2. Add the edition to `data/editions/index.json`.
+3. Define its edition metadata, card registry, board layout, properties, Events, banking values, board relationships, and game rules.
+4. Add edition-specific card and board artwork under the matching edition artwork path.
+5. Run asset synchronization, edition validation, and tests (`python tools/sync_android_assets.py`, `python tools/validate_editions.py`).
+6. No Kotlin source change should be necessary when the edition uses already supported space types, rule modes, and Event action types.
+7. A genuinely new space type, rule mode, or Event mechanic requires a typed Kotlin implementation and tests; never place executable code in JSON.

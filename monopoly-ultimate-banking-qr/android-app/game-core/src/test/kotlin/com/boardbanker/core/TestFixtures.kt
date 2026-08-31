@@ -12,10 +12,10 @@ import com.boardbanker.core.model.TemporaryEffect
 import java.nio.file.Path
 
 object TestFixtures {
-    private val dataDir: Path = resolveDataDir()
+    val dataDir: Path = resolveDataDir()
     private val editionRepository = EditionRepository(FileEditionFileSource(dataDir))
 
-    val definitions: GameDefinitions = editionRepository.load(EditionIds.DEFAULT)
+    val definitions: GameDefinitions = editionRepository.load(EditionIds.UK)
     val engine: GameEngine = DefaultGameEngine(definitions)
 
     fun loadEdition(editionId: String): GameDefinitions = editionRepository.load(editionId)
@@ -38,6 +38,9 @@ object TestFixtures {
         "USR_04" -> "Arun"
         else -> "Player"
     }
+
+    fun emptySession(gameId: String = "TEST_GAME"): GameSession =
+        GameSession(gameId = gameId, editionId = definitions.editionId)
 
     fun newGame(playerIds: List<String> = listOf("USR_01", "USR_02")): GameSession {
         var result = engine.process(

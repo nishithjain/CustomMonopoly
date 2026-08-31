@@ -21,7 +21,7 @@ class FakeQrCodeSourceTest {
             Path.of("../../../../monopoly-ultimate-banking-qr/data"),
             Path.of("c:/Personal/Monopoly/monopoly-ultimate-banking-qr/data"),
         ).first { it.resolve("common/card_registry.json").toFile().exists() }
-        val definitions = EditionRepository(FileEditionFileSource(dataDir)).load(EditionIds.DEFAULT)
+        val definitions = EditionRepository(FileEditionFileSource(dataDir)).load(EditionIds.UK)
         val processor = ScanProcessor(ScanGate(), DefaultCardResolver(definitions))
         val source = FakeQrCodeSource(
             listOf(

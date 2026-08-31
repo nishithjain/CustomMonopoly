@@ -2,14 +2,18 @@ package com.boardbanker.core.validation
 
 import com.boardbanker.core.card.CardDefinition
 import com.boardbanker.core.card.CardType
+import com.boardbanker.core.model.BankingValues
+import com.boardbanker.core.model.EditionCatalog
 import com.boardbanker.core.model.EditionDefinition
 import com.boardbanker.core.model.EditionIds
-import com.boardbanker.core.model.BankingValues
+import com.boardbanker.core.model.BoardLayout
+import com.boardbanker.core.model.BoardSpace
+import com.boardbanker.core.model.BoardSpaceType
 import com.boardbanker.core.model.BoardRelationships
+import com.boardbanker.core.model.EventActionDefinition
 import com.boardbanker.core.model.EventDefinition
-import com.boardbanker.core.model.EventEngineRule
 import com.boardbanker.core.model.GameDefinitions
-import com.boardbanker.core.model.GameRulesConfig
+import com.boardbanker.core.model.GameRules
 import com.boardbanker.core.model.PlayerDefinition
 import com.boardbanker.core.model.PropertyDefinition
 import com.boardbanker.core.model.RentLevel
@@ -24,8 +28,51 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
     fun loadEditionManifest(jsonString: String): EditionDefinition =
         json.decodeFromString(EditionDefinition.serializer(), jsonString)
 
-    fun loadGameRulesConfig(jsonString: String): GameRulesConfig =
-        json.decodeFromString(GameRulesConfig.serializer(), jsonString)
+    fun loadEditionCatalog(jsonString: String): EditionCatalog =
+        json.decodeFromString(EditionCatalog.serializer(), jsonString)
+
+    fun loadGameRules(jsonString: String): GameRules =
+        json.decodeFromString(GameRules.serializer(), jsonString)
+
+    @Deprecated("Use loadGameRules", ReplaceWith("loadGameRules(jsonString)"))
+    fun loadGameRulesConfig(jsonString: String): GameRules = loadGameRules(jsonString)
+
+    fun loadBoardLayout(jsonString: String): BoardLayout {
+        val root = json.parseToJsonElement(jsonString).jsonObject
+        val spaces = root["spaces"]!!.jsonArray.map { element ->
+            val obj = element.jsonObject
+            BoardSpace(
+                position = obj["position"]!!.jsonPrimitive.content.toInt(),
+                spaceId = obj["spaceId"]!!.jsonPrimitive.content,
+                spaceType = BoardSpaceType.valueOf(obj["spaceType"]!!.jsonPrimitive.content),
+                targetId = obj["targetId"]?.jsonPrimitive?.content,
+                deckId = obj["deckId"]?.jsonPrimitive?.content,
+            )
+        }
+        return BoardLayout(
+            schemaVersion = root["schemaVersion"]?.jsonPrimitive?.content?.toInt() ?: 1,
+            spaces = spaces,
+        )
+    }
+
+    fun mergeCardRegistries(commonCardsJson: String, editionCardsJson: String): List<CardDefinition> {
+        val commonCards = loadCards(commonCardsJson)
+        val editionCards = loadCards(editionCardsJson)
+        val combined = commonCards + editionCards
+        val duplicateIds = combined.groupBy { it.cardId }.filter { it.value.size > 1 }.keys
+        if (duplicateIds.isNotEmpty()) {
+            throw IllegalArgumentException(
+                "Duplicate card IDs across common and edition registries: ${duplicateIds.joinToString()}",
+            )
+        }
+        val duplicatePayloads = combined.groupBy { it.qrPayload }.filter { it.value.size > 1 }.keys
+        if (duplicatePayloads.isNotEmpty()) {
+            throw IllegalArgumentException(
+                "Duplicate QR payloads across common and edition registries: ${duplicatePayloads.joinToString()}",
+            )
+        }
+        return combined
+    }
 
     fun loadBankingValues(jsonString: String): BankingValues =
         json.decodeFromString(BankingValues.serializer(), jsonString)
@@ -72,30 +119,50 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         }
     }
 
-    fun loadEventEngineRules(jsonString: String): List<EventEngineRule> {
-        val root = json.parseToJsonElement(jsonString).jsonObject
-        return root["events"]!!.jsonArray.map { element ->
-            json.decodeFromJsonElement(EventEngineRule.serializer(), element)
-        }
-    }
+    fun loadEventEngineRuleEntries(jsonString: String): Map<String, List<EventActionDefinition>> =
+        loadEventEngineRuleEntryList(jsonString).toMap()
 
-    fun loadEvents(jsonString: String, engineRules: List<EventEngineRule>): List<EventDefinition> {
-        val rulesById = engineRules.associateBy { it.eventId }
+    private fun loadEventEngineRuleEntryList(jsonString: String): List<Pair<String, List<EventActionDefinition>>> {
         val root = json.parseToJsonElement(jsonString).jsonObject
         return root["events"]!!.jsonArray.map { element ->
             val obj = element.jsonObject
             val eventId = obj["eventId"]!!.jsonPrimitive.content
-            val rule = rulesById[eventId]
+            eventId to loadEventActionsForRule(element)
+        }
+    }
+
+    private fun loadEventActionsForRule(element: kotlinx.serialization.json.JsonElement): List<EventActionDefinition> {
+        val obj = element.jsonObject
+        val actionsElement = obj["actions"]
+        return if (actionsElement != null) {
+            actionsElement.jsonArray.map { actionElement ->
+                json.decodeFromJsonElement(EventActionDefinition.serializer(), actionElement)
+            }
+        } else {
+            listOf(json.decodeFromJsonElement(EventActionDefinition.serializer(), element))
+        }
+    }
+
+    fun loadEvents(jsonString: String, engineRuleEntries: Map<String, List<EventActionDefinition>>): List<EventDefinition> {
+        val root = json.parseToJsonElement(jsonString).jsonObject
+        return root["events"]!!.jsonArray.map { element ->
+            val obj = element.jsonObject
+            val eventId = obj["eventId"]!!.jsonPrimitive.content
+            val actions = engineRuleEntries[eventId]
                 ?: throw IllegalArgumentException("Missing engine rule for $eventId")
+            if (actions.isEmpty()) {
+                throw IllegalArgumentException("Event $eventId must define at least one action")
+            }
             EventDefinition(
                 eventId = eventId,
+                deckId = obj["deckId"]?.jsonPrimitive?.content ?: "main",
                 name = obj["name"]!!.jsonPrimitive.content,
                 qrPayload = obj["qrPayload"]!!.jsonPrimitive.content,
                 eventSubtitle = obj["eventSubtitle"]?.jsonPrimitive?.content ?: "",
                 eventDescription = obj["eventDescription"]?.jsonPrimitive?.content
                     ?: obj["printedText"]?.jsonPrimitive?.content
                     ?: "",
-                engineRule = rule,
+                actions = actions,
             )
         }
     }
@@ -113,55 +180,73 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         }
     }
 
-    fun loadPlayersFromCards(jsonString: String): List<PlayerDefinition> {
-        val root = json.parseToJsonElement(jsonString).jsonObject
-        return root["cards"]!!.jsonArray
-            .map { it.jsonObject }
-            .filter { it["cardType"]!!.jsonPrimitive.content == "USER" }
+    fun loadPlayersFromCards(cards: List<CardDefinition>): List<PlayerDefinition> =
+        cards
+            .filter { it.cardType == CardType.USER }
             .map { card ->
                 PlayerDefinition(
-                    playerId = card["cardId"]!!.jsonPrimitive.content,
-                    qrPayload = card["qrPayload"]!!.jsonPrimitive.content,
-                    displayName = card["name"]!!.jsonPrimitive.content,
-                    displayColor = card["name"]!!.jsonPrimitive.content,
+                    playerId = card.cardId,
+                    qrPayload = card.qrPayload,
+                    displayName = card.name,
+                    displayColor = card.name,
                 )
             }
-    }
 
     fun loadAll(
-        cardsJson: String,
+        commonCardsJson: String,
+        editionCardsJson: String,
         propertiesJson: String,
         eventsJson: String,
         eventEngineRulesJson: String,
         boardRelationshipsJson: String,
+        boardLayoutJson: String,
         gameRulesJson: String,
         bankingValuesJson: String,
         edition: EditionDefinition? = null,
     ): GameDefinitions {
-        val rulesConfig = loadGameRulesConfig(gameRulesJson)
+        val rules = loadGameRules(gameRulesJson)
         val bankingValues = loadBankingValues(bankingValuesJson)
-        val engineRules = loadEventEngineRules(eventEngineRulesJson)
+        val engineRuleEntries = loadEventEngineRuleEntries(eventEngineRulesJson)
         val properties = loadProperties(propertiesJson)
-        val events = loadEvents(eventsJson, engineRules)
-        val cards = overlayEditionCardNames(loadCards(cardsJson), properties, events)
+        val events = loadEvents(eventsJson, engineRuleEntries)
+        val cards = overlayEditionCardNames(
+            mergeCardRegistries(commonCardsJson, editionCardsJson),
+            properties,
+            events,
+        )
         val resolvedEdition = edition ?: EditionDefinition(
-            editionId = EditionIds.DEFAULT,
+            editionId = EditionIds.LEGACY_EDITION_ID,
+            definitionVersion = EditionIds.LEGACY_DEFINITION_VERSION,
             name = "UK Edition",
             countryCode = "GB",
             currency = bankingValues.currency,
         )
+        val cardConfigProblems = CardConfigurationValidator.validate(resolvedEdition)
+        if (cardConfigProblems.isNotEmpty()) {
+            throw IllegalArgumentException(cardConfigProblems.joinToString("; "))
+        }
+        val versionProblems = DefinitionVersionValidator.validate(resolvedEdition)
+        if (versionProblems.isNotEmpty()) {
+            throw IllegalArgumentException(versionProblems.joinToString("; "))
+        }
         val definitions = GameDefinitions(
             editionId = resolvedEdition.editionId,
             edition = resolvedEdition,
             cards = cards.associateBy { it.cardId },
             cardsByQrPayload = cards.associateBy { it.qrPayload },
-            players = loadPlayersFromCards(cardsJson).associateBy { it.playerId },
+            players = loadPlayersFromCards(cards).associateBy { it.playerId },
             properties = properties.associateBy { it.propertyId },
             events = events.associateBy { it.eventId },
             boardRelationships = loadBoardRelationships(boardRelationshipsJson),
-            rulesConfig = rulesConfig,
+            boardLayout = loadBoardLayout(boardLayoutJson),
+            rules = rules,
             bankingValues = bankingValues,
         )
+        val ruleProblems = GameRulesValidator.validateAgainstEdition(rules, definitions) +
+            EventActionValidator.validateAgainstEdition(definitions)
+        if (ruleProblems.isNotEmpty()) {
+            throw IllegalArgumentException(ruleProblems.joinToString("; "))
+        }
         val problems = DefinitionValidator().validate(definitions)
         if (problems.isNotEmpty()) {
             throw IllegalArgumentException(

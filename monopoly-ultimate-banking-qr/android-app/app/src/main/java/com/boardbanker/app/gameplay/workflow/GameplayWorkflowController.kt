@@ -6,6 +6,7 @@ import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PendingEventExecution
 import com.boardbanker.core.model.displayNameWithNumber
 
 sealed class GameplayWorkflowState {
@@ -51,6 +52,7 @@ sealed class GameplayWorkflowState {
 
     data class EventCollectingTargets(
         val eventId: String,
+        val actionIndex: Int,
         val plan: EventWorkflowPlan,
         val stepIndex: Int,
         val actingPlayerId: String? = null,
@@ -247,15 +249,76 @@ class GameplayWorkflowController(
     fun onEventContinue(): List<WorkflowAction> {
         val current = state
         if (current !is GameplayWorkflowState.EventIntro) return emptyList()
-        val event = definitions.events[current.eventId] ?: return listOf(
+        return beginEventActionCollection(current.eventId, actionIndex = 0)
+    }
+
+    fun resumePendingEventExecution(session: GameSession): List<WorkflowAction> {
+        val pending = session.pendingEventExecution ?: return emptyList()
+        return beginEventActionCollection(
+            eventId = pending.eventId,
+            actionIndex = pending.currentActionIndex,
+            actingPlayerId = pending.actingPlayerId,
+            targetPlayerId = pending.targetPlayerId,
+            propertyId = pending.propertyId,
+            secondPropertyId = pending.secondPropertyId,
+        )
+    }
+
+    fun restoreWorkflowFromSession(session: GameSession): List<WorkflowAction> {
+        session.pendingEventChoice?.let { choice ->
+            state = GameplayWorkflowState.EventPropertyChoice(
+                eventId = choice.eventId,
+                actingPlayerId = choice.actingPlayerId,
+                propertyId = choice.propertyId,
+            )
+            return listOf(WorkflowAction.StateChanged(state))
+        }
+        session.pendingEventExecution?.let { pending ->
+            return resumePendingEventExecution(session)
+        }
+        return emptyList()
+    }
+
+    fun hasMandatoryEventActionPending(): Boolean =
+        state is GameplayWorkflowState.EventCollectingTargets ||
+            state is GameplayWorkflowState.EventConfirm ||
+            state is GameplayWorkflowState.EventPropertyChoice
+
+    private fun beginEventActionCollection(
+        eventId: String,
+        actionIndex: Int,
+        actingPlayerId: String? = null,
+        targetPlayerId: String? = null,
+        propertyId: String? = null,
+        secondPropertyId: String? = null,
+    ): List<WorkflowAction> {
+        val event = definitions.events[eventId] ?: return listOf(
             WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown event.")),
         )
-        val plan = EventWorkflowPlanner.plan(current.eventId, event.engineRule)
-        val collecting = GameplayWorkflowState.EventCollectingTargets(
-            eventId = current.eventId,
+        if (actionIndex !in event.actions.indices) {
+            return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error("Invalid event action index.")))
+        }
+        val plan = EventWorkflowPlanner.planForEventAtAction(event, actionIndex)
+        val startStep = EventWorkflowPlanner.initialStepIndex(
             plan = plan,
-            stepIndex = 0,
+            actingPlayerId = actingPlayerId,
+            targetPlayerId = targetPlayerId,
+            propertyId = propertyId,
+            secondPropertyId = secondPropertyId,
         )
+        val collecting = GameplayWorkflowState.EventCollectingTargets(
+            eventId = eventId,
+            actionIndex = actionIndex,
+            plan = plan,
+            stepIndex = startStep,
+            actingPlayerId = actingPlayerId,
+            targetPlayerId = targetPlayerId,
+            propertyId = propertyId,
+            secondPropertyId = secondPropertyId,
+        )
+        if (startStep >= plan.steps.size) {
+            return executeApplyEvent(collecting)
+        }
         state = collecting
         return listOf(
             WorkflowAction.StateChanged(collecting),
@@ -468,14 +531,20 @@ class GameplayWorkflowController(
         return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Ready))
     }
 
-    fun onCommandSucceeded(resultContext: WorkflowCommandContext) {
+    fun onCommandSucceeded(resultContext: WorkflowCommandContext, session: GameSession) {
         buyLocked = false
         when (resultContext) {
             is WorkflowCommandContext.ApplyEvent -> {
-                if (resultContext.eventId in setOf("EVT_01", "EVT_03", "EVT_18")) {
-                    // pending choice handled by view model from session
-                } else {
-                    reset()
+                when {
+                    session.pendingEventChoice != null -> Unit
+                    session.pendingEventExecution != null -> Unit
+                    else -> reset()
+                }
+            }
+            is WorkflowCommandContext.EventChoice -> {
+                when {
+                    session.pendingEventExecution != null -> Unit
+                    else -> reset()
                 }
             }
             else -> reset()
@@ -536,26 +605,30 @@ class GameplayWorkflowController(
             return listOf(WorkflowAction.StateChanged(state))
         }
         if (nextStep == null) {
-            val acting = current.actingPlayerId ?: return error("Missing acting player.")
-            return listOf(
-                WorkflowAction.ExecuteCommand(
-                    WorkflowCommandRequest(
-                        command = EventWorkflowPlanner.buildApplyCommand(
-                            eventId = current.eventId,
-                            actingPlayerId = acting,
-                            targetPlayerId = current.targetPlayerId,
-                            propertyId = current.propertyId,
-                            secondPropertyId = current.secondPropertyId,
-                        ),
-                        context = WorkflowCommandContext.ApplyEvent(current.eventId),
-                    ),
-                ),
-            )
+            return executeApplyEvent(current)
         }
         state = current
         return listOf(
             WorkflowAction.StateChanged(current),
             scanRequestForEventStep(current),
+        )
+    }
+
+    private fun executeApplyEvent(current: GameplayWorkflowState.EventCollectingTargets): List<WorkflowAction> {
+        val acting = current.actingPlayerId ?: return error("Missing acting player.")
+        return listOf(
+            WorkflowAction.ExecuteCommand(
+                WorkflowCommandRequest(
+                    command = EventWorkflowPlanner.buildApplyCommand(
+                        eventId = current.eventId,
+                        actingPlayerId = acting,
+                        targetPlayerId = current.targetPlayerId,
+                        propertyId = current.propertyId,
+                        secondPropertyId = current.secondPropertyId,
+                    ),
+                    context = WorkflowCommandContext.ApplyEvent(current.eventId),
+                ),
+            ),
         )
     }
 

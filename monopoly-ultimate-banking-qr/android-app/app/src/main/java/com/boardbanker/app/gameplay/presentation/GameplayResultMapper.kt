@@ -52,9 +52,9 @@ class GameplayResultMapper(
             primaryPlayerName = resolvePlayerName,
             primaryMessage = buildString {
                 append("bought\n${property.displayNameWithNumber()}\n\n")
-                append("Paid: M${property.purchasePrice}\n")
-                append("Balance: M$balanceAfter\n")
-                append("Rent: Level $rentLevel — M$rentAmount")
+                append("Paid: ${money(property.purchasePrice)}\n")
+                append("Balance: ${money(balanceAfter)}\n")
+                append("Rent: Level $rentLevel — ${money(rentAmount)}")
                 if (bonusMessage != null) append("\n\n$bonusMessage")
             },
             balanceChanges = listOf(
@@ -107,7 +107,7 @@ class GameplayResultMapper(
                 primaryMessage = buildString {
                     append("${property.displayNameWithNumber()}\n\n")
                     append("Rent Level:\n$levelBefore → $levelAfter\n\n")
-                    append("New Rent: M$rentAfter")
+                    append("New Rent: ${money(rentAfter)}")
                 },
                 propertyChanges = listOf(
                     PropertyChangeUi(
@@ -162,10 +162,10 @@ class GameplayResultMapper(
             secondaryPlayerId = ownerId,
             secondaryPlayerName = ownerName,
             primaryMessage = buildString {
-                append("M${rentTx?.amount ?: rentAmount}\n\n")
+                append("${money(rentTx?.amount ?: rentAmount)}\n\n")
                 append("${property.displayNameWithNumber()}\n\n")
                 append("Rent Level:\n$levelBefore → $levelAfter\n\n")
-                append("New Rent: M$rentAfter")
+                append("New Rent: ${money(rentAfter)}")
                 if (evt13Message != null) append("\n\n$evt13Message")
             },
             balanceChanges = buildList {
@@ -266,7 +266,7 @@ class GameplayResultMapper(
             primaryPlayerId = playerId,
             primaryPlayerName = resolvePlayerName(playerId, session),
             primaryMessage = buildString {
-                append("Balance: M${player.balance}\n\n")
+                append("Balance: ${money(player.balance)}\n\n")
                 append("Properties: $ownedCount\n\n")
                 append("Jail: ${if (player.jailStatus) "Yes" else "No"}")
             },
@@ -316,7 +316,7 @@ class GameplayResultMapper(
             append("EVENT EFFECT ACTIVE\n\n")
             append("Level 1 rent applies.\n\n")
             append("Normal Property Level: $chargedLevel\n\n")
-            append("Rent charged: M${chargedAmount ?: "?"}\n\n")
+            append("Rent charged: ${money(chargedAmount)}\n\n")
             if (remaining != null) {
                 append("Temporary effect remaining: $remaining rent payment(s)")
             } else {
@@ -329,7 +329,7 @@ class GameplayResultMapper(
         val tx = result.transactions.lastOrNull() ?: return null
         val from = tx.fromEntity?.let { entityName(it, result.session) }
         val to = tx.toEntity?.let { entityName(it, result.session) }
-        val amount = tx.amount?.let { "M$it" } ?: ""
+        val amount = tx.amount?.let { money(it) } ?: ""
         return buildString {
             append("Last Transaction\n\n")
             append("${tx.transactionType.name.replace('_', ' ')}\n")
@@ -347,4 +347,7 @@ class GameplayResultMapper(
 
     private fun resolvePlayerName(playerId: String, session: GameSession): String =
         PlayerDisplayNames.displayName(session, playerId, definitions)
+
+    private fun money(amount: Int?): String =
+        amount?.let { formatMoney(it, definitions) } ?: "?"
 }

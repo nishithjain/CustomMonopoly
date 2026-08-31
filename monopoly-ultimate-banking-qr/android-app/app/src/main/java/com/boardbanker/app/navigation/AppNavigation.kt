@@ -97,6 +97,7 @@ fun AppNavigation(
                     createNewGame = createNewGame,
                     gameAudioFeedback = app.gameAudioFeedback,
                     gameEndAudioCoordinator = app.gameEndAudioCoordinator,
+                    editionRepository = app.editionRepository,
                 ),
             )
 

@@ -40,12 +40,13 @@ class DefaultGameEngine(
     private val undoSupport = UndoSupport(definitions, transactionFactory)
     private val eventEngine = EventEngine(definitions, transactionFactory, jailRules, debtRules)
 
-    private val rules = definitions.rulesConfig
+    private val rules = definitions.rules
+    private val policies = definitions.policies
     private val banking = definitions.bankingValues
 
     override fun process(session: GameSession, command: GameCommand): GameResult {
         return when (command) {
-            is GameCommand.CreateGame -> handleCreateGame(command)
+            is GameCommand.CreateGame -> handleCreateGame(session, command)
             is GameCommand.RegisterPlayer -> handleRegisterPlayer(session, command)
             is GameCommand.RenamePlayer -> handleRenamePlayer(session, command)
             is GameCommand.StartGame -> handleStartGame(session)
@@ -70,13 +71,13 @@ class DefaultGameEngine(
         }
     }
 
-    private fun handleCreateGame(command: GameCommand.CreateGame): GameResult {
-        val session = GameSession(
-            gameId = command.gameId,
-            editionId = definitions.editionId,
-            status = GameStatus.SETUP,
+    private fun handleCreateGame(session: GameSession, command: GameCommand.CreateGame): GameResult {
+        return GameResult(
+            session.copy(
+                gameId = command.gameId,
+                status = GameStatus.SETUP,
+            ),
         )
-        return GameResult(session)
     }
 
     private fun handleRegisterPlayer(
@@ -277,24 +278,24 @@ class DefaultGameEngine(
     ): GameResult {
         val pending = session.pendingEventChoice
             ?: return reject(session, GameError.InvalidState("No pending event choice"))
-        when (command.choice) {
+        val baseSession = session.copy(pendingEventChoice = null)
+        val choiceResult = when (command.choice) {
             GameCommand.EventPropertyChoiceType.BUY -> {
                 val purchase = propertyRules.purchaseProperty(
-                    session.copy(pendingEventChoice = null),
+                    baseSession,
                     command.actingPlayerId,
                     command.propertyId,
                 )
                 if (!purchase.isSuccess) {
                     return reject(session, GameError.Validation(purchase.error!!))
                 }
-                return GameResult(purchase.session!!, transactions = purchase.transactions)
+                GameResult(purchase.session!!, transactions = purchase.transactions)
             }
             GameCommand.EventPropertyChoiceType.AUCTION -> {
-                val start = handleStartAuction(
-                    session.copy(pendingEventChoice = null),
+                handleStartAuction(
+                    baseSession,
                     GameCommand.StartAuction(command.propertyId, command.actingPlayerId),
                 )
-                return start
             }
             GameCommand.EventPropertyChoiceType.RAISE_RENT_LEVEL -> {
                 val propertyState = session.properties[command.propertyId]
@@ -302,23 +303,52 @@ class DefaultGameEngine(
                     return reject(session, GameError.Validation("Must own property to raise rent"))
                 }
                 val result = propertyRules.ownerLandsOnOwnProperty(
-                    session.copy(pendingEventChoice = null),
+                    baseSession,
                     command.actingPlayerId,
                     command.propertyId,
                 )
                 if (!result.isSuccess) {
                     return reject(session, GameError.Validation(result.error!!))
                 }
-                return GameResult(result.session!!, transactions = result.transactions)
+                GameResult(result.session!!, transactions = result.transactions)
             }
         }
+        return continuePendingEventExecution(choiceResult)
+    }
+
+    private fun continuePendingEventExecution(result: GameResult): GameResult {
+        val pendingExecution = result.session.pendingEventExecution ?: return result
+        val continueResult = eventEngine.apply(
+            session = result.session,
+            eventId = pendingExecution.eventId,
+            actingPlayerId = pendingExecution.actingPlayerId,
+            propertyId = pendingExecution.propertyId,
+            targetPlayerId = pendingExecution.targetPlayerId,
+            secondPropertyId = pendingExecution.secondPropertyId,
+            secondPlayerId = pendingExecution.secondPlayerId,
+        )
+        if (!continueResult.isSuccess) {
+            return reject(result.session, GameError.EventError(continueResult.error!!))
+        }
+        val outcome = when {
+            continueResult.needsDebtResolution -> GameOutcome.DEBT_RESOLUTION_REQUIRED
+            continueResult.pendingMessage != null -> GameOutcome.PENDING_ACTION
+            else -> result.outcome
+        }
+        return GameResult(
+            session = continueResult.session!!,
+            outcome = outcome,
+            transactions = result.transactions + continueResult.transactions,
+            physicalActions = result.physicalActions + continueResult.physicalActions,
+            pendingMessage = continueResult.pendingMessage ?: result.pendingMessage,
+        )
     }
 
     private fun handlePayGo(
         session: GameSession,
         command: GameCommand.PayGoSalary,
     ): GameResult {
-        val result = goRules.payGoSalary(session, command.playerId)
+        val result = goRules.payGoSalary(session, command.playerId, command.reason)
         if (!result.isSuccess) {
             return reject(session, GameError.Validation(result.error!!))
         }
@@ -484,7 +514,7 @@ class DefaultGameEngine(
             ?: return reject(session, GameError.AuctionError("No auction in progress"))
         val player = session.players[command.playerId]
             ?: return reject(session, GameError.NotFound("Player", command.playerId))
-        if (player.jailStatus) {
+        if (policies.auction.jailedPlayersCannotBid() && player.jailStatus) {
             return reject(session, GameError.AuctionError("Jailed players cannot bid"))
         }
         val expectedBid = auction.currentBid + banking.auctionBidIncrement
@@ -543,7 +573,7 @@ class DefaultGameEngine(
             properties = session.properties + (
                 propertyId to session.properties[propertyId]!!.copy(
                     ownerPlayerId = winnerId,
-                    currentRentLevel = 1,
+                    currentRentLevel = policies.auction.winnerInitialRentLevel(),
                 )
             ),
             auction = null,

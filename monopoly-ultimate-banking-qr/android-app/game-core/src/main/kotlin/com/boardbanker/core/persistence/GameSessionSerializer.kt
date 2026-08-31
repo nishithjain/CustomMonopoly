@@ -23,4 +23,5 @@ class KotlinGameSessionSerializer(
 
 object GameSessionSchema {
     const val CURRENT_VERSION: Int = 2
+    const val LEGACY_PRE_EDITION_VERSION: Int = 1
 }

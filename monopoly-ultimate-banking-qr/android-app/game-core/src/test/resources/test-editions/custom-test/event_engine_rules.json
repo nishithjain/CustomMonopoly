@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "events": [
+    {
+      "eventId": "CEV_01",
+      "name": "Boom Town",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_THEN_PROPERTY_CHOICE",
+      "targetType": "SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "choices": [
+          "BUY",
+          "AUCTION",
+          "RAISE_RENT_LEVEL"
+        ]
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_02",
+      "name": "Crime Down",
+      "engineStatus": "RESOLVED",
+      "actionType": "INCREASE_COLOR_SET_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "scope": "COLOR_SET"
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_03",
+      "name": "Deal Of The Week",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_THEN_PROPERTY_CHOICE",
+      "targetType": "SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "choices": [
+          "BUY",
+          "AUCTION",
+          "RAISE_RENT_LEVEL"
+        ]
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_04",
+      "name": "Demolished",
+      "engineStatus": "RESOLVED",
+      "actionType": "RESET_PROPERTY_RENT_LEVEL",
+      "targetType": "ANY_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {},
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_05",
+      "name": "Grand Designs",
+      "engineStatus": "RESOLVED",
+      "actionType": "SET_PROPERTY_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {},
+      "amount": 5,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_06",
+      "name": "Haunted House",
+      "engineStatus": "RESOLVED",
+      "actionType": "SWAP_PROPERTIES",
+      "targetType": "TWO_PLAYERS_AND_PROPERTIES",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "exchangePhysicalCards": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Requires two property scans (one per player) after player selection."
+    },
+    {
+      "eventId": "CEV_07",
+      "name": "Highway Tax",
+      "engineStatus": "RESOLVED",
+      "actionType": "PAY_PER_OWNED_PROPERTY",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "perProperty": true
+      },
+      "amount": 50,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Card uses Monopoly currency symbol before 50."
+    },
+    {
+      "eventId": "CEV_08",
+      "name": "House Party",
+      "engineStatus": "RESOLVED",
+      "actionType": "ADJUST_SELECTED_AND_NEIGHBOUR_RENT_LEVELS",
+      "targetType": "NEIGHBOURS_OF_SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "selectedPropertyRentChange": 1,
+        "neighbourRentChange": -1,
+        "ownedOnly": true
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Selected owned property +1; each owned neighbour -1. Neighbours from board_relationships.json. Unowned neighbours unchanged."
+    },
+    {
+      "eventId": "CEV_09",
+      "name": "In The Money",
+      "engineStatus": "RESOLVED",
+      "actionType": "SWAP_PROPERTIES",
+      "targetType": "TWO_PLAYERS_AND_PROPERTIES",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "exchangePhysicalCards": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Requires two property scans (one per player) after player selection."
+    },
+    {
+      "eventId": "CEV_10",
+      "name": "It's A Boy!",
+      "engineStatus": "RESOLVED",
+      "actionType": "ADJUST_SELECTED_AND_NEIGHBOUR_RENT_LEVELS",
+      "targetType": "NEIGHBOURS_OF_SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "selectedPropertyRentChange": 1,
+        "neighbourRentChange": -1,
+        "ownedOnly": true
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Same neighbour model as EVT_08. Selected owned property +1; each owned neighbour -1."
+    },
+    {
+      "eventId": "CEV_11",
+      "name": "Love Is In The Air",
+      "engineStatus": "RESOLVED",
+      "actionType": "CREDIT_BOTH_PLAYERS",
+      "targetType": "TWO_PLAYERS",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": false,
+      "parameters": {},
+      "amount": 200,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Both players receive 200. Requires two player card scans."
+    },
+    {
+      "eventId": "CEV_12",
+      "name": "On The Map",
+      "engineStatus": "RESOLVED",
+      "actionType": "INCREASE_COLOR_SET_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "scope": "COLOR_SET"
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_13",
+      "name": "On The Run",
+      "engineStatus": "RESOLVED",
+      "actionType": "TEMPORARY_RENT_CAP",
+      "targetType": "ALL_PLAYERS",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "effectType": "FORCE_LEVEL_1_RENT",
+        "durationRentPayments": 2,
+        "scope": "GLOBAL",
+        "maxRentLevelCharged": 1,
+        "doesNotResetStoredRentLevel": true,
+        "ownerLandingDoesNotConsume": true
+      },
+      "amount": 1,
+      "temporaryEffect": true,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Global temporary effect: next two completed rent payments charge Level 1 rent regardless of stored currentRentLevel. Does not reset stored level."
+    },
+    {
+      "eventId": "CEV_14",
+      "name": "Pick Your Own",
+      "engineStatus": "RESOLVED",
+      "actionType": "SEND_PLAYER_TO_JAIL",
+      "targetType": "OTHER_PLAYER",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": false,
+      "parameters": {},
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_15",
+      "name": "Pong! What A Stinker",
+      "engineStatus": "RESOLVED",
+      "actionType": "DECREASE_BOARD_SIDE_RENT_LEVEL",
+      "targetType": "BOARD_SIDE_OF_SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "determinedByScannedProperty": true,
+        "ownedOnly": true,
+        "delta": -1,
+        "minimumRentLevel": 1
+      },
+      "amount": -1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": "Determine physical board side of scanned property; apply -1 to every owned property on that side. Unowned properties ignored. Clamp minimum level 1. Side mapping from board_relationships.json (confirmed physical board layout)."
+    },
+    {
+      "eventId": "CEV_16",
+      "name": "Rover's Revenge",
+      "engineStatus": "RESOLVED",
+      "actionType": "RESET_PROPERTY_RENT_LEVEL",
+      "targetType": "ANY_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {},
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_17",
+      "name": "Stargazing",
+      "engineStatus": "RESOLVED",
+      "actionType": "INCREASE_COLOR_SET_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "scope": "COLOR_SET"
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_18",
+      "name": "Stop The Presses",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_THEN_PROPERTY_CHOICE",
+      "targetType": "SELECTED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "choices": [
+          "BUY",
+          "AUCTION",
+          "RAISE_RENT_LEVEL"
+        ]
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_19",
+      "name": "'Tis The Season",
+      "engineStatus": "RESOLVED",
+      "actionType": "DECREASE_COLOR_SET_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "scope": "COLOR_SET"
+      },
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "CEV_20",
+      "name": "Tornado Alley",
+      "engineStatus": "RESOLVED",
+      "actionType": "RESET_PROPERTY_RENT_LEVEL",
+      "targetType": "ANY_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {},
+      "amount": 1,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    }
+  ]
+}

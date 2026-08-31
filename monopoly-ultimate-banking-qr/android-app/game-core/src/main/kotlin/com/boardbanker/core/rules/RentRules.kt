@@ -14,7 +14,8 @@ class RentRules(
     private val transactionFactory: TransactionFactory,
     private val debtRules: DebtRules,
 ) {
-    private val rules = definitions.rulesConfig
+    private val rules = definitions.rules
+    private val policies = definitions.policies
 
     fun processVisitorRent(
         session: GameSession,
@@ -32,7 +33,7 @@ class RentRules(
             ?: return RentResult.failure("Unknown owner")
         val propertyDef = definitions.properties[propertyId]!!
 
-        if (owner.jailStatus) {
+        if (policies.rent.jailedOwnerCannotCollectRent() && owner.jailStatus) {
             return RentResult.success(session, emptyList())
         }
 

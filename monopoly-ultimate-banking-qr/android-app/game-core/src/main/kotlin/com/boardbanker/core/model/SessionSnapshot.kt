@@ -11,5 +11,6 @@ data class SessionSnapshot(
     val debtResolution: DebtResolutionState? = null,
     val auction: AuctionState? = null,
     val pendingEventChoice: PendingEventChoice? = null,
+    val pendingEventExecution: PendingEventExecution? = null,
     val status: GameStatus = GameStatus.ACTIVE,
 )

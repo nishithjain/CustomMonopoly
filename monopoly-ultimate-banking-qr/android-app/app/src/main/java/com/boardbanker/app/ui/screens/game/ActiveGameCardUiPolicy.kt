@@ -2,6 +2,7 @@ package com.boardbanker.app.ui.screens.game
 
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+import com.boardbanker.core.card.CardType
 
 data class ActiveGameActionVisibility(
     val showBuy: Boolean = false,
@@ -76,6 +77,35 @@ object ActiveGameCardUiPolicy {
             )
             else -> ActiveGameActionVisibility()
         }
+    }
+
+    fun displayCardType(
+        workflowState: GameplayWorkflowState,
+        result: GameplayResultUiModel?,
+        displayCardId: String?,
+    ): CardType? {
+        displayCardId?.let { cardIdFromId(it) }?.let { return it }
+        return when (workflowState) {
+            is GameplayWorkflowState.PropertySummary -> CardType.PROPERTY
+            is GameplayWorkflowState.UnownedPropertyDecision -> CardType.PROPERTY
+            is GameplayWorkflowState.WaitingForPurchasingPlayer -> CardType.PROPERTY
+            is GameplayWorkflowState.WaitingForRentPayer -> CardType.PROPERTY
+            is GameplayWorkflowState.WaitingForAuctionStarter -> CardType.PROPERTY
+            is GameplayWorkflowState.EventIntro -> CardType.EVENT
+            is GameplayWorkflowState.EventCollectingTargets -> CardType.EVENT
+            is GameplayWorkflowState.EventConfirm -> CardType.EVENT
+            is GameplayWorkflowState.EventPropertyChoice -> CardType.PROPERTY
+            is GameplayWorkflowState.PlayerInfo -> CardType.USER
+            is GameplayWorkflowState.LocationWaitingForDestinationProperty -> CardType.PROPERTY
+            else -> null
+        }
+    }
+
+    fun cardIdFromId(cardId: String): CardType? = when {
+        cardId.startsWith("USR_") -> CardType.USER
+        cardId.startsWith("PRP_") -> CardType.PROPERTY
+        cardId.startsWith("EVT_") -> CardType.EVENT
+        else -> null
     }
 
     fun showCardInteraction(

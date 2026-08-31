@@ -12,7 +12,6 @@ import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import com.boardbanker.core.persistence.SavedGameLoadResult
-import com.boardbanker.core.persistence.SessionRestoreValidator
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -34,7 +33,6 @@ class RoomGameSessionRepositoryInstrumentedTest {
         repository = RoomGameSessionRepository(
             dao = database.savedGameDao(),
             serializer = serializer,
-            restoreValidator = SessionRestoreValidator(AppTestSupport.definitions),
         )
     }
 
@@ -111,7 +109,10 @@ class RoomGameSessionRepositoryInstrumentedTest {
     }
 
     private fun buildSession(): GameSession {
-        var result = AppTestSupport.engine.process(GameSession(gameId = "ROOM_TEST"), GameCommand.CreateGame("ROOM_TEST"))
+        var result = AppTestSupport.engine.process(
+            GameSession(gameId = "ROOM_TEST", editionId = AppTestSupport.definitions.editionId),
+            GameCommand.CreateGame("ROOM_TEST"),
+        )
         result = AppTestSupport.engine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
         result = AppTestSupport.engine.process(result.session, GameCommand.RegisterPlayer("USR_02", "Aditya"))
         result = AppTestSupport.engine.process(result.session, GameCommand.StartGame)

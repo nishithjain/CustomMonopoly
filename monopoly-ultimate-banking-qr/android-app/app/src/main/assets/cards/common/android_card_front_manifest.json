@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "editionId": "common",
+  "generatedBy": "tools/sync_android_card_images.py",
+  "cards": {
+    "USR_01": {
+      "cardId": "USR_01",
+      "cardType": "USER",
+      "name": "Car",
+      "sourceFrontPath": "Resources/Common/UserCards/Car_Front.jpg",
+      "runtimeAssetPath": "cards/common/user/usr_01.png",
+      "asset": "cards/common/user/usr_01.png",
+      "orientation": "LANDSCAPE",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 643
+    },
+    "USR_02": {
+      "cardId": "USR_02",
+      "cardType": "USER",
+      "name": "Helicopter",
+      "sourceFrontPath": "Resources/Common/UserCards/Helicopter_Front.jpg",
+      "runtimeAssetPath": "cards/common/user/usr_02.png",
+      "asset": "cards/common/user/usr_02.png",
+      "orientation": "LANDSCAPE",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 643
+    },
+    "USR_03": {
+      "cardId": "USR_03",
+      "cardType": "USER",
+      "name": "Ship",
+      "sourceFrontPath": "Resources/Common/UserCards/Ship_Front.jpg",
+      "runtimeAssetPath": "cards/common/user/usr_03.png",
+      "asset": "cards/common/user/usr_03.png",
+      "orientation": "LANDSCAPE",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 643
+    },
+    "USR_04": {
+      "cardId": "USR_04",
+      "cardType": "USER",
+      "name": "Aeroplane",
+      "sourceFrontPath": "Resources/Common/UserCards/Aeroplane_Front.jpg",
+      "runtimeAssetPath": "cards/common/user/usr_04.png",
+      "asset": "cards/common/user/usr_04.png",
+      "orientation": "LANDSCAPE",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 643
+    }
+  }
+}

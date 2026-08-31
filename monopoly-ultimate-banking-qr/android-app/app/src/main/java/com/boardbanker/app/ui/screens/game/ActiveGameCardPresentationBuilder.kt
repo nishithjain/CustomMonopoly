@@ -63,10 +63,22 @@ object ActiveGameCardPresentationBuilder {
         )
         is GameplayWorkflowState.EventCollectingTargets -> {
             val event = definitions.events[state.eventId] ?: return null
+            val action = event.actions.getOrNull(state.actionIndex)
+            val step = state.plan.steps.getOrNull(state.stepIndex)
+            val header = com.boardbanker.app.gameplay.workflow.EventWorkflowPlanner.scanHeaderForPlan(state.plan, step)
+            val overlay = com.boardbanker.app.gameplay.workflow.EventWorkflowPlanner.scanPrompt(step)
             CardPresentationUi(
-                cardTypeLabel = "EVENT",
+                cardTypeLabel = header.uppercase(),
                 title = event.name,
-                body = event.displayText(),
+                body = buildString {
+                    append("Action ${state.actionIndex + 1} of ${event.actions.size}")
+                    if (action != null) {
+                        append(": ")
+                        append(action.actionType.replace('_', ' '))
+                    }
+                    append("\n\n")
+                    append(overlay)
+                },
             )
         }
         is GameplayWorkflowState.EventConfirm -> {

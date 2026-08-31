@@ -63,6 +63,19 @@ class SessionRestoreValidator(
             }
         }
 
+        session.pendingEventExecution?.let { pending ->
+            if (!definitions.events.containsKey(pending.eventId)) {
+                problems += "Pending event execution references unknown event ${pending.eventId}"
+            }
+            if (!session.players.containsKey(pending.actingPlayerId)) {
+                problems += "Pending event execution references unknown acting player ${pending.actingPlayerId}"
+            }
+            val event = definitions.events[pending.eventId]
+            if (event != null && pending.currentActionIndex !in event.actions.indices) {
+                problems += "Pending event execution has invalid action index ${pending.currentActionIndex}"
+            }
+        }
+
         session.winnerPlayerId?.let { winnerId ->
             if (!session.players.containsKey(winnerId)) {
                 problems += "Winner references unknown player $winnerId"

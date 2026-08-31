@@ -18,7 +18,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun registrationStoresCustomNameAndStartingBalance() {
-        var session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        var session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
         session = result.session
         assertEquals("Nishith", session.players["USR_01"]!!.playerName)
@@ -27,7 +27,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun maxLengthTenAccepted() {
-        val session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        val session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_01", "ABCDEFGHIJ"))
         assertTrue(result.isSuccess)
         assertEquals("ABCDEFGHIJ", result.session.players["USR_01"]!!.playerName)
@@ -35,7 +35,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun maxLengthElevenRejected() {
-        val session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        val session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_01", "ABCDEFGHIJK"))
         assertEquals(GameOutcome.REJECTED, result.outcome)
         assertTrue(result.error is GameError.PlayerNameTooLong)
@@ -43,7 +43,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun emptyNameRejected() {
-        val session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        val session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_01", "   "))
         assertEquals(GameOutcome.REJECTED, result.outcome)
         assertTrue(result.error is GameError.InvalidPlayerName)
@@ -51,14 +51,14 @@ class CustomPlayerNameTests {
 
     @Test
     fun nameTrimmedOnRegistration() {
-        val session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        val session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_01", "  Alex  "))
         assertEquals("Alex", result.session.players["USR_01"]!!.playerName)
     }
 
     @Test
     fun duplicateCustomNamesAllowedForDifferentPlayers() {
-        var session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        var session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Alex")).session
         val result = engine.process(session, GameCommand.RegisterPlayer("USR_02", "Alex"))
         assertTrue(result.isSuccess)
@@ -68,7 +68,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun renameDuringSetupUpdatesNameWithoutChangingBalance() {
-        var session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        var session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishi")).session
         val balance = session.players["USR_01"]!!.balance
         val result = engine.process(session, GameCommand.RenamePlayer("USR_01", "Nishith"))
@@ -88,7 +88,7 @@ class CustomPlayerNameTests {
 
     @Test
     fun customNamesSurviveSerializationRoundTrip() {
-        var session = engine.process(GameSession(gameId = "G1"), GameCommand.CreateGame("G1")).session
+        var session = engine.process(TestFixtures.emptySession("G1"), GameCommand.CreateGame("G1")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_02", "Aditya")).session
         session = engine.process(session, GameCommand.StartGame).session
@@ -106,7 +106,7 @@ class CustomPlayerNameTests {
     @Test
     fun legacySessionWithoutPlayerNameDeserializesWithEmptyName() {
         val serializer = KotlinGameSessionSerializer()
-        var session = engine.process(GameSession(gameId = "LEGACY"), GameCommand.CreateGame("LEGACY")).session
+        var session = engine.process(TestFixtures.emptySession("LEGACY"), GameCommand.CreateGame("LEGACY")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Legacy")).session
         val json = serializer.serialize(session).replace("\"playerName\":\"Legacy\"", "\"playerName\":\"Legacy\"").let {
             // Simulate v1 JSON without playerName by removing the field from serialized output

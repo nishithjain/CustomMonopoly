@@ -13,7 +13,8 @@ class PropertyRules(
     private val colorSetRules: ColorSetRules,
     private val transactionFactory: TransactionFactory,
 ) {
-    private val rules = definitions.rulesConfig
+    private val rules = definitions.rules
+    private val policies = definitions.policies
 
     fun purchaseProperty(
         session: GameSession,
@@ -45,7 +46,7 @@ class PropertyRules(
         val updatedBuyer = buyer.copy(balance = buyer.balance - price)
         val updatedProperty = propertyState.copy(
             ownerPlayerId = buyerId,
-            currentRentLevel = 1,
+            currentRentLevel = policies.player.initialRentLevel(),
         )
         var updatedSession = session.copy(
             players = session.players + (buyerId to updatedBuyer),
@@ -95,7 +96,7 @@ class PropertyRules(
         if (propertyState.ownerPlayerId != playerId) {
             return LandingResult.failure("Player does not own property")
         }
-        if (player.jailStatus) {
+        if (policies.rent.jailedOwnerLandingDoesNotIncreaseRent() && player.jailStatus) {
             return LandingResult.success(session, emptyList())
         }
 

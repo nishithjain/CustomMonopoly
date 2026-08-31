@@ -29,7 +29,10 @@ class PersistenceDebugViewModel(
 
     fun createTestSession() {
         val gameId = GameIdProvider.newGameId()
-        var result = engine.process(GameSession(gameId = gameId), GameCommand.CreateGame(gameId))
+        var result = engine.process(
+            GameSession(gameId = gameId, editionId = definitions.editionId),
+            GameCommand.CreateGame(gameId),
+        )
         result = engine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
         result = engine.process(result.session, GameCommand.RegisterPlayer("USR_02", "Aditya"))
         result = engine.process(result.session, GameCommand.StartGame)
@@ -68,6 +71,12 @@ class PersistenceDebugViewModel(
                 is SavedGameLoadResult.Corrupted -> _message.value = "Corrupted save: ${result.reason}"
                 is SavedGameLoadResult.IncompatibleVersion ->
                     _message.value = "Incompatible version ${result.found}."
+                is SavedGameLoadResult.IncompatibleEditionVersion ->
+                    _message.value = result.userMessage()
+                is SavedGameLoadResult.MissingEdition ->
+                    _message.value = "Missing edition ${result.editionId}: ${result.reason}"
+                is SavedGameLoadResult.SessionValidationFailed ->
+                    _message.value = "Saved ${result.editionId} game failed validation: ${result.reason}"
             }
         }
     }

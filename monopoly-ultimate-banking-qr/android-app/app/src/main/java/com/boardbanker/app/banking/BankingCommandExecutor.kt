@@ -5,6 +5,7 @@ import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.engine.GameResult
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameSession
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -27,7 +28,7 @@ class BankingCommandExecutor(
             val session = sessionManager.currentSession()
                 ?: return BankingCommitOutcome.Rejected(
                     GameResult(
-                        session = GameSession(gameId = "missing"),
+                        session = GameSession(gameId = "missing", editionId = EditionIds.LEGACY_EDITION_ID),
                         outcome = GameOutcome.REJECTED,
                     ),
                 )

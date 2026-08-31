@@ -1,0 +1,15 @@
+{
+  "defaultEditionId": "uk",
+  "editions": [
+    {
+      "editionId": "uk",
+      "name": "UK Edition",
+      "enabled": true
+    },
+    {
+      "editionId": "india",
+      "name": "India Edition",
+      "enabled": true
+    }
+  ]
+}

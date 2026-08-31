@@ -12,6 +12,7 @@ import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,12 +40,7 @@ class UndoAuthorizationViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         val repository = FakeGameSessionRepository()
-        sessionManager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        sessionManager = AppTestSupport.sessionManager(repository)
         audio = RecordingGameAudioFeedback()
     }
 
@@ -54,7 +50,7 @@ class UndoAuthorizationViewModelTest {
     }
 
     private suspend fun startActiveGame(playerIds: List<String> = listOf("USR_01", "USR_02")) {
-        var session = (sessionManager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (sessionManager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         playerIds.forEach { playerId ->
             session = (
                 sessionManager.processCommand(

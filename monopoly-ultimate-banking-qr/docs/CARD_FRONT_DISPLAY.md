@@ -76,17 +76,21 @@ The sync tool:
 3. Accepts `*_Front.png`, `*_Front.jpg`, and `*_Front.jpeg`
 4. Preserves **USER** landscape orientation without rotation
 5. Converts **EVENT/PROPERTY** landscape sources to portrait using the existing 90° CCW rule
-6. Writes Android runtime PNGs to `android-app/app/src/main/assets/cards/fronts/`
-7. Writes manifest JSON to:
-   - `data/android_card_front_manifest.json`
-   - `android-app/app/src/main/assets/cards/android_card_front_manifest.json`
+6. Writes Android runtime PNGs to edition-aware paths:
+   - `android-app/app/src/main/assets/cards/common/user/`
+   - `android-app/app/src/main/assets/cards/editions/<editionId>/property/`
+   - `android-app/app/src/main/assets/cards/editions/<editionId>/event/`
+7. Writes per-package manifest JSON to:
+   - `data/cards/common/android_card_front_manifest.json`
+   - `data/cards/editions/<editionId>/android_card_front_manifest.json`
+   - matching paths under `android-app/app/src/main/assets/cards/`
 
-Runtime filenames are Android-safe and derived from stable IDs, for example:
+Runtime filenames are Android-safe and derived from stable IDs within each edition package, for example:
 
 ```text
-usr_01.png
-prp_01.png
-evt_06.png
+cards/common/user/usr_01.png
+cards/editions/uk/property/prp_01.png
+cards/editions/uk/event/evt_06.png
 ```
 
 Images are capped to a maximum width of **1024px** using high-quality Lanczos resampling when needed.
@@ -97,34 +101,31 @@ Images are capped to a maximum width of **1024px** using high-quality Lanczos re
 python tools/validate_card_front_assets.py
 ```
 
-Writes `data/card_front_asset_validation.txt` and verifies:
+Writes `data/card_front_asset_validation.txt` and verifies per edition:
 
-- 4 / 4 user fronts, all **LANDSCAPE**
-- 22 / 22 property fronts, portrait canonical orientation
-- 23 / 23 event fronts, portrait canonical orientation
-- 49 / 49 total runtime assets
-- USER JPG sources accepted
+- common user fronts (explicit shared package)
+- edition property/event fronts loaded from that edition's definitions
 - no back/QR artwork used as fronts
-- unique cardId mappings
+- unique cardId mappings within each manifest
 - no image dependencies in `:game-core`
+
+Editions marked `artworkStatus: INCOMPLETE` may ship zero property/event fronts; runtime lookup returns a missing-artwork placeholder instead of UK fallback artwork.
 
 ## Runtime lookup (`:app` only)
 
 Game Core remains unaware of PNG/JPG assets.
 
 ```text
-ResolvedCard.cardId
+active editionId + CardType + cardId
        ↓
-CardFrontRegistry (manifest)
+CardFrontRegistry.resolve(editionId, cardType, cardId)
        ↓
-CardFrontImageProvider.getFrontImage(cardId)
+CardFrontImageProvider
        ↓
 CardFrontImage composable
 ```
 
-Manifest entries include `orientation`, `width`, and `height`. The composable uses that metadata (not runtime width/height heuristics) to choose landscape vs portrait layout.
-
-Card artwork is loaded on demand and cached in memory by `CardFrontImageProvider`. Images use `ContentScale.Fit` so the full card remains readable.
+USER cards resolve from the explicit common manifest. PROPERTY and EVENT cards resolve only from the active edition manifest. Missing artwork shows a neutral placeholder with edition/type/card diagnostics; it never falls back to another edition's asset.
 
 ## Player Setup UI behavior
 

@@ -26,6 +26,7 @@ data class CardPresentationUi(
 
 data class GameUiState(
     val loading: Boolean = true,
+    val editionId: String = "",
     val status: GameStatus? = null,
     val players: List<PlayerDashboardUi> = emptyList(),
     val workflowState: GameplayWorkflowState = GameplayWorkflowState.Ready,

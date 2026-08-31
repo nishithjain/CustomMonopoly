@@ -17,6 +17,7 @@ data class HomeUiState(
     val hasSavedGame: Boolean = false,
     val savedGameStatus: GameStatus? = null,
     val definitionsError: String? = null,
+    val incompatibleEdition: SavedGameLoadResult.IncompatibleEditionVersion? = null,
 )
 
 class HomeViewModel(
@@ -31,6 +32,20 @@ class HomeViewModel(
                     hasSavedGame = true,
                     savedGameStatus = result.session.status,
                     definitionsError = definitionsError,
+                )
+                is SavedGameLoadResult.IncompatibleEditionVersion -> HomeUiState(
+                    hasSavedGame = true,
+                    savedGameStatus = result.gameStatus,
+                    incompatibleEdition = result,
+                    definitionsError = definitionsError,
+                )
+                is SavedGameLoadResult.MissingEdition -> HomeUiState(
+                    hasSavedGame = true,
+                    definitionsError = result.reason,
+                )
+                is SavedGameLoadResult.SessionValidationFailed -> HomeUiState(
+                    hasSavedGame = true,
+                    definitionsError = "Saved ${result.editionId} game failed validation: ${result.reason}",
                 )
                 else -> HomeUiState(
                     hasSavedGame = false,

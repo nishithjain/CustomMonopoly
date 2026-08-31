@@ -1,6 +1,7 @@
 package com.boardbanker.app.banking
 
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
@@ -29,15 +30,15 @@ class UndoEligibility(private val definitions: GameDefinitions) {
             TransactionType.RENT_PAYMENT -> {
                 val from = lastTx.fromEntity?.let { resolveEntityName(session, it) } ?: "?"
                 val to = lastTx.toEntity?.let { resolveEntityName(session, it) } ?: "?"
-                "Rent payment:\n$from paid $to M${lastTx.amount ?: "?"}."
+                "Rent payment:\n$from paid $to ${money(lastTx.amount)}."
             }
             TransactionType.BANK_CREDIT -> {
                 val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
-                "GO salary:\n$playerName collected M${lastTx.amount ?: "?"}."
+                "GO salary:\n$playerName collected ${money(lastTx.amount)}."
             }
             TransactionType.LOCATION_FEE -> {
                 val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
-                "Location fee:\n$playerName paid M${lastTx.amount ?: "?"}."
+                "Location fee:\n$playerName paid ${money(lastTx.amount)}."
             }
             TransactionType.JAIL_STATUS_CHANGE -> {
                 val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
@@ -56,4 +57,7 @@ class UndoEligibility(private val definitions: GameDefinitions) {
 
     private fun resolveName(session: GameSession, playerId: String): String =
         PlayerDisplayNames.displayName(session, playerId, definitions)
+
+    private fun money(amount: Int?): String =
+        amount?.let { formatMoney(it, definitions) } ?: "?"
 }

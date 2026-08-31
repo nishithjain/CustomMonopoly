@@ -44,6 +44,6 @@ object AppTestSupport {
             Path.of("../../../../monopoly-ultimate-banking-qr/data"),
             Path.of("c:/Personal/Monopoly/monopoly-ultimate-banking-qr/data"),
         ).first { it.resolve("common/card_registry.json").toFile().exists() }
-        return EditionRepository(FileEditionFileSource(dataDir)).load(EditionIds.DEFAULT)
+        return EditionRepository(FileEditionFileSource(dataDir)).load(EditionIds.UK)
     }
 }

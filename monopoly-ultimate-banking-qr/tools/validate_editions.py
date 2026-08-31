@@ -37,6 +37,76 @@ def count_fronts(directory: Path, suffix: str) -> int:
     return sum(1 for path in directory.iterdir() if path.name.endswith(suffix) and path.is_file())
 
 
+def card_config(edition: dict) -> dict:
+    config = edition.get("cardConfiguration")
+    if not isinstance(config, dict):
+        raise ValueError(f"Edition '{edition.get('editionId', '?')}': cardConfiguration is missing or invalid.")
+    return config
+
+
+def validate_card_configuration(
+    edition_id: str,
+    edition: dict,
+    properties: list,
+    events: list,
+    cards: list,
+) -> list[str]:
+    problems: list[str] = []
+    try:
+        config = card_config(edition)
+    except ValueError as exc:
+        return [str(exc)]
+    for field in ("playerCardCount", "propertyCardCount", "eventCardCount", "rentLevelsPerProperty"):
+        value = config.get(field)
+        if not isinstance(value, int) or value < 0:
+            problems.append(f"Edition '{edition_id}': cardConfiguration.{field} is missing or invalid.")
+    if problems:
+        return problems
+    if config["playerCardCount"] <= 0 or config["propertyCardCount"] <= 0 or config["rentLevelsPerProperty"] <= 0:
+        problems.append(f"Edition '{edition_id}': cardConfiguration contains non-positive required counts.")
+    if len(properties) != config["propertyCardCount"]:
+        problems.append(
+            f"Edition '{edition_id}': expected {config['propertyCardCount']} Property Cards from edition.json, but found {len(properties)}."
+        )
+    if len(events) != config["eventCardCount"]:
+        problems.append(
+            f"Edition '{edition_id}': expected {config['eventCardCount']} Event Cards from edition.json, but found {len(events)}."
+        )
+    user_cards = [card for card in cards if card["cardType"] == "USER"]
+    property_cards = [card for card in cards if card["cardType"] == "PROPERTY"]
+    event_cards = [card for card in cards if card["cardType"] == "EVENT"]
+    if len(user_cards) != config["playerCardCount"]:
+        problems.append(
+            f"Edition '{edition_id}': expected {config['playerCardCount']} Player Cards from edition.json, but found {len(user_cards)}."
+        )
+    if len(property_cards) != config["propertyCardCount"]:
+        problems.append(
+            f"Edition '{edition_id}': expected {config['propertyCardCount']} Property Cards in registry, but found {len(property_cards)}."
+        )
+    if len(event_cards) != config["eventCardCount"]:
+        problems.append(
+            f"Edition '{edition_id}': expected {config['eventCardCount']} Event Cards in registry, but found {len(event_cards)}."
+        )
+    expected_total = config["playerCardCount"] + config["propertyCardCount"] + config["eventCardCount"]
+    if len(cards) != expected_total:
+        problems.append(
+            f"Edition '{edition_id}': expected {expected_total} total cards from edition.json, but found {len(cards)}."
+        )
+    for prop in properties:
+        rent_levels = prop.get("rentLevels") or []
+        if len(rent_levels) != config["rentLevelsPerProperty"]:
+            problems.append(
+                f"Edition '{edition_id}', property '{prop['propertyId']}': expected {config['rentLevelsPerProperty']} rent levels, but found {len(rent_levels)}."
+            )
+    return problems
+
+
+def load_edition_cards(edition_id: str) -> list[dict]:
+    common_cards = load(DATA / "common" / "card_registry.json")["cards"]
+    edition_cards = load(DATA / "editions" / edition_id / "card_registry.json")["cards"]
+    return common_cards + edition_cards
+
+
 def main() -> int:
     problems: list[str] = []
     lines: list[str] = ["EDITION VALIDATION", "==================", ""]
@@ -49,6 +119,9 @@ def main() -> int:
         problems.append("common/game_rules.json missing")
 
     cards = load(common_cards)["cards"] if common_cards.is_file() else []
+    user_cards = [card for card in cards if card.get("cardType") == "USER"]
+    if cards and any(card.get("cardType") != "USER" for card in cards):
+        problems.append("common/card_registry.json must contain USER cards only")
     ids = [c["cardId"] for c in cards]
     payloads = [c["qrPayload"] for c in cards]
     if len(ids) != len(set(ids)):
@@ -59,7 +132,7 @@ def main() -> int:
         "COMMON",
         f"card_registry: {'PASS' if common_cards.is_file() else 'FAIL'}",
         f"game_rules: {'PASS' if common_rules.is_file() else 'FAIL'}",
-        f"cards: {len(cards)}",
+        f"cards: {len(cards)} user cards",
         "",
     ]
 
@@ -68,12 +141,12 @@ def main() -> int:
     uk_banking = load(DATA / "editions" / "uk" / "banking_values.json")
     uk_board = load(DATA / "editions" / "uk" / "board_relationships.json")
     uk_edition = load(DATA / "editions" / "uk" / "edition.json")
+    uk_cards = load_edition_cards("uk")
     if uk_edition.get("editionId") != "uk":
         problems.append("UK editionId must be uk")
-    if len(uk_props) != 22:
-        problems.append(f"UK properties {len(uk_props)}/22")
-    if len(uk_events) != 23:
-        problems.append(f"UK events {len(uk_events)}/23")
+    if uk_edition.get("definitionVersion") is None:
+        problems.append("Edition 'uk': definitionVersion is missing or invalid.")
+    problems.extend(validate_card_configuration("uk", uk_edition, uk_props, uk_events, uk_cards))
     for key, expected in UK_BANKING.items():
         if uk_banking.get(key) != expected:
             problems.append(f"UK {key}: expected {expected}, found {uk_banking.get(key)}")
@@ -143,6 +216,12 @@ def main() -> int:
     india_events = load(DATA / "editions" / "india" / "events.json")["events"]
     india_banking = load(DATA / "editions" / "india" / "banking_values.json")
     india_edition = load(DATA / "editions" / "india" / "edition.json")
+    india_cards = load_edition_cards("india")
+    if india_edition.get("editionId") != "india":
+        problems.append("India editionId must be india")
+    if india_edition.get("definitionVersion") is None:
+        problems.append("Edition 'india': definitionVersion is missing or invalid.")
+    problems.extend(validate_card_configuration("india", india_edition, india_props, india_events, india_cards))
     prp01 = next(p for p in india_props if p["propertyId"] == "PRP_01")
     if prp01["name"] != "Cubbon Park":
         problems.append("India PRP_01 must be Cubbon Park")
@@ -158,12 +237,6 @@ def main() -> int:
         problems.append("India event M50 must be 5000")
     if india_banking.get("eventAmounts", {}).get("M200") != 20000:
         problems.append("India event M200 must be 20000")
-    if len(india_props) != 22:
-        problems.append(f"India properties {len(india_props)}/22")
-    if len(india_events) != 23:
-        problems.append(f"India events {len(india_events)}/23")
-    if india_edition.get("editionId") != "india":
-        problems.append("India editionId must be india")
 
     india_prop_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "PropertyCards", "_Front.png")
     india_event_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "EventCards", "_Front.png")

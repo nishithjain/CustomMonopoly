@@ -2,8 +2,10 @@ package com.boardbanker.core.model
 
 import com.boardbanker.core.card.CardDefinition
 
+import com.boardbanker.core.rules.policy.GameRulePolicies
+
 data class GameDefinitions(
-    val editionId: String = EditionIds.DEFAULT,
+    val editionId: String,
     val edition: EditionDefinition? = null,
     val cards: Map<String, CardDefinition>,
     val cardsByQrPayload: Map<String, CardDefinition>,
@@ -11,6 +13,9 @@ data class GameDefinitions(
     val properties: Map<String, PropertyDefinition>,
     val events: Map<String, EventDefinition>,
     val boardRelationships: BoardRelationships,
-    val rulesConfig: GameRulesConfig,
+    val boardLayout: BoardLayout,
+    val rules: GameRules,
     val bankingValues: BankingValues,
-)
+) {
+    val policies: GameRulePolicies by lazy { GameRulePolicies(rules) }
+}

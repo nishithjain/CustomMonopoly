@@ -4,7 +4,10 @@ import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.model.CurrencyDefinition
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.money.MoneyFormatter
+import com.boardbanker.core.persistence.GameSessionSchema
 import com.boardbanker.core.persistence.KotlinGameSessionSerializer
+import com.boardbanker.core.persistence.SavedGameMetadataReader
+import com.boardbanker.core.persistence.SavedGameMetadataReadResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -44,13 +47,42 @@ class EditionArchitectureTests {
     }
 
     @Test
-    fun missingEditionIdFallsBackToUk() {
+    fun currentFormatSaveMissingEditionIdIsCorrupted() {
         val serializer = KotlinGameSessionSerializer()
         val original = TestFixtures.newGame()
         val json = serializer.serialize(original).replace("\"editionId\":\"uk\",", "")
         assertFalse(json.contains("editionId"))
+        val result = SavedGameMetadataReader().read(json, GameSessionSchema.CURRENT_VERSION)
+        assertTrue(result is SavedGameMetadataReadResult.Corrupted)
+    }
+
+    @Test
+    fun legacyFormatMissingEditionIdMigratesToUkVersionOne() {
+        val serializer = KotlinGameSessionSerializer()
+        val original = TestFixtures.newGame()
+        val json = serializer.serialize(original)
+            .replace("\"editionId\":\"uk\",", "")
+            .replace("\"editionDefinitionVersion\":1,", "")
+        val result = SavedGameMetadataReader().read(json, GameSessionSchema.LEGACY_PRE_EDITION_VERSION)
+        assertTrue(result is SavedGameMetadataReadResult.Success)
+        val metadata = (result as SavedGameMetadataReadResult.Success).metadata
+        assertEquals(EditionIds.LEGACY_EDITION_ID, metadata.editionId)
+        assertEquals(EditionIds.LEGACY_DEFINITION_VERSION, metadata.editionDefinitionVersion)
+    }
+
+    @Test
+    fun legacySaveWithoutEditionDefinitionVersionMigratesToVersionOne() {
+        val serializer = KotlinGameSessionSerializer()
+        val original = TestFixtures.newGame()
+        val json = serializer.serialize(original).replace("\"editionDefinitionVersion\":1,", "")
         val restored = serializer.deserialize(json)
-        assertEquals(EditionIds.UK, restored.editionId)
+        assertEquals(EditionIds.LEGACY_DEFINITION_VERSION, restored.editionDefinitionVersion)
+    }
+
+    @Test
+    fun bundledEditionsExposeDefinitionVersionOne() {
+        assertEquals(1, TestFixtures.definitions.edition!!.definitionVersion)
+        assertEquals(1, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
     }
 
     @Test
@@ -63,6 +95,8 @@ class EditionArchitectureTests {
         ).session
         assertEquals(EditionIds.INDIA, session.editionId)
         assertEquals("Cubbon Park", india.properties["PRP_01"]!!.name)
-        assertTrue(india.events.size == 23)
+        assertEquals(23, india.events.size)
+        assertEquals(4, india.edition!!.cardConfiguration!!.playerCardCount)
+        assertEquals(40, india.boardLayout.size)
     }
 }

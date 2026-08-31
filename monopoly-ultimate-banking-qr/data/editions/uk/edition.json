@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "editionId": "uk",
+  "definitionVersion": 1,
   "name": "UK Edition",
   "countryCode": "GB",
   "currency": {
@@ -12,10 +13,19 @@
     "properties": "properties.json",
     "bankingValues": "banking_values.json",
     "events": "events.json",
-    "boardRelationships": "board_relationships.json"
+    "boardRelationships": "board_relationships.json",
+    "boardLayout": "board_layout.json",
+    "cardRegistry": "card_registry.json",
+    "gameRules": "game_rules.json"
   },
   "resources": {
     "propertyCards": "Editions/uk/PropertyCards",
     "eventCards": "Editions/uk/EventCards"
+  },
+  "cardConfiguration": {
+    "playerCardCount": 4,
+    "propertyCardCount": 22,
+    "eventCardCount": 23,
+    "rentLevelsPerProperty": 5
   }
 }

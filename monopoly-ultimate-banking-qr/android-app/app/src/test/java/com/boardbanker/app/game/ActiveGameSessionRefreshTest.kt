@@ -11,6 +11,7 @@ import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.app.ui.screens.game.GameViewModel
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.model.EditionIds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -34,12 +35,7 @@ class ActiveGameSessionRefreshTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         val repository = FakeGameSessionRepository()
-        sessionManager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        sessionManager = AppTestSupport.sessionManager(repository)
         executor = BankingCommandExecutor(sessionManager)
     }
 
@@ -49,7 +45,7 @@ class ActiveGameSessionRefreshTest {
     }
 
     private suspend fun startActiveGame() {
-        var session = (sessionManager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (sessionManager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (sessionManager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
         session = (sessionManager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
         sessionManager.processCommand(session, GameCommand.StartGame)

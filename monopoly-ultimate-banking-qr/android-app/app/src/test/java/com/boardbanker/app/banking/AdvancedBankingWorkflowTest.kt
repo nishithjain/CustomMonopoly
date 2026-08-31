@@ -9,6 +9,7 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.model.AuctionState
 import com.boardbanker.core.model.DebtResolutionState
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameStatus
 import kotlinx.coroutines.test.runTest
@@ -26,17 +27,12 @@ class AdvancedBankingWorkflowTest {
     @Before
     fun setUp() {
         val repository = FakeGameSessionRepository()
-        sessionManager = ActiveGameSessionManager(
-            definitions = definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        sessionManager = AppTestSupport.sessionManager(repository)
         executor = BankingCommandExecutor(sessionManager)
     }
 
     private suspend fun startActiveGame() {
-        var session = (sessionManager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (sessionManager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (sessionManager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
         session = (sessionManager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
         sessionManager.processCommand(session, GameCommand.StartGame)

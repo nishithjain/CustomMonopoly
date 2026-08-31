@@ -16,7 +16,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +43,7 @@ import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
+import com.boardbanker.core.card.CardType
 import com.boardbanker.core.validation.PlayerNameRules
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +73,7 @@ fun PlayerSetupScreen(
             tokenName = pending.tokenName,
             initialName = "",
             confirmLabel = BankingActionLabels.confirm("ADD PLAYER"),
+            editionId = uiState.selectedEditionId,
             onConfirm = viewModel::confirmPendingRegistration,
             onCancel = viewModel::cancelPendingRegistration,
         )
@@ -80,6 +86,7 @@ fun PlayerSetupScreen(
             tokenName = pending.tokenName,
             initialName = pending.currentName,
             confirmLabel = BankingActionLabels.confirm("SAVE NAME"),
+            editionId = uiState.selectedEditionId,
             onConfirm = viewModel::confirmEditPlayerName,
             onCancel = viewModel::cancelEditPlayerName,
         )
@@ -143,6 +150,11 @@ fun PlayerSetupScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            EditionSelector(
+                uiState = uiState,
+                onEditionSelected = viewModel::onEditionSelected,
+            )
+
             Text(
                 text = "Scan 2–4 Player cards",
                 style = MaterialTheme.typography.titleMedium,
@@ -214,6 +226,77 @@ fun PlayerSetupScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditionSelector(
+    uiState: GameSetupUiState,
+    onEditionSelected: (String) -> Unit,
+) {
+    val catalogueError = uiState.catalogueError
+    if (catalogueError != null) {
+        Text(
+            text = catalogueError,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        return
+    }
+
+    uiState.editionDataError?.let { error ->
+        Text(
+            text = error,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+
+    val selectedName = uiState.selectedEditionName.orEmpty()
+    if (uiState.availableEditions.size <= 1) {
+        OutlinedTextField(
+            value = selectedName,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            label = { Text("Game edition") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        return
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (!uiState.editionSelectionLocked) expanded = it },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            value = selectedName,
+            onValueChange = {},
+            readOnly = true,
+            enabled = !uiState.editionSelectionLocked,
+            label = { Text("Game edition") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            uiState.availableEditions.forEach { edition ->
+                DropdownMenuItem(
+                    text = { Text(edition.name) },
+                    onClick = {
+                        expanded = false
+                        onEditionSelected(edition.editionId)
+                    },
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun PlayerNameEntryDialog(
     title: String,
@@ -221,6 +304,7 @@ private fun PlayerNameEntryDialog(
     tokenName: String,
     initialName: String,
     confirmLabel: String,
+    editionId: String?,
     onConfirm: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -236,7 +320,11 @@ private fun PlayerNameEntryDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                CardFrontImage(cardId = playerId)
+                CardFrontImage(
+                    editionId = editionId ?: return@Column,
+                    cardType = CardType.USER,
+                    cardId = playerId,
+                )
                 PlayerIdentity(
                     playerId = playerId,
                     playerName = tokenName,

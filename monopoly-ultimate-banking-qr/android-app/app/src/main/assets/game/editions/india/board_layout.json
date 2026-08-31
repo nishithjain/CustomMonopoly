@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "spaces": [
+    {
+      "position": 0,
+      "spaceId": "GO",
+      "spaceType": "GO"
+    },
+    {
+      "position": 1,
+      "spaceId": "PROPERTY_PRP_01_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_01"
+    },
+    {
+      "position": 2,
+      "spaceId": "EVENT_01_SPACE",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 3,
+      "spaceId": "PROPERTY_PRP_02_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_02"
+    },
+    {
+      "position": 4,
+      "spaceId": "LOCATION_01_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 5,
+      "spaceId": "PROPERTY_PRP_03_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_03"
+    },
+    {
+      "position": 6,
+      "spaceId": "PROPERTY_PRP_04_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_04"
+    },
+    {
+      "position": 7,
+      "spaceId": "EVENT_02_SPACE",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 8,
+      "spaceId": "PROPERTY_PRP_05_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_05"
+    },
+    {
+      "position": 9,
+      "spaceId": "LOCATION_02_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 10,
+      "spaceId": "JAIL",
+      "spaceType": "JAIL"
+    },
+    {
+      "position": 11,
+      "spaceId": "PROPERTY_PRP_06_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_06"
+    },
+    {
+      "position": 12,
+      "spaceId": "EVENT_03_SPACE",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 13,
+      "spaceId": "PROPERTY_PRP_07_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_07"
+    },
+    {
+      "position": 14,
+      "spaceId": "PROPERTY_PRP_08_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_08"
+    },
+    {
+      "position": 15,
+      "spaceId": "LOCATION_03_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 16,
+      "spaceId": "PROPERTY_PRP_09_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_09"
+    },
+    {
+      "position": 17,
+      "spaceId": "PROPERTY_PRP_10_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_10"
+    },
+    {
+      "position": 18,
+      "spaceId": "LOCATION_04_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 19,
+      "spaceId": "PROPERTY_PRP_11_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_11"
+    },
+    {
+      "position": 20,
+      "spaceId": "FREE_PARKING",
+      "spaceType": "FREE_PARKING"
+    },
+    {
+      "position": 21,
+      "spaceId": "PROPERTY_PRP_12_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_12"
+    },
+    {
+      "position": 22,
+      "spaceId": "EVENT_04_SPACE",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 23,
+      "spaceId": "PROPERTY_PRP_13_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_13"
+    },
+    {
+      "position": 24,
+      "spaceId": "PROPERTY_PRP_14_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_14"
+    },
+    {
+      "position": 25,
+      "spaceId": "LOCATION_05_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 26,
+      "spaceId": "PROPERTY_PRP_15_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_15"
+    },
+    {
+      "position": 27,
+      "spaceId": "PROPERTY_PRP_16_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_16"
+    },
+    {
+      "position": 28,
+      "spaceId": "LOCATION_06_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 29,
+      "spaceId": "PROPERTY_PRP_17_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_17"
+    },
+    {
+      "position": 30,
+      "spaceId": "GO_TO_JAIL",
+      "spaceType": "GO_TO_JAIL"
+    },
+    {
+      "position": 31,
+      "spaceId": "PROPERTY_PRP_18_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_18"
+    },
+    {
+      "position": 32,
+      "spaceId": "LOCATION_07_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 33,
+      "spaceId": "PROPERTY_PRP_19_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_19"
+    },
+    {
+      "position": 34,
+      "spaceId": "PROPERTY_PRP_20_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_20"
+    },
+    {
+      "position": 35,
+      "spaceId": "EVENT_05_SPACE",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 36,
+      "spaceId": "PROPERTY_PRP_21_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_21"
+    },
+    {
+      "position": 37,
+      "spaceId": "PROPERTY_PRP_22_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "PRP_22"
+    },
+    {
+      "position": 38,
+      "spaceId": "LOCATION_08_SPACE",
+      "spaceType": "LOCATION"
+    },
+    {
+      "position": 39,
+      "spaceId": "LOCATION_09_SPACE",
+      "spaceType": "LOCATION"
+    }
+  ]
+}

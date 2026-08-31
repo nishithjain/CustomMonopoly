@@ -19,18 +19,15 @@ import kotlinx.coroutines.flow.StateFlow
  * Routes successful engine results through [CommittedGameSessionStore] for durable persistence.
  */
 class ActiveGameSessionManager(
-    private var definitions: GameDefinitions,
+    private val editionResolver: (String) -> GameDefinitions,
     private val committedStore: CommittedGameSessionStore,
     private val repository: GameSessionRepository,
-    private var engine: GameEngine = DefaultGameEngine(definitions),
-    private val editionResolver: ((String) -> GameDefinitions)? = null,
 ) {
-    fun currentDefinitions(): GameDefinitions = definitions
+    private var definitions: GameDefinitions? = null
+    private var engine: GameEngine? = null
 
-    fun bindDefinitions(next: GameDefinitions) {
-        definitions = next
-        engine = DefaultGameEngine(next)
-    }
+    fun currentDefinitions(): GameDefinitions =
+        definitions ?: error("No edition is bound to the active game session")
 
     fun currentSession(): GameSession? = committedStore.currentSession()
 
@@ -46,7 +43,7 @@ class ActiveGameSessionManager(
 
     suspend fun processCommand(session: GameSession, command: GameCommand): ProcessCommitResult {
         bindEdition(session.editionId)
-        val result = engine.process(session, command)
+        val result = requireEngine().process(session, command)
         if (!result.isSuccess) {
             return ProcessCommitResult.Rejected(result)
         }
@@ -57,10 +54,18 @@ class ActiveGameSessionManager(
         }
     }
 
-    suspend fun createNewGame(): ProcessCommitResult {
+    suspend fun createNewGame(editionId: String): ProcessCommitResult {
+        bindEdition(editionId)
+        val activeDefinitions = currentDefinitions()
         val gameId = GameIdProvider.newGameId()
+        val definitionVersion = activeDefinitions.edition?.definitionVersion
+            ?: error("Active edition '${activeDefinitions.editionId}' is missing definitionVersion")
         return processCommand(
-            session = GameSession(gameId = gameId, editionId = definitions.editionId),
+            session = GameSession(
+                gameId = gameId,
+                editionId = activeDefinitions.editionId,
+                editionDefinitionVersion = definitionVersion,
+            ),
             command = GameCommand.CreateGame(gameId),
         )
     }
@@ -74,12 +79,20 @@ class ActiveGameSessionManager(
         committedStore.deleteSavedGame(gameId)
     }
 
+    fun bindEditionForSetup(editionId: String) {
+        bindEdition(editionId)
+    }
+
     private fun bindEdition(editionId: String) {
         val id = EditionIds.normalize(editionId)
-        if (id == definitions.editionId) return
-        val resolved = editionResolver?.invoke(id) ?: return
-        bindDefinitions(resolved)
+        if (definitions?.editionId == id) return
+        val resolved = editionResolver(id)
+        definitions = resolved
+        engine = DefaultGameEngine(resolved)
     }
+
+    private fun requireEngine(): GameEngine =
+        engine ?: error("No edition is bound to the active game session")
 
     suspend fun hasResumableGame(): Boolean =
         when (restoreFromStorage()) {

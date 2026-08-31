@@ -3,6 +3,7 @@ package com.boardbanker.core.persistence
 import com.boardbanker.core.TestFixtures
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.ColorGroupState
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PlayerState
 import com.boardbanker.core.model.PropertyState
@@ -21,6 +22,21 @@ class GameSessionSerializerTest {
         val original = buildComplexSession()
         val restored = serializer.deserialize(serializer.serialize(original))
         assertEquals(original, restored)
+    }
+
+    @Test
+    fun legacySaveWithoutEditionDefinitionVersionMigratesToVersionOne() {
+        val original = buildComplexSession()
+        val json = serializer.serialize(original).replace("\"editionDefinitionVersion\":1,", "")
+        val restored = serializer.deserialize(json)
+        assertEquals(EditionIds.LEGACY_DEFINITION_VERSION, restored.editionDefinitionVersion)
+    }
+
+    @Test
+    fun editionDefinitionVersionSurvivesRoundTrip() {
+        val original = buildComplexSession().copy(editionDefinitionVersion = 1)
+        val restored = serializer.deserialize(serializer.serialize(original))
+        assertEquals(1, restored.editionDefinitionVersion)
     }
 
     @Test
@@ -92,7 +108,7 @@ class GameSessionSerializerTest {
     private fun buildComplexSession(): GameSession {
         val engine = TestFixtures.engine
         var result = engine.process(
-            GameSession(gameId = "PERSIST_TEST"),
+            TestFixtures.emptySession("PERSIST_TEST"),
             GameCommand.CreateGame("PERSIST_TEST"),
         )
         result = engine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))

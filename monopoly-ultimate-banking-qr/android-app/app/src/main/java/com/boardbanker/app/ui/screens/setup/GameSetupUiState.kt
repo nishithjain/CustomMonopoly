@@ -2,6 +2,11 @@ package com.boardbanker.app.ui.screens.setup
 
 import com.boardbanker.core.model.GameStatus
 
+data class EditionChoiceUi(
+    val editionId: String,
+    val name: String,
+)
+
 data class PendingPlayerRegistrationUi(
     val playerId: String,
     val tokenName: String,
@@ -34,6 +39,13 @@ data class GameSetupUiState(
     val showCancelConfirm: Boolean = false,
     val pendingRegistration: PendingPlayerRegistrationUi? = null,
     val pendingNameEdit: PendingPlayerNameEditUi? = null,
+    val availableEditions: List<EditionChoiceUi> = emptyList(),
+    val selectedEditionId: String? = null,
+    val selectedEditionName: String? = null,
+    val editionSelectionLocked: Boolean = false,
+    val catalogueLoaded: Boolean = false,
+    val catalogueError: String? = null,
+    val editionDataError: String? = null,
 )
 
 sealed class GameSetupEvent {

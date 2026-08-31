@@ -4,7 +4,7 @@ EDITION VALIDATION
 COMMON
 card_registry: PASS
 game_rules: PASS
-cards: 49
+cards: 4 user cards
 
 UK
 edition.json: PASS

@@ -9,4 +9,7 @@ class FileEditionFileSource(private val dataRoot: Path) : EditionFileSource {
 
     override fun readEdition(editionId: String, fileName: String): String =
         dataRoot.resolve("editions").resolve(editionId).resolve(fileName).readText()
+
+    override fun readCatalogIndex(): String =
+        dataRoot.resolve("editions").resolve("index.json").readText()
 }

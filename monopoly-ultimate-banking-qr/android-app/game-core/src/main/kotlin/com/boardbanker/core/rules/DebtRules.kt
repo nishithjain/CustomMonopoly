@@ -339,7 +339,7 @@ class DebtRules(
                 val newLevel = RentLevelOperations.increaseLevel(
                     oldLevel,
                     1,
-                    definitions.rulesConfig.maximumRentLevel,
+                    definitions.rules.maximumRentLevel,
                 )
                 updatedSession = updatedSession.copy(
                     properties = updatedSession.properties + (
@@ -388,7 +388,7 @@ class DebtRules(
                     val newLevel = RentLevelOperations.increaseLevel(
                         propertyState.currentRentLevel,
                         1,
-                        definitions.rulesConfig.maximumRentLevel,
+                        definitions.rules.maximumRentLevel,
                     )
                     updatedSession = updatedSession.copy(
                         properties = updatedSession.properties + (
@@ -429,7 +429,7 @@ class DebtRules(
     ): DebtResult {
         val propertyState = session.properties[propertyId]!!
         val owner = session.players[creditorId]!!
-        val rules = definitions.rulesConfig
+        val rules = definitions.rules
         val transactions = mutableListOf<Transaction>()
         var updatedSession = session
 

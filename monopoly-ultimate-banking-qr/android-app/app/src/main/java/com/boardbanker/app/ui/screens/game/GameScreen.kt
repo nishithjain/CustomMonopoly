@@ -34,6 +34,7 @@ import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
+import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +95,11 @@ fun GameScreen(
     }
 
     val displayCardId = ActiveGameCardUiPolicy.displayCardId(uiState.workflowState, uiState.result)
+    val displayCardType = ActiveGameCardUiPolicy.displayCardType(
+        workflowState = uiState.workflowState,
+        result = uiState.result,
+        displayCardId = displayCardId,
+    )
     val actionVisibility = ActiveGameCardUiPolicy.actionVisibility(
         workflowState = uiState.workflowState,
         result = uiState.result,
@@ -159,9 +165,13 @@ fun GameScreen(
                 }
             }
 
-            if (showCardInteraction && displayCardId != null) {
+            if (showCardInteraction && displayCardId != null && displayCardType != null && uiState.editionId.isNotBlank()) {
                 item {
-                    CardFrontImage(cardId = displayCardId)
+                    CardFrontImage(
+                        editionId = uiState.editionId,
+                        cardType = displayCardType,
+                        cardId = displayCardId,
+                    )
                 }
             }
 

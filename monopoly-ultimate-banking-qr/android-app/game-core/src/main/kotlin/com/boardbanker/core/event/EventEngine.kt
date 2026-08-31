@@ -5,7 +5,9 @@ import com.boardbanker.core.model.ColorGroupState
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.EventActionDefinition
 import com.boardbanker.core.model.PendingEventChoice
+import com.boardbanker.core.model.PendingEventExecution
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TemporaryEffect
 import com.boardbanker.core.model.Transaction
@@ -23,7 +25,8 @@ class EventEngine(
     private val jailRules: JailRules,
     private val debtRules: DebtRules,
 ) {
-    private val rules = definitions.rulesConfig
+    private val rules = definitions.rules
+    private val policies = definitions.policies
 
     fun apply(
         session: GameSession,
@@ -37,10 +40,164 @@ class EventEngine(
     ): EventResult {
         val event = definitions.events[eventId]
             ?: return EventResult.failure("Unknown event $eventId")
-        val rule = event.engineRule
-        val actionType = rule.actionType
 
-        return when (actionType) {
+        val existingPending = session.pendingEventExecution
+        if (existingPending != null) {
+            if (existingPending.eventId != eventId) {
+                return EventResult.failure("Another event is in progress")
+            }
+            if (existingPending.actingPlayerId != actingPlayerId) {
+                return EventResult.failure("Acting player mismatch for pending event")
+            }
+        }
+
+        val resolvedPropertyId = propertyId ?: existingPending?.propertyId
+        val resolvedTargetPlayerId = targetPlayerId ?: existingPending?.targetPlayerId
+        val resolvedSecondPropertyId = secondPropertyId ?: existingPending?.secondPropertyId
+        val resolvedSecondPlayerId = secondPlayerId ?: existingPending?.secondPlayerId
+
+        var currentSession = session.copy(pendingEventExecution = null)
+        val accumulatedTransactions = mutableListOf<Transaction>()
+        val accumulatedPhysical = mutableListOf<PhysicalAction>()
+        var pendingMessage: String? = null
+        var needsDebtResolution = false
+
+        var actionIndex = existingPending?.currentActionIndex ?: 0
+        while (actionIndex < event.actions.size) {
+            val rule = event.actions[actionIndex]
+            missingInputMessage(
+                rule = rule,
+                propertyId = resolvedPropertyId,
+                targetPlayerId = resolvedTargetPlayerId,
+                secondPropertyId = resolvedSecondPropertyId,
+                secondPlayerId = resolvedSecondPlayerId,
+            )?.let { message ->
+                return EventResult.success(
+                    session = currentSession.copy(
+                        pendingEventExecution = PendingEventExecution(
+                            eventId = eventId,
+                            actingPlayerId = actingPlayerId,
+                            currentActionIndex = actionIndex,
+                            propertyId = resolvedPropertyId,
+                            targetPlayerId = resolvedTargetPlayerId,
+                            secondPropertyId = resolvedSecondPropertyId,
+                            secondPlayerId = resolvedSecondPlayerId,
+                        ),
+                    ),
+                    transactions = accumulatedTransactions,
+                    physicalActions = accumulatedPhysical,
+                    pendingMessage = message,
+                    needsDebtResolution = needsDebtResolution,
+                )
+            }
+
+            val isLastAction = actionIndex == event.actions.lastIndex
+            val actionResult = dispatchAction(
+                session = currentSession,
+                eventId = eventId,
+                actingPlayerId = actingPlayerId,
+                rule = rule,
+                propertyId = resolvedPropertyId,
+                targetPlayerId = resolvedTargetPlayerId,
+                secondPropertyId = resolvedSecondPropertyId,
+                secondPlayerId = resolvedSecondPlayerId,
+                timestamp = timestamp,
+                finalizeEvent = isLastAction,
+            )
+            if (!actionResult.isSuccess) {
+                return actionResult
+            }
+
+            val actionTransactions = if (isLastAction) {
+                actionResult.transactions
+            } else {
+                actionResult.transactions.filter { it.transactionType != TransactionType.EVENT_APPLIED }
+            }
+            accumulatedTransactions += actionTransactions
+            accumulatedPhysical += actionResult.physicalActions
+            currentSession = actionResult.session!!
+            pendingMessage = actionResult.pendingMessage ?: pendingMessage
+            needsDebtResolution = needsDebtResolution || actionResult.needsDebtResolution
+
+            if (currentSession.pendingEventChoice != null) {
+                val nextIndex = actionIndex + 1
+                val continuation = if (nextIndex < event.actions.size) {
+                    PendingEventExecution(
+                        eventId = eventId,
+                        actingPlayerId = actingPlayerId,
+                        currentActionIndex = nextIndex,
+                        propertyId = resolvedPropertyId,
+                        targetPlayerId = resolvedTargetPlayerId,
+                        secondPropertyId = resolvedSecondPropertyId,
+                        secondPlayerId = resolvedSecondPlayerId,
+                    )
+                } else {
+                    null
+                }
+                return EventResult.success(
+                    session = currentSession.copy(pendingEventExecution = continuation),
+                    transactions = accumulatedTransactions,
+                    physicalActions = accumulatedPhysical,
+                    pendingMessage = pendingMessage,
+                    needsDebtResolution = needsDebtResolution,
+                )
+            }
+
+            actionIndex++
+        }
+
+        return EventResult.success(
+            session = currentSession.copy(pendingEventExecution = null),
+            transactions = accumulatedTransactions,
+            physicalActions = accumulatedPhysical,
+            pendingMessage = pendingMessage,
+            needsDebtResolution = needsDebtResolution,
+        )
+    }
+
+    private fun missingInputMessage(
+        rule: EventActionDefinition,
+        propertyId: String?,
+        targetPlayerId: String?,
+        secondPropertyId: String?,
+        secondPlayerId: String?,
+    ): String? = when (rule.actionType) {
+        "MOVE_THEN_PROPERTY_CHOICE",
+        "INCREASE_COLOR_SET_RENT_LEVEL",
+        "DECREASE_COLOR_SET_RENT_LEVEL",
+        "RESET_PROPERTY_RENT_LEVEL",
+        "SET_PROPERTY_RENT_LEVEL",
+        "ADJUST_SELECTED_AND_NEIGHBOUR_RENT_LEVELS",
+        "DECREASE_BOARD_SIDE_RENT_LEVEL",
+        "INCREASE_BOARD_SIDE_RENT_LEVEL",
+        -> if (propertyId == null) "Property scan required" else null
+        "SWAP_PROPERTIES" -> when {
+            targetPlayerId == null && secondPlayerId == null -> "Two players and two properties required"
+            propertyId == null || secondPropertyId == null -> "Two players and two properties required"
+            else -> null
+        }
+        "CREDIT_BOTH_PLAYERS" -> if (targetPlayerId == null && secondPlayerId == null) {
+            "Second player required"
+        } else {
+            null
+        }
+        "SEND_PLAYER_TO_JAIL" -> if (targetPlayerId == null) "Target player required" else null
+        else -> null
+    }
+
+    private fun dispatchAction(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        rule: EventActionDefinition,
+        propertyId: String?,
+        targetPlayerId: String?,
+        secondPropertyId: String?,
+        secondPlayerId: String?,
+        timestamp: Long,
+        finalizeEvent: Boolean,
+    ): EventResult {
+        val result = when (rule.actionType) {
             "MOVE_THEN_PROPERTY_CHOICE" -> handleMoveThenPropertyChoice(
                 session, eventId, actingPlayerId, propertyId, timestamp,
             )
@@ -57,16 +214,30 @@ class EventEngine(
                 session, eventId, actingPlayerId, propertyId, rule.amount ?: 5, timestamp,
             )
             "SWAP_PROPERTIES" -> handleSwapProperties(
-                session, eventId, actingPlayerId, targetPlayerId, propertyId, secondPropertyId, timestamp,
+                session,
+                eventId,
+                actingPlayerId,
+                targetPlayerId ?: secondPlayerId,
+                propertyId,
+                secondPropertyId,
+                timestamp,
             )
             "PAY_PER_OWNED_PROPERTY" -> handlePayPerOwnedProperty(
-                session, eventId, actingPlayerId, definitions.bankingValues.eventAmounts.m50, timestamp,
+                session,
+                eventId,
+                actingPlayerId,
+                definitions.bankingValues.eventAmounts.m50,
+                timestamp,
             )
             "CREDIT_BOTH_PLAYERS" -> handleCreditBothPlayers(
-                session, eventId, actingPlayerId, targetPlayerId ?: secondPlayerId,
-                definitions.bankingValues.eventAmounts.m200, timestamp,
+                session,
+                eventId,
+                actingPlayerId,
+                targetPlayerId ?: secondPlayerId,
+                definitions.bankingValues.eventAmounts.m200,
+                timestamp,
             )
-            "TEMPORARY_RENT_CAP" -> handleTemporaryRentCap(session, eventId, timestamp)
+            "TEMPORARY_RENT_CAP" -> handleTemporaryRentCap(session, eventId, rule, timestamp)
             "SEND_PLAYER_TO_JAIL" -> handleSendToJail(session, eventId, targetPlayerId, timestamp)
             "ADJUST_SELECTED_AND_NEIGHBOUR_RENT_LEVELS" -> handleNeighbourAdjust(
                 session, eventId, actingPlayerId, propertyId, timestamp,
@@ -78,8 +249,48 @@ class EventEngine(
                 session, eventId, propertyId, +1, timestamp,
             )
             "TOTAL_GRIDLOCK_V1" -> handleTotalGridlock(session, eventId, timestamp)
-            else -> EventResult.failure("Unsupported action type $actionType")
+            else -> EventResult.failure("Unsupported action type ${rule.actionType}")
         }
+        if (!result.isSuccess) {
+            return result
+        }
+        val (sessionAfter, transactions) = appendEventAppliedIfNeeded(
+            session = result.session!!,
+            eventId = eventId,
+            actingPlayerId = actingPlayerId,
+            propertyId = propertyId,
+            transactions = if (finalizeEvent) {
+                result.transactions
+            } else {
+                result.transactions.filter { it.transactionType != TransactionType.EVENT_APPLIED }
+            },
+            timestamp = timestamp,
+            finalizeEvent = finalizeEvent,
+        )
+        return result.copy(session = sessionAfter, transactions = transactions)
+    }
+
+    private fun appendEventAppliedIfNeeded(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        propertyId: String?,
+        transactions: List<Transaction>,
+        timestamp: Long,
+        finalizeEvent: Boolean,
+    ): Pair<GameSession, List<Transaction>> {
+        if (!finalizeEvent || transactions.any { it.transactionType == TransactionType.EVENT_APPLIED }) {
+            return session to transactions
+        }
+        val (tx, sessionAfter) = transactionFactory.create(
+            session = session,
+            type = TransactionType.EVENT_APPLIED,
+            timestamp = timestamp,
+            eventId = eventId,
+            playerId = actingPlayerId,
+            propertyId = propertyId,
+        )
+        return sessionAfter to (transactions + tx)
     }
 
     private fun handleMoveThenPropertyChoice(
@@ -391,14 +602,14 @@ class EventEngine(
     private fun handleTemporaryRentCap(
         session: GameSession,
         eventId: String,
+        rule: EventActionDefinition,
         timestamp: Long,
     ): EventResult {
-        val rule = definitions.events[eventId]!!.engineRule
         val remainingUses = rule.parameters["durationRentPayments"]
-            ?.jsonPrimitive?.intOrNull ?: 2
+            ?.jsonPrimitive?.intOrNull ?: definitions.rules.temporaryEffects.evt13RemainingUses
         val effect = TemporaryEffect(
             effectId = "${eventId}_EFFECT",
-            effectType = "FORCE_LEVEL_1_RENT",
+            effectType = definitions.rules.temporaryEffects.evt13EffectType,
             remainingUses = remainingUses,
             createdByEventId = eventId,
             targetScope = "GLOBAL",

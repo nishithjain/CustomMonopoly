@@ -10,12 +10,11 @@ import com.boardbanker.app.audio.GameplayAudioCue
 import com.boardbanker.app.audio.GameplayOutcomeAudio
 import com.boardbanker.app.audio.InvalidUserActionAudio
 import com.boardbanker.app.audio.ScanPromptAudio
-import com.boardbanker.app.banking.AuctionConfig
-import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.banking.BankingCommandExecutor
 import com.boardbanker.app.banking.BankingCommitOutcome
 import com.boardbanker.app.banking.BankingResultMapper
 import com.boardbanker.app.game.ActiveGameSessionManager
+import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
@@ -42,6 +41,7 @@ class AuctionViewModel(
     private val executor = BankingCommandExecutor(sessionManager)
     private val resultMapper = BankingResultMapper(definitions)
     private val bidIncrement = definitions.bankingValues.auctionBidIncrement
+    private val auctionTimerSeconds = definitions.rules.auction.timedAuctionSeconds
 
     fun money(amount: Int): String = formatMoney(amount, definitions)
 
@@ -61,7 +61,7 @@ class AuctionViewModel(
             it.copy(
                 propertyId = propertyId,
                 propertyName = propertyName,
-                remainingSeconds = AuctionConfig.TIMER_SECONDS,
+                remainingSeconds = auctionTimerSeconds,
                 bidIncrement = bidIncrement,
             )
         }
@@ -121,12 +121,12 @@ class AuctionViewModel(
         timerJob?.cancel()
         _uiState.update {
             it.copy(
-                remainingSeconds = AuctionConfig.TIMER_SECONDS,
+                remainingSeconds = auctionTimerSeconds,
                 auctionRunning = true,
             )
         }
         timerJob = viewModelScope.launch {
-            var remaining = AuctionConfig.TIMER_SECONDS
+            var remaining = auctionTimerSeconds
             while (remaining > 0) {
                 delay(1_000)
                 remaining -= 1

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "editionId": "custom-test",
+  "definitionVersion": 1,
+  "name": "Custom Test Edition",
+  "countryCode": "GB",
+  "currency": {
+    "code": "M",
+    "symbol": "M",
+    "scale": 1
+  },
+  "data": {
+    "properties": "properties.json",
+    "bankingValues": "banking_values.json",
+    "events": "events.json",
+    "boardRelationships": "board_relationships.json",
+    "boardLayout": "board_layout.json",
+    "cardRegistry": "card_registry.json",
+    "eventEngineRules": "event_engine_rules.json",
+    "gameRules": "game_rules.json"
+  },
+  "resources": {
+    "propertyCards": "Editions/custom-test/PropertyCards",
+    "eventCards": "Editions/custom-test/EventCards"
+  },
+  "cardConfiguration": {
+    "playerCardCount": 5,
+    "propertyCardCount": 24,
+    "eventCardCount": 20,
+    "rentLevelsPerProperty": 6
+  }
+}

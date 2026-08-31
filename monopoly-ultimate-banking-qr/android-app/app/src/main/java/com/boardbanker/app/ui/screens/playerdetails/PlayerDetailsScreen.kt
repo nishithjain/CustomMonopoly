@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.core.card.CardType
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
@@ -65,7 +66,11 @@ fun PlayerDetailsScreen(
             title = { Text("PROPERTY") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CardFrontImage(cardId = propertyId)
+                    CardFrontImage(
+                        editionId = uiState.editionId,
+                        cardType = CardType.PROPERTY,
+                        cardId = propertyId,
+                    )
                 }
             },
             confirmButton = {

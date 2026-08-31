@@ -3,6 +3,7 @@ package com.boardbanker.core.rules
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.GoCollectionReason
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.transaction.TransactionFactory
@@ -11,13 +12,18 @@ class GoRules(
     private val definitions: GameDefinitions,
     private val transactionFactory: TransactionFactory,
 ) {
-  private val goSalary = definitions.bankingValues.goSalary
+    private val goSalary = definitions.bankingValues.goSalary
+    private val goPolicy = definitions.policies.go
 
     fun payGoSalary(
         session: GameSession,
         playerId: String,
+        reason: GoCollectionReason = GoCollectionReason.PASS,
         timestamp: Long = System.currentTimeMillis(),
     ): GoResult {
+        if (!isCollectionAllowed(reason)) {
+            return GoResult.failure("GO collection is not allowed for ${reason.name.lowercase()} movement in this edition")
+        }
         val player = session.players[playerId]
             ?: return GoResult.failure("Unknown player $playerId")
         if (!player.active || player.bankrupt) {
@@ -41,6 +47,15 @@ class GoRules(
         updatedSession = sessionAfterTx.copy(undoSnapshot = session.snapshot())
 
         return GoResult.success(updatedSession, listOf(tx))
+    }
+
+    fun isCollectionAllowed(reason: GoCollectionReason): Boolean = when (reason) {
+        GoCollectionReason.PASS,
+        GoCollectionReason.LAND,
+        GoCollectionReason.MANUAL_BANK_ACTION,
+        -> goPolicy.collectsGoForNormalDice()
+        GoCollectionReason.EVENT_MOVE -> goPolicy.collectsGoForEventMovement()
+        GoCollectionReason.LOCATION_MOVE -> goPolicy.collectsGoForLocationMovement()
     }
 
     data class GoResult(

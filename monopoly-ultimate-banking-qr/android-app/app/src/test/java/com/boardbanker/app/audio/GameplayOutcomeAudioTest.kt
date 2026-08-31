@@ -29,7 +29,10 @@ class GameplayOutcomeAudioTest {
     @Test
     fun startGameSuccess_playsGameStartsOnce() {
         var session = engine.process(
-            com.boardbanker.core.model.GameSession(gameId = "AUDIO_TEST"),
+            com.boardbanker.core.model.GameSession(
+                gameId = "AUDIO_TEST",
+                editionId = definitions.editionId,
+            ),
             GameCommand.CreateGame("AUDIO_TEST"),
         ).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith")).session

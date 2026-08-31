@@ -46,7 +46,10 @@ sealed class GameCommand {
         RAISE_RENT_LEVEL,
     }
 
-    data class PayGoSalary(val playerId: String) : GameCommand()
+    data class PayGoSalary(
+        val playerId: String,
+        val reason: com.boardbanker.core.model.GoCollectionReason = com.boardbanker.core.model.GoCollectionReason.PASS,
+    ) : GameCommand()
 
     data class PayLocationFee(
         val playerId: String,

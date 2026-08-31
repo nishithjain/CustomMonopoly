@@ -15,7 +15,7 @@ class GameSessionPersistenceScenarioTest {
 
     @Test
     fun engineScenarioRoundTripsThroughSerializer() {
-        var result = engine.process(GameSession(gameId = "SCENARIO_1"), GameCommand.CreateGame("SCENARIO_1"))
+        var result = engine.process(TestFixtures.emptySession("SCENARIO_1"), GameCommand.CreateGame("SCENARIO_1"))
         result = engine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
         result = engine.process(result.session, GameCommand.RegisterPlayer("USR_02", "Aditya"))
         result = engine.process(result.session, GameCommand.StartGame)

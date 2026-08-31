@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "cards": [
+    {
+      "cardId": "USR_01",
+      "cardType": "USER",
+      "sequence": 1,
+      "name": "Car",
+      "qrPayload": "MUB:PL:CAR",
+      "assets": {
+        "front": "Resources/Common/UserCards/Car_Front.jpg",
+        "qr": "Resources/Common/UserCards/01_Car_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_02",
+      "cardType": "USER",
+      "sequence": 2,
+      "name": "Helicopter",
+      "qrPayload": "MUB:PL:HELICOPTER",
+      "assets": {
+        "front": "Resources/Common/UserCards/Helicopter_Front.jpg",
+        "qr": "Resources/Common/UserCards/02_Helicopter_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_03",
+      "cardType": "USER",
+      "sequence": 3,
+      "name": "Ship",
+      "qrPayload": "MUB:PL:SHIP",
+      "assets": {
+        "front": "Resources/Common/UserCards/Ship_Front.jpg",
+        "qr": "Resources/Common/UserCards/03_Ship_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_04",
+      "cardType": "USER",
+      "sequence": 4,
+      "name": "Aeroplane",
+      "qrPayload": "MUB:PL:AEROPLANE",
+      "assets": {
+        "front": "Resources/Common/UserCards/Aeroplane_Front.jpg",
+        "qr": "Resources/Common/UserCards/04_Aeroplane_Back_QR.png"
+      }
+    },
+    {
+      "cardId": "USR_05",
+      "cardType": "USER",
+      "sequence": 5,
+      "name": "Train",
+      "qrPayload": "MUB:PL:TRAIN",
+      "assets": {
+        "front": "Resources/Common/UserCards/Train_Front.jpg",
+        "qr": "Resources/Common/UserCards/05_Train_Back_QR.png"
+      }
+    }
+  ]
+}

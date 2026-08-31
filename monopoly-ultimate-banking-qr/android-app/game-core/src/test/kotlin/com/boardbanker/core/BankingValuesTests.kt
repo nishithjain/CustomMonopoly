@@ -55,10 +55,7 @@ class BankingValuesTests {
         )
         val engine = DefaultGameEngine(custom)
 
-        var session = engine.process(
-            com.boardbanker.core.model.GameSession(gameId = "CUSTOM_BANKING"),
-            GameCommand.CreateGame("CUSTOM_BANKING"),
-        ).session
+        var session = engine.process(TestFixtures.emptySession("CUSTOM_BANKING"), GameCommand.CreateGame("CUSTOM_BANKING")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith")).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_02", "Aditya")).session
         session = engine.process(session, GameCommand.StartGame).session

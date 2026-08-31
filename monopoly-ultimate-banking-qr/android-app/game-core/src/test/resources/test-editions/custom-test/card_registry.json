@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "cards": [
+    {
+      "cardId": "CTP_01",
+      "cardType": "PROPERTY",
+      "sequence": 1,
+      "name": "Old Kent Road",
+      "qrPayload": "MUB:CTP:01"
+    },
+    {
+      "cardId": "CTP_02",
+      "cardType": "PROPERTY",
+      "sequence": 2,
+      "name": "Whitechapel Road",
+      "qrPayload": "MUB:CTP:02"
+    },
+    {
+      "cardId": "CTP_03",
+      "cardType": "PROPERTY",
+      "sequence": 3,
+      "name": "The Angel, Islington",
+      "qrPayload": "MUB:CTP:03"
+    },
+    {
+      "cardId": "CTP_04",
+      "cardType": "PROPERTY",
+      "sequence": 4,
+      "name": "Euston Road",
+      "qrPayload": "MUB:CTP:04"
+    },
+    {
+      "cardId": "CTP_05",
+      "cardType": "PROPERTY",
+      "sequence": 5,
+      "name": "Pentonville Road",
+      "qrPayload": "MUB:CTP:05"
+    },
+    {
+      "cardId": "CTP_06",
+      "cardType": "PROPERTY",
+      "sequence": 6,
+      "name": "Pall Mall",
+      "qrPayload": "MUB:CTP:06"
+    },
+    {
+      "cardId": "CTP_07",
+      "cardType": "PROPERTY",
+      "sequence": 7,
+      "name": "Whitehall",
+      "qrPayload": "MUB:CTP:07"
+    },
+    {
+      "cardId": "CTP_08",
+      "cardType": "PROPERTY",
+      "sequence": 8,
+      "name": "Northumberland Avenue",
+      "qrPayload": "MUB:CTP:08"
+    },
+    {
+      "cardId": "CTP_09",
+      "cardType": "PROPERTY",
+      "sequence": 9,
+      "name": "Bow Street",
+      "qrPayload": "MUB:CTP:09"
+    },
+    {
+      "cardId": "CTP_10",
+      "cardType": "PROPERTY",
+      "sequence": 10,
+      "name": "Marlborough Street",
+      "qrPayload": "MUB:CTP:10"
+    },
+    {
+      "cardId": "CTP_11",
+      "cardType": "PROPERTY",
+      "sequence": 11,
+      "name": "Vine Street",
+      "qrPayload": "MUB:CTP:11"
+    },
+    {
+      "cardId": "CTP_12",
+      "cardType": "PROPERTY",
+      "sequence": 12,
+      "name": "Strand",
+      "qrPayload": "MUB:CTP:12"
+    },
+    {
+      "cardId": "CTP_13",
+      "cardType": "PROPERTY",
+      "sequence": 13,
+      "name": "Fleet Street",
+      "qrPayload": "MUB:CTP:13"
+    },
+    {
+      "cardId": "CTP_14",
+      "cardType": "PROPERTY",
+      "sequence": 14,
+      "name": "Trafalgar Square",
+      "qrPayload": "MUB:CTP:14"
+    },
+    {
+      "cardId": "CTP_15",
+      "cardType": "PROPERTY",
+      "sequence": 15,
+      "name": "Leicester Square",
+      "qrPayload": "MUB:CTP:15"
+    },
+    {
+      "cardId": "CTP_16",
+      "cardType": "PROPERTY",
+      "sequence": 16,
+      "name": "Coventry Street",
+      "qrPayload": "MUB:CTP:16"
+    },
+    {
+      "cardId": "CTP_17",
+      "cardType": "PROPERTY",
+      "sequence": 17,
+      "name": "Piccadilly",
+      "qrPayload": "MUB:CTP:17"
+    },
+    {
+      "cardId": "CTP_18",
+      "cardType": "PROPERTY",
+      "sequence": 18,
+      "name": "Regent Street",
+      "qrPayload": "MUB:CTP:18"
+    },
+    {
+      "cardId": "CTP_19",
+      "cardType": "PROPERTY",
+      "sequence": 19,
+      "name": "Oxford Street",
+      "qrPayload": "MUB:CTP:19"
+    },
+    {
+      "cardId": "CTP_20",
+      "cardType": "PROPERTY",
+      "sequence": 20,
+      "name": "Bond Street",
+      "qrPayload": "MUB:CTP:20"
+    },
+    {
+      "cardId": "CTP_21",
+      "cardType": "PROPERTY",
+      "sequence": 21,
+      "name": "Park Lane",
+      "qrPayload": "MUB:CTP:21"
+    },
+    {
+      "cardId": "CTP_22",
+      "cardType": "PROPERTY",
+      "sequence": 22,
+      "name": "Mayfair",
+      "qrPayload": "MUB:CTP:22"
+    },
+    {
+      "cardId": "CTP_23",
+      "cardType": "PROPERTY",
+      "sequence": 23,
+      "name": "Custom Property 23",
+      "qrPayload": "MUB:CTP:23"
+    },
+    {
+      "cardId": "CTP_24",
+      "cardType": "PROPERTY",
+      "sequence": 24,
+      "name": "Custom Property 24",
+      "qrPayload": "MUB:CTP:24"
+    },
+    {
+      "cardId": "CEV_01",
+      "cardType": "EVENT",
+      "sequence": 1,
+      "name": "Boom Town",
+      "qrPayload": "MUB:CEV:01"
+    },
+    {
+      "cardId": "CEV_02",
+      "cardType": "EVENT",
+      "sequence": 2,
+      "name": "Crime Down",
+      "qrPayload": "MUB:CEV:02"
+    },
+    {
+      "cardId": "CEV_03",
+      "cardType": "EVENT",
+      "sequence": 3,
+      "name": "Deal Of The Week",
+      "qrPayload": "MUB:CEV:03"
+    },
+    {
+      "cardId": "CEV_04",
+      "cardType": "EVENT",
+      "sequence": 4,
+      "name": "Demolished",
+      "qrPayload": "MUB:CEV:04"
+    },
+    {
+      "cardId": "CEV_05",
+      "cardType": "EVENT",
+      "sequence": 5,
+      "name": "Grand Designs",
+      "qrPayload": "MUB:CEV:05"
+    },
+    {
+      "cardId": "CEV_06",
+      "cardType": "EVENT",
+      "sequence": 6,
+      "name": "Haunted House",
+      "qrPayload": "MUB:CEV:06"
+    },
+    {
+      "cardId": "CEV_07",
+      "cardType": "EVENT",
+      "sequence": 7,
+      "name": "Highway Tax",
+      "qrPayload": "MUB:CEV:07"
+    },
+    {
+      "cardId": "CEV_08",
+      "cardType": "EVENT",
+      "sequence": 8,
+      "name": "House Party",
+      "qrPayload": "MUB:CEV:08"
+    },
+    {
+      "cardId": "CEV_09",
+      "cardType": "EVENT",
+      "sequence": 9,
+      "name": "In The Money",
+      "qrPayload": "MUB:CEV:09"
+    },
+    {
+      "cardId": "CEV_10",
+      "cardType": "EVENT",
+      "sequence": 10,
+      "name": "It's A Boy!",
+      "qrPayload": "MUB:CEV:10"
+    },
+    {
+      "cardId": "CEV_11",
+      "cardType": "EVENT",
+      "sequence": 11,
+      "name": "Love Is In The Air",
+      "qrPayload": "MUB:CEV:11"
+    },
+    {
+      "cardId": "CEV_12",
+      "cardType": "EVENT",
+      "sequence": 12,
+      "name": "On The Map",
+      "qrPayload": "MUB:CEV:12"
+    },
+    {
+      "cardId": "CEV_13",
+      "cardType": "EVENT",
+      "sequence": 13,
+      "name": "On The Run",
+      "qrPayload": "MUB:CEV:13"
+    },
+    {
+      "cardId": "CEV_14",
+      "cardType": "EVENT",
+      "sequence": 14,
+      "name": "Pick Your Own",
+      "qrPayload": "MUB:CEV:14"
+    },
+    {
+      "cardId": "CEV_15",
+      "cardType": "EVENT",
+      "sequence": 15,
+      "name": "Pong! What A Stinker",
+      "qrPayload": "MUB:CEV:15"
+    },
+    {
+      "cardId": "CEV_16",
+      "cardType": "EVENT",
+      "sequence": 16,
+      "name": "Rover's Revenge",
+      "qrPayload": "MUB:CEV:16"
+    },
+    {
+      "cardId": "CEV_17",
+      "cardType": "EVENT",
+      "sequence": 17,
+      "name": "Stargazing",
+      "qrPayload": "MUB:CEV:17"
+    },
+    {
+      "cardId": "CEV_18",
+      "cardType": "EVENT",
+      "sequence": 18,
+      "name": "Stop The Presses",
+      "qrPayload": "MUB:CEV:18"
+    },
+    {
+      "cardId": "CEV_19",
+      "cardType": "EVENT",
+      "sequence": 19,
+      "name": "'Tis The Season",
+      "qrPayload": "MUB:CEV:19"
+    },
+    {
+      "cardId": "CEV_20",
+      "cardType": "EVENT",
+      "sequence": 20,
+      "name": "Tornado Alley",
+      "qrPayload": "MUB:CEV:20"
+    }
+  ]
+}

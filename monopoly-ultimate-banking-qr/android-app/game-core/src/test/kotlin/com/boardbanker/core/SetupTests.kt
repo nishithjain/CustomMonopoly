@@ -25,7 +25,7 @@ class SetupTests {
     @Test
     fun tsSetup001_registerPlayersWithM1500() {
         var session = engine.process(
-            com.boardbanker.core.model.GameSession(gameId = "G1"),
+            TestFixtures.emptySession("G1"),
             GameCommand.CreateGame("G1"),
         ).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith")).session
@@ -51,7 +51,7 @@ class SetupTests {
     @Test
     fun tsSetup003_rejectDuplicatePlayer() {
         var session = engine.process(
-            com.boardbanker.core.model.GameSession(gameId = "G1"),
+            TestFixtures.emptySession("G1"),
             GameCommand.CreateGame("G1"),
         ).session
         session = engine.process(session, GameCommand.RegisterPlayer("USR_01", "Nishith")).session

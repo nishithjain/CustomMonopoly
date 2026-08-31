@@ -7,6 +7,7 @@ import com.boardbanker.app.gameplay.presentation.PropertyChangeUi
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.engine.GameResult
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
@@ -141,7 +142,10 @@ class BankingResultMapper(
     }
 
     fun mapNotInJail(playerId: String, session: GameSession?): GameplayResultUiModel {
-        val playerName = resolvePlayerName(playerId, session ?: GameSession(gameId = "INVALID"))
+        val playerName = resolvePlayerName(
+            playerId,
+            session ?: GameSession(gameId = "INVALID", editionId = EditionIds.LEGACY_EDITION_ID),
+        )
         return GameplayResultUiModel(
             title = "PLAYER IS NOT IN JAIL",
             primaryPlayerId = playerId,

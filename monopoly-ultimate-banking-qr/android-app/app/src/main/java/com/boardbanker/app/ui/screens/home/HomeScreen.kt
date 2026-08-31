@@ -87,6 +87,14 @@ fun HomeScreen(
                 )
             }
 
+            if (homeState.incompatibleEdition != null) {
+                Text(
+                    text = homeState.incompatibleEdition!!.userMessage(),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+            }
+
             Button(
                 onClick = {
                     if (homeState.hasSavedGame) {
@@ -104,10 +112,12 @@ fun HomeScreen(
                 Text("NEW GAME")
             }
 
+            val resumeEnabled = homeState.incompatibleEdition == null && homeState.definitionsError == null
             when (homeState.savedGameStatus) {
                 GameStatus.SETUP -> {
                     Button(
                         onClick = onResumeSetup,
+                        enabled = resumeEnabled,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp)
@@ -119,6 +129,7 @@ fun HomeScreen(
                 GameStatus.ACTIVE -> {
                     Button(
                         onClick = onResumeGame,
+                        enabled = resumeEnabled,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp)

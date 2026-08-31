@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
+import com.boardbanker.core.card.CardType
 import java.util.concurrent.ConcurrentHashMap
 
 class CardFrontImageProvider private constructor(
@@ -15,22 +15,40 @@ class CardFrontImageProvider private constructor(
 ) {
     private val bitmapCache = ConcurrentHashMap<String, ImageBitmap>()
 
-    fun getFrontImage(cardId: String): CardFrontImage? = registry.getFrontImage(cardId)
+    fun resolve(
+        editionId: String,
+        cardType: CardType,
+        cardId: String,
+    ): CardFrontResolveResult = registry.resolve(editionId, cardType, cardId)
 
-    fun loadImageBitmap(cardId: String): ImageBitmap? {
-        val front = registry.getFrontImage(cardId) ?: return null
-        return bitmapCache.getOrPut(front.cardId) {
-            appContext.assets.open(front.assetPath).use { stream ->
+    fun loadImageBitmap(
+        editionId: String,
+        cardType: CardType,
+        cardId: String,
+    ): ImageBitmap? {
+        val resolved = resolve(editionId, cardType, cardId)
+        if (resolved !is CardFrontResolveResult.Found) {
+            return null
+        }
+        val cacheKey = CardFrontLookupKey(editionId, cardType, cardId).cacheKey()
+        return bitmapCache.getOrPut(cacheKey) {
+            appContext.assets.open(resolved.image.assetPath).use { stream ->
                 BitmapFactory.decodeStream(stream)!!.asImageBitmap()
             }
         }
     }
 
     @Composable
-    fun rememberFrontImageBitmap(cardId: String?): ImageBitmap? {
-        val rememberedId = cardId ?: return null
-        return remember(rememberedId) {
-            loadImageBitmap(rememberedId)
+    fun rememberFrontImageBitmap(
+        editionId: String?,
+        cardType: CardType?,
+        cardId: String?,
+    ): ImageBitmap? {
+        val rememberedEditionId = editionId ?: return null
+        val rememberedCardType = cardType ?: return null
+        val rememberedCardId = cardId ?: return null
+        return remember(rememberedEditionId, rememberedCardType, rememberedCardId) {
+            loadImageBitmap(rememberedEditionId, rememberedCardType, rememberedCardId)
         }
     }
 

@@ -1,6 +1,7 @@
 package com.boardbanker.app.cards
 
 data class CardFrontDefinition(
+    val editionId: String,
     val cardId: String,
     val cardType: String,
     val name: String,
@@ -14,7 +15,9 @@ data class CardFrontDefinition(
 )
 
 data class CardFrontImage(
+    val editionId: String,
     val cardId: String,
+    val cardType: String,
     val assetPath: String,
     val orientation: String,
     val width: Int,

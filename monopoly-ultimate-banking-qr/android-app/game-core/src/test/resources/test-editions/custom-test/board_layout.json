@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "spaces": [
+    {
+      "position": 0,
+      "spaceId": "GO",
+      "spaceType": "GO"
+    },
+    {
+      "position": 1,
+      "spaceId": "PROPERTY_CTP_01_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_01"
+    },
+    {
+      "position": 2,
+      "spaceId": "PROPERTY_CTP_02_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_02"
+    },
+    {
+      "position": 3,
+      "spaceId": "EVENT_SPACE_3",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 4,
+      "spaceId": "PROPERTY_CTP_03_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_03"
+    },
+    {
+      "position": 5,
+      "spaceId": "PROPERTY_CTP_04_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_04"
+    },
+    {
+      "position": 6,
+      "spaceId": "PROPERTY_CTP_05_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_05"
+    },
+    {
+      "position": 7,
+      "spaceId": "PROPERTY_CTP_06_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_06"
+    },
+    {
+      "position": 8,
+      "spaceId": "JAIL",
+      "spaceType": "JAIL"
+    },
+    {
+      "position": 9,
+      "spaceId": "PROPERTY_CTP_07_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_07"
+    },
+    {
+      "position": 10,
+      "spaceId": "PROPERTY_CTP_08_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_08"
+    },
+    {
+      "position": 11,
+      "spaceId": "EVENT_SPACE_11",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 12,
+      "spaceId": "PROPERTY_CTP_09_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_09"
+    },
+    {
+      "position": 13,
+      "spaceId": "PROPERTY_CTP_10_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_10"
+    },
+    {
+      "position": 14,
+      "spaceId": "PROPERTY_CTP_11_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_11"
+    },
+    {
+      "position": 15,
+      "spaceId": "PROPERTY_CTP_12_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_12"
+    },
+    {
+      "position": 16,
+      "spaceId": "FREE_PARKING",
+      "spaceType": "FREE_PARKING"
+    },
+    {
+      "position": 17,
+      "spaceId": "PROPERTY_CTP_13_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_13"
+    },
+    {
+      "position": 18,
+      "spaceId": "PROPERTY_CTP_14_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_14"
+    },
+    {
+      "position": 19,
+      "spaceId": "EVENT_SPACE_19",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 20,
+      "spaceId": "PROPERTY_CTP_15_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_15"
+    },
+    {
+      "position": 21,
+      "spaceId": "PROPERTY_CTP_16_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_16"
+    },
+    {
+      "position": 22,
+      "spaceId": "PROPERTY_CTP_17_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_17"
+    },
+    {
+      "position": 23,
+      "spaceId": "PROPERTY_CTP_18_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_18"
+    },
+    {
+      "position": 24,
+      "spaceId": "GO_TO_JAIL",
+      "spaceType": "GO_TO_JAIL"
+    },
+    {
+      "position": 25,
+      "spaceId": "PROPERTY_CTP_19_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_19"
+    },
+    {
+      "position": 26,
+      "spaceId": "PROPERTY_CTP_20_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_20"
+    },
+    {
+      "position": 27,
+      "spaceId": "EVENT_SPACE_27",
+      "spaceType": "EVENT",
+      "deckId": "main"
+    },
+    {
+      "position": 28,
+      "spaceId": "PROPERTY_CTP_21_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_21"
+    },
+    {
+      "position": 29,
+      "spaceId": "PROPERTY_CTP_22_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_22"
+    },
+    {
+      "position": 30,
+      "spaceId": "PROPERTY_CTP_23_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_23"
+    },
+    {
+      "position": 31,
+      "spaceId": "PROPERTY_CTP_24_SPACE",
+      "spaceType": "PROPERTY",
+      "targetId": "CTP_24"
+    }
+  ]
+}

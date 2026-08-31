@@ -25,7 +25,7 @@ class DebtResolutionScreenComposeTest {
         DebtPropertyOption(propertyId = "PRP_B", propertyName = "Property B", debtValue = 120),
     )
 
-    private fun formatMoney(amount: Int): String = "M$amount"
+    private fun formatMoney(amount: Int): String = "¤$amount"
 
     private fun baseState(): DebtResolutionUiState =
         DebtResolutionUiState(
@@ -61,16 +61,16 @@ class DebtResolutionScreenComposeTest {
         composeRule.onNodeWithTag(DebtResolutionTestTags.SETTLEMENT_SUMMARY).assertIsDisplayed()
         composeRule.onNodeWithTag(DebtResolutionTestTags.AMOUNT_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Amount due: M500")
+            .assertTextEquals("Amount due: ¤500")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTED_PROPERTY_COUNT)
             .assertIsDisplayed()
             .assertTextEquals("Properties selected: 0 properties")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTED_PROPERTY_VALUE)
             .assertIsDisplayed()
-            .assertTextEquals("Selected property value: M0")
+            .assertTextEquals("Selected property value: ¤0")
         composeRule.onNodeWithTag(DebtResolutionTestTags.REMAINING_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Remaining due: M500")
+            .assertTextEquals("Remaining due: ¤500")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SETTLEMENT_BUTTON).assertIsNotEnabled()
         composeRule.onNodeWithText("Settle with selected properties").assertIsDisplayed()
     }
@@ -88,13 +88,13 @@ class DebtResolutionScreenComposeTest {
             .assertTextEquals("Properties selected: 1 property")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTED_PROPERTY_VALUE)
             .assertIsDisplayed()
-            .assertTextEquals("Selected property value: M180")
+            .assertTextEquals("Selected property value: ¤180")
         composeRule.onNodeWithTag(DebtResolutionTestTags.REMAINING_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Remaining due: M320")
+            .assertTextEquals("Remaining due: ¤320")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SETTLEMENT_BUTTON).assertIsEnabled()
         composeRule.onNodeWithText("Settle with selected property").assertIsDisplayed()
-        composeRule.onNodeWithText("Select properties worth at least M320 more.").assertIsDisplayed()
+        composeRule.onNodeWithText("Select properties worth at least ¤320 more.").assertIsDisplayed()
     }
 
     @Test
@@ -110,12 +110,12 @@ class DebtResolutionScreenComposeTest {
             .assertTextEquals("Properties selected: 2 properties")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTED_PROPERTY_VALUE)
             .assertIsDisplayed()
-            .assertTextEquals("Selected property value: M300")
+            .assertTextEquals("Selected property value: ¤300")
         composeRule.onNodeWithTag(DebtResolutionTestTags.REMAINING_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Remaining due: M200")
+            .assertTextEquals("Remaining due: ¤200")
         composeRule.onNodeWithText("Settle with selected properties").assertIsDisplayed()
-        composeRule.onNodeWithText("Select properties worth at least M200 more.").assertIsDisplayed()
+        composeRule.onNodeWithText("Select properties worth at least ¤200 more.").assertIsDisplayed()
     }
 
     @Test
@@ -131,10 +131,10 @@ class DebtResolutionScreenComposeTest {
             .assertTextEquals("Properties selected: 1 property")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTED_PROPERTY_VALUE)
             .assertIsDisplayed()
-            .assertTextEquals("Selected property value: M120")
+            .assertTextEquals("Selected property value: ¤120")
         composeRule.onNodeWithTag(DebtResolutionTestTags.REMAINING_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Remaining due: M380")
+            .assertTextEquals("Remaining due: ¤380")
     }
 
     @Test
@@ -147,10 +147,10 @@ class DebtResolutionScreenComposeTest {
 
         composeRule.onNodeWithTag(DebtResolutionTestTags.REMAINING_DUE)
             .assertIsDisplayed()
-            .assertTextEquals("Remaining due: M0")
+            .assertTextEquals("Remaining due: ¤0")
         composeRule.onNodeWithTag(DebtResolutionTestTags.CHANGE_AMOUNT)
             .assertIsDisplayed()
-            .assertTextEquals("Change returned to Aditya: M20")
+            .assertTextEquals("Change returned to Aditya: ¤20")
         composeRule.onNodeWithText("Change paid by Nishith").assertIsDisplayed()
         composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTION_GUIDANCE)
             .assertIsDisplayed()

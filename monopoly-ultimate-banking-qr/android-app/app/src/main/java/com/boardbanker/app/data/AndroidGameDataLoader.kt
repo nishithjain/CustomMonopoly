@@ -3,7 +3,6 @@ package com.boardbanker.app.data
 import android.content.Context
 import com.boardbanker.core.edition.EditionFileSource
 import com.boardbanker.core.edition.EditionRepository
-import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameDefinitions
 
 class AndroidEditionFileSource(
@@ -15,6 +14,9 @@ class AndroidEditionFileSource(
     override fun readEdition(editionId: String, fileName: String): String =
         readAsset("game/editions/$editionId/$fileName")
 
+    override fun readCatalogIndex(): String =
+        readAsset("game/editions/index.json")
+
     private fun readAsset(path: String): String =
         context.assets.open(path).bufferedReader().use { it.readText() }
 }
@@ -25,7 +27,10 @@ class AndroidEditionFileSource(
 class AndroidGameDataLoader(
     private val context: Context,
 ) {
-    private val repository = EditionRepository(AndroidEditionFileSource(context))
+    val editionRepository: EditionRepository = EditionRepository(AndroidEditionFileSource(context))
 
-    fun load(editionId: String = EditionIds.DEFAULT): GameDefinitions = repository.load(editionId)
+    fun load(editionId: String): GameDefinitions =
+        editionRepository.load(editionId)
+
+    fun loadEditionCatalog() = editionRepository.loadEditionCatalog()
 }

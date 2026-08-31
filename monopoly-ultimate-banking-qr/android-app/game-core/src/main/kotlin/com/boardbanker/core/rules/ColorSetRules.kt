@@ -11,7 +11,8 @@ class ColorSetRules(
     private val definitions: GameDefinitions,
     private val transactionFactory: TransactionFactory,
 ) {
-    private val rules = definitions.rulesConfig
+    private val rules = definitions.rules
+    private val policies = definitions.policies
 
     fun applyCompletionBonusIfNeeded(
         session: GameSession,
@@ -24,7 +25,11 @@ class ColorSetRules(
         val groupState = session.colorGroups[colorGroup]
             ?: ColorGroupState(colorGroup = colorGroup)
 
-        if (groupState.completionBonusApplied) {
+        if (!policies.colourSets.enabled()) {
+            return BonusResult(session, emptyList())
+        }
+
+        if (groupState.completionBonusApplied && policies.colourSets.oneTimeOnly()) {
             return BonusResult(session, emptyList())
         }
 

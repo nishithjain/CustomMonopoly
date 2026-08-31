@@ -1,11 +1,12 @@
-package com.boardbanker.app
+package com.boardbanker.app.game
 
-import com.boardbanker.app.game.ActiveGameSessionManager
+import com.boardbanker.app.AppTestSupport
 import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.error.GameError
+import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameStatus
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -16,33 +17,28 @@ import org.junit.Test
 
 class ActiveGameSessionManagerTest {
     private lateinit var repository: FakeGameSessionRepository
-    private lateinit var store: CommittedGameSessionStore
     private lateinit var manager: ActiveGameSessionManager
 
     @Before
     fun setUp() {
         repository = FakeGameSessionRepository()
-        store = CommittedGameSessionStore(repository)
-        manager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = store,
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        manager = AppTestSupport.sessionManager(repository)
     }
 
     @Test
     fun createNewGamePersistsSetupSession() = runTest {
-        val result = manager.createNewGame()
+        val result = manager.createNewGame(EditionIds.UK)
         assertTrue(result is ProcessCommitResult.Committed)
         val session = (result as ProcessCommitResult.Committed).session
         assertEquals(GameStatus.SETUP, session.status)
+        assertEquals(EditionIds.UK, session.editionId)
+        assertEquals(1, session.editionDefinitionVersion)
         assertEquals(1, repository.saveCallCount)
     }
 
     @Test
     fun registerTwoPlayersAndStartGame() = runTest {
-        val created = manager.createNewGame() as ProcessCommitResult.Committed
+        val created = manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed
         var session = created.session
 
         val first = manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
@@ -65,7 +61,7 @@ class ActiveGameSessionManagerTest {
 
     @Test
     fun registerFourPlayersBlocksFifth() = runTest {
-        var session = (manager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         for (playerId in listOf("USR_01", "USR_02", "USR_03", "USR_04")) {
             val result = manager.processCommand(
                 session,
@@ -80,40 +76,28 @@ class ActiveGameSessionManagerTest {
     }
 
     @Test
-    fun duplicatePlayerRejectedWithoutSave() = runTest {
-        var session = (manager.createNewGame() as ProcessCommitResult.Committed).session
+    fun purchasePropertyUpdatesBalanceAndOwnership() = runTest {
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
-        val savesBeforeDuplicate = repository.saveCallCount
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
 
-        val duplicate = manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
-        assertTrue(duplicate is ProcessCommitResult.Rejected)
-        assertEquals(savesBeforeDuplicate, repository.saveCallCount)
-        assertEquals(1, session.players.size)
+        val purchase = manager.processCommand(session, GameCommand.PurchaseProperty("USR_01", "PRP_01"))
+        assertTrue(purchase is ProcessCommitResult.Committed)
+        val updated = (purchase as ProcessCommitResult.Committed).session
+        assertEquals("USR_01", updated.properties["PRP_01"]!!.ownerPlayerId)
+        assertEquals(1500 - 60, updated.players["USR_01"]!!.balance)
     }
 
     @Test
-    fun startGameRejectedWithOnePlayer() = runTest {
-        var session = (manager.createNewGame() as ProcessCommitResult.Committed).session
+    fun duplicatePurchaseRejectedWithoutExtraSave() = runTest {
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
-        val savesBeforeStart = repository.saveCallCount
-
-        val rejected = manager.processCommand(session, GameCommand.StartGame)
-        assertTrue(rejected is ProcessCommitResult.Rejected)
-        assertEquals(savesBeforeStart, repository.saveCallCount)
-        assertEquals(GameStatus.SETUP, session.status)
-    }
-
-    @Test
-    fun rejectedCommandDoesNotPersist() = runTest {
-        val session = AppTestSupport.newGame()
-        val owned = session.copy(
-            properties = session.properties + (
-                "PRP_07" to com.boardbanker.core.model.PropertyState("PRP_07", "USR_02", 1)
-                ),
-        )
-        store.commitGameResult(com.boardbanker.core.engine.GameResult(session = owned))
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.PurchaseProperty("USR_01", "PRP_07")) as ProcessCommitResult.Committed).session
+        val owned = session
         val savesBefore = repository.saveCallCount
-
         val rejected = manager.processCommand(
             owned,
             GameCommand.PurchaseProperty("USR_01", "PRP_07"),
@@ -124,16 +108,11 @@ class ActiveGameSessionManagerTest {
 
     @Test
     fun setupSessionSurvivesRestore() = runTest {
-        var session = (manager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
 
-        val restoredManager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        val restoredManager = AppTestSupport.sessionManager(repository)
         val load = restoredManager.restoreFromStorage()
         assertTrue(load is com.boardbanker.core.persistence.SavedGameLoadResult.Success)
         val restored = (load as com.boardbanker.core.persistence.SavedGameLoadResult.Success).session
@@ -145,18 +124,13 @@ class ActiveGameSessionManagerTest {
 
     @Test
     fun activeSessionSurvivesRestore() = runTest {
-        var session = (manager.createNewGame() as ProcessCommitResult.Committed).session
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
         session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
         val gameId = session.gameId
         session = (manager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
 
-        val restoredManager = ActiveGameSessionManager(
-            definitions = AppTestSupport.definitions,
-            committedStore = CommittedGameSessionStore(repository),
-            repository = repository,
-            engine = AppTestSupport.engine,
-        )
+        val restoredManager = AppTestSupport.sessionManager(repository)
         val load = restoredManager.restoreFromStorage()
         assertTrue(load is com.boardbanker.core.persistence.SavedGameLoadResult.Success)
         val restored = (load as com.boardbanker.core.persistence.SavedGameLoadResult.Success).session
@@ -167,9 +141,42 @@ class ActiveGameSessionManagerTest {
 
     @Test
     fun deleteCurrentGameClearsSavedSession() = runTest {
-        manager.createNewGame()
+        manager.createNewGame(EditionIds.UK)
         assertTrue(manager.hasResumableGame())
         manager.deleteCurrentGame()
         assertFalse(manager.hasResumableGame())
+    }
+
+    @Test
+    fun createNewGameWithIndiaPersistsIndiaEditionId() = runTest {
+        val indiaManager = AppTestSupport.sessionManager(repository)
+        val result = indiaManager.createNewGame(EditionIds.INDIA)
+        assertTrue(result is ProcessCommitResult.Committed)
+        val session = (result as ProcessCommitResult.Committed).session
+        assertEquals(EditionIds.INDIA, session.editionId)
+        assertEquals(EditionIds.INDIA, indiaManager.currentDefinitions().editionId)
+    }
+
+    @Test
+    fun restoreIndiaGameBindsIndiaDefinitions() = runTest {
+        val indiaManager = AppTestSupport.sessionManager(repository)
+        var session = (indiaManager.createNewGame(EditionIds.INDIA) as ProcessCommitResult.Committed).session
+        session = (
+            indiaManager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
+                as ProcessCommitResult.Committed
+            ).session
+        session = (
+            indiaManager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya"))
+                as ProcessCommitResult.Committed
+            ).session
+        session = (indiaManager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
+
+        val restoredManager = AppTestSupport.sessionManager(repository)
+        val load = restoredManager.restoreFromStorage()
+        assertTrue(load is com.boardbanker.core.persistence.SavedGameLoadResult.Success)
+        val restored = (load as com.boardbanker.core.persistence.SavedGameLoadResult.Success).session
+        assertEquals(EditionIds.INDIA, restored.editionId)
+        assertEquals(EditionIds.INDIA, restoredManager.currentDefinitions().editionId)
+        assertEquals("Cubbon Park", restoredManager.currentDefinitions().properties["PRP_01"]!!.name)
     }
 }

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "setup": {
+    "minimumPlayers": 2,
+    "maximumPlayers": 5,
+    "initialRentLevel": 1,
+    "duplicatePlayerCardAllowed": false
+  },
+  "rent": {
+    "maximumRentLevel": 6,
+    "minimumRentLevel": 1,
+    "jailedOwnerCannotCollectRent": true,
+    "jailedOwnerLandingDoesNotIncreaseRent": true,
+    "eventRentChangesAffectJailedOwnerProperties": true
+  },
+  "colourSets": {
+    "enabled": true,
+    "oneTimeOnly": true,
+    "singleOwnerBonus": 2,
+    "multiOwnerBonus": 1,
+    "clampAtMaximumRentLevel": true
+  },
+  "undo": {
+    "supported": true,
+    "undoDepth": 2,
+    "eligibleTransactionTypes": [
+      "RENT_PAYMENT",
+      "PROPERTY_PURCHASE",
+      "BANK_CREDIT",
+      "BANK_DEBIT",
+      "JAIL_STATUS_CHANGE",
+      "LOCATION_FEE"
+    ],
+    "ineligibleTransactionTypes": [
+      "EVENT_APPLIED"
+    ],
+    "blockedDuringDebtResolution": true
+  },
+  "jail": {
+    "exitByPaymentAtTurnStart": true,
+    "exitByDoublesMaxAttempts": 3,
+    "whileInJailCannotCollectRent": true,
+    "whileInJailCannotGainLandingRentIncreases": true,
+    "whileInJailCannotBidInAuction": true,
+    "totalGridlockJailPlayersRemain": true
+  },
+  "auction": {
+    "requiredForUnownedLanding": true,
+    "arbitraryBidAmountsAllowed": false,
+    "jailedPlayersCannotBid": true,
+    "timedAuctionSeconds": 30,
+    "lastBidBeforeTimerWins": true,
+    "winnerInitialRentLevel": 1,
+    "noBidsBehaviour": "CANCEL_REMAIN_UNOWNED"
+  },
+  "debt": {
+    "resolutionMode": "CASH_THEN_PROPERTY_TRANSFER",
+    "propertyValuation": "PURCHASE_PRICE",
+    "debtToPlayerTransferOwnership": true,
+    "debtToPlayerRetainRentLevel": true,
+    "debtToBankReturnToUnowned": true,
+    "debtToBankResetRentOnRepurchase": true,
+    "overpaymentReturnsChange": true,
+    "blocksUndo": true
+  },
+  "go": {
+    "normalDiceMovementCollectsGo": "COLLECT",
+    "eventMovementCollectsGo": "DO_NOT_COLLECT",
+    "locationMovementCollectsGo": "DO_NOT_COLLECT",
+    "goToJailMovementCollectsGo": "DO_NOT_COLLECT",
+    "threeDoublesJailMovementCollectsGo": "DO_NOT_COLLECT",
+    "suppressGoForTotalGridlock": true
+  },
+  "winner": {
+    "endCondition": "FIRST_PLAYER_BANKRUPT",
+    "winnerDetermination": "HIGHEST_TOTAL_WEALTH",
+    "wealthUsesRentLevel": false,
+    "tieBreaker": "HIGHEST_VALUE_OWNED_PROPERTY"
+  },
+  "eventEngine": {
+    "ownedPropertiesOnlyForRentChanges": true,
+    "incompleteActionBehaviour": "DO_NOTHING"
+  },
+  "temporaryEffects": {
+    "evt13RemainingUses": 2,
+    "evt13EffectType": "FORCE_LEVEL_1_RENT"
+  }
+}

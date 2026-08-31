@@ -130,3 +130,22 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.material3)
     androidTestImplementation(libs.androidx.lifecycle.runtime.compose)
 }
+
+val monopolyRoot = rootProject.projectDir.parentFile
+
+tasks.register<Exec>("syncCardFrontAssets") {
+    group = "build setup"
+    workingDir = monopolyRoot
+    commandLine("python", "tools/sync_android_card_images.py")
+}
+
+tasks.register<Exec>("validateCardFrontAssets") {
+    group = "verification"
+    dependsOn("syncCardFrontAssets")
+    workingDir = monopolyRoot
+    commandLine("python", "tools/validate_card_front_assets.py")
+}
+
+tasks.named("preBuild") {
+    dependsOn("validateCardFrontAssets")
+}

@@ -56,6 +56,19 @@ class ResumeGameViewModel(
                         "Unsupported save version ${result.found} (supported ${result.supported}).",
                     )
                 }
+                is SavedGameLoadResult.IncompatibleEditionVersion -> {
+                    _uiState.value = ResumeUiState.Error(result.userMessage())
+                }
+                is SavedGameLoadResult.MissingEdition -> {
+                    _uiState.value = ResumeUiState.Error(
+                        "Saved game edition '${result.editionId}' is not available: ${result.reason}",
+                    )
+                }
+                is SavedGameLoadResult.SessionValidationFailed -> {
+                    _uiState.value = ResumeUiState.Error(
+                        "Saved ${result.editionId} game failed validation: ${result.reason}",
+                    )
+                }
             }
         }
     }

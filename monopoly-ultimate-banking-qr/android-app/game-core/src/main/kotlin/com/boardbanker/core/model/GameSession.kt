@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GameSession(
     val gameId: String,
-    val editionId: String = EditionIds.DEFAULT,
+    val editionId: String,
+    val editionDefinitionVersion: Int = EditionIds.LEGACY_DEFINITION_VERSION,
     val status: GameStatus = GameStatus.SETUP,
     val players: Map<String, PlayerState> = emptyMap(),
     val properties: Map<String, PropertyState> = emptyMap(),
@@ -16,6 +17,7 @@ data class GameSession(
     val debtResolution: DebtResolutionState? = null,
     val auction: AuctionState? = null,
     val pendingEventChoice: PendingEventChoice? = null,
+    val pendingEventExecution: PendingEventExecution? = null,
     val winnerPlayerId: String? = null,
     val transactionCounter: Long = 0,
 ) {
@@ -27,6 +29,7 @@ data class GameSession(
         debtResolution = debtResolution,
         auction = auction,
         pendingEventChoice = pendingEventChoice,
+        pendingEventExecution = pendingEventExecution,
         status = status,
     )
 
@@ -38,6 +41,7 @@ data class GameSession(
         debtResolution = snapshot.debtResolution,
         auction = snapshot.auction,
         pendingEventChoice = snapshot.pendingEventChoice,
+        pendingEventExecution = snapshot.pendingEventExecution,
         status = snapshot.status,
         undoSnapshot = null,
     )

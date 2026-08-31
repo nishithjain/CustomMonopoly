@@ -22,6 +22,7 @@ sealed class PlayerDetailsStep {
 }
 
 data class PlayerDetailsUiState(
+    val editionId: String = "",
     val playerId: String = "",
     val playerName: String = "",
     val tokenName: String = "",

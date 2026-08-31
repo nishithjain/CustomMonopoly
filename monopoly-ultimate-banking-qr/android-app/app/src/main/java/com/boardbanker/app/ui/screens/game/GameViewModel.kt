@@ -99,6 +99,7 @@ class GameViewModel(
             } else {
                 transientWorkflow.resetToReady()
                 updateFromSession(session)
+                handleWorkflowActions(workflowController.restoreWorkflowFromSession(session))
                 resumeLocationWorkflowIfPending()
             }
         }
@@ -120,6 +121,7 @@ class GameViewModel(
 
     fun onBankActionsRequested() {
         if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
+        if (workflowController.hasMandatoryEventActionPending()) return
         _events.tryEmit(GameEvent.NavigateToBanking)
     }
 
@@ -130,6 +132,7 @@ class GameViewModel(
 
     fun onScanCardRequested() {
         if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
+        if (workflowController.hasMandatoryEventActionPending()) return
         val request = ScanRequest.gameCard()
         _uiState.update { it.withScanRequest(request) }
         transientWorkflow.resetToReady()
@@ -349,7 +352,22 @@ class GameViewModel(
                 transientWorkflow.enterLocationWaitingForDestination()
                 _uiState.update { it.withScanRequest(ScanRequest.property()) }
             }
+            is GameplayWorkflowState.EventCollectingTargets -> {
+                val step = state.plan.steps.getOrNull(state.stepIndex)
+                val overlay = com.boardbanker.app.gameplay.workflow.EventWorkflowPlanner.scanPrompt(step)
+                _uiState.update { it.copy(scanPrompt = overlay) }
+            }
             else -> Unit
+        }
+    }
+
+    private fun handlePendingEventExecution(session: GameSession, result: GameResult) {
+        if (session.pendingEventChoice != null) return
+        if (session.pendingEventExecution != null) {
+            handleWorkflowActions(workflowController.resumePendingEventExecution(session))
+        } else if (result.outcome != GameOutcome.PENDING_ACTION) {
+            workflowController.reset()
+            _uiState.update { it.copy(workflowState = workflowController.currentState()) }
         }
     }
 
@@ -390,9 +408,10 @@ class GameViewModel(
                                 CommitAudioTrigger.GameWorkflow(request.context),
                             )
                             val resultUi = mapCommittedResult(commit.result, request.context, sessionBefore)
-                            workflowController.onCommandSucceeded(request.context)
+                            workflowController.onCommandSucceeded(request.context, commit.session)
                             transientWorkflow.resetToReady()
                             handlePendingEventChoice(commit.result)
+                            handlePendingEventExecution(commit.session, commit.result)
                             updateFromSession(commit.session)
                             _uiState.update {
                                 it.copy(
@@ -474,6 +493,7 @@ class GameViewModel(
         _uiState.update {
             it.copy(
                 loading = false,
+                editionId = session.editionId,
                 status = session.status,
                 players = ActiveGamePresentation.buildPlayerDashboard(session, definitions),
                 activeEventMessage = activeEvent,

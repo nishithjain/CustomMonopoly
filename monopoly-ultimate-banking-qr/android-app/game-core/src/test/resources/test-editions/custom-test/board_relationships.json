@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "colorGroups": {
+    "CUSTOM_A": [
+      "CTP_01",
+      "CTP_02",
+      "CTP_03",
+      "CTP_04",
+      "CTP_05",
+      "CTP_06"
+    ],
+    "CUSTOM_B": [
+      "CTP_07",
+      "CTP_08",
+      "CTP_09",
+      "CTP_10",
+      "CTP_11",
+      "CTP_12"
+    ],
+    "CUSTOM_C": [
+      "CTP_13",
+      "CTP_14",
+      "CTP_15",
+      "CTP_16",
+      "CTP_17",
+      "CTP_18"
+    ],
+    "CUSTOM_D": [
+      "CTP_19",
+      "CTP_20",
+      "CTP_21",
+      "CTP_22",
+      "CTP_23",
+      "CTP_24"
+    ]
+  },
+  "neighbours": {
+    "status": "RESOLVED",
+    "definition": "Custom test circular chain.",
+    "ownedOnlyForEventEffects": true,
+    "mappings": {
+      "CTP_01": [
+        "CTP_24",
+        "CTP_02"
+      ],
+      "CTP_02": [
+        "CTP_01",
+        "CTP_03"
+      ],
+      "CTP_03": [
+        "CTP_02",
+        "CTP_04"
+      ],
+      "CTP_04": [
+        "CTP_03",
+        "CTP_05"
+      ],
+      "CTP_05": [
+        "CTP_04",
+        "CTP_06"
+      ],
+      "CTP_06": [
+        "CTP_05",
+        "CTP_07"
+      ],
+      "CTP_07": [
+        "CTP_06",
+        "CTP_08"
+      ],
+      "CTP_08": [
+        "CTP_07",
+        "CTP_09"
+      ],
+      "CTP_09": [
+        "CTP_08",
+        "CTP_10"
+      ],
+      "CTP_10": [
+        "CTP_09",
+        "CTP_11"
+      ],
+      "CTP_11": [
+        "CTP_10",
+        "CTP_12"
+      ],
+      "CTP_12": [
+        "CTP_11",
+        "CTP_13"
+      ],
+      "CTP_13": [
+        "CTP_12",
+        "CTP_14"
+      ],
+      "CTP_14": [
+        "CTP_13",
+        "CTP_15"
+      ],
+      "CTP_15": [
+        "CTP_14",
+        "CTP_16"
+      ],
+      "CTP_16": [
+        "CTP_15",
+        "CTP_17"
+      ],
+      "CTP_17": [
+        "CTP_16",
+        "CTP_18"
+      ],
+      "CTP_18": [
+        "CTP_17",
+        "CTP_19"
+      ],
+      "CTP_19": [
+        "CTP_18",
+        "CTP_20"
+      ],
+      "CTP_20": [
+        "CTP_19",
+        "CTP_21"
+      ],
+      "CTP_21": [
+        "CTP_20",
+        "CTP_22"
+      ],
+      "CTP_22": [
+        "CTP_21",
+        "CTP_23"
+      ],
+      "CTP_23": [
+        "CTP_22",
+        "CTP_24"
+      ],
+      "CTP_24": [
+        "CTP_23",
+        "CTP_01"
+      ]
+    }
+  },
+  "boardSides": {
+    "status": "RESOLVED",
+    "definition": "Custom test board sides.",
+    "mappings": {
+      "SIDE_A": [
+        "CTP_01",
+        "CTP_02",
+        "CTP_03",
+        "CTP_04",
+        "CTP_05",
+        "CTP_06"
+      ],
+      "SIDE_B": [
+        "CTP_07",
+        "CTP_08",
+        "CTP_09",
+        "CTP_10",
+        "CTP_11",
+        "CTP_12"
+      ],
+      "SIDE_C": [
+        "CTP_13",
+        "CTP_14",
+        "CTP_15",
+        "CTP_16",
+        "CTP_17",
+        "CTP_18"
+      ],
+      "SIDE_D": [
+        "CTP_19",
+        "CTP_20",
+        "CTP_21",
+        "CTP_22",
+        "CTP_23",
+        "CTP_24"
+      ]
+    },
+    "propertyToSide": {
+      "CTP_01": "SIDE_A",
+      "CTP_02": "SIDE_A",
+      "CTP_03": "SIDE_A",
+      "CTP_04": "SIDE_A",
+      "CTP_05": "SIDE_A",
+      "CTP_06": "SIDE_A",
+      "CTP_07": "SIDE_B",
+      "CTP_08": "SIDE_B",
+      "CTP_09": "SIDE_B",
+      "CTP_10": "SIDE_B",
+      "CTP_11": "SIDE_B",
+      "CTP_12": "SIDE_B",
+      "CTP_13": "SIDE_C",
+      "CTP_14": "SIDE_C",
+      "CTP_15": "SIDE_C",
+      "CTP_16": "SIDE_C",
+      "CTP_17": "SIDE_C",
+      "CTP_18": "SIDE_C",
+      "CTP_19": "SIDE_D",
+      "CTP_20": "SIDE_D",
+      "CTP_21": "SIDE_D",
+      "CTP_22": "SIDE_D",
+      "CTP_23": "SIDE_D",
+      "CTP_24": "SIDE_D"
+    }
+  }
+}
