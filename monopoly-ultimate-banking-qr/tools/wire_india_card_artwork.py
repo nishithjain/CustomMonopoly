@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wire CustomCardGenerators India PNG output into Resources/Editions/india paths."""
+"""Wire monopoly-edition-generator India PNG output into Resources/Editions/india paths."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 def find_workspace_root(tools_dir: Path) -> Path:
     for candidate in [tools_dir.parent.parent, tools_dir.parent.parent.parent]:
         resources = candidate / "Resources"
-        generators = candidate / "CustomCardGenerators"
+        generators = candidate / "monopoly-edition-generator"
         if resources.is_dir() and generators.is_dir():
             return candidate
     raise FileNotFoundError("Could not locate workspace root")
@@ -40,7 +40,7 @@ def main() -> int:
     tools_dir = Path(__file__).resolve().parent
     workspace_root = find_workspace_root(tools_dir)
     project_root = workspace_root / "monopoly-ultimate-banking-qr"
-    output_dir = workspace_root / "CustomCardGenerators" / "output" / "india"
+    output_dir = workspace_root / "monopoly-edition-generator" / "output" / "india"
     resources_root = workspace_root / "Resources" / "Editions" / "india"
     edition_path = project_root / "data" / "editions" / "india" / "edition.json"
     properties_path = project_root / "data" / "editions" / "india" / "properties.json"

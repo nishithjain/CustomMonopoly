@@ -62,8 +62,8 @@ signing.properties
 !.vscode/tasks.json
 
 # Generated card/board output
-CustomCardGenerators/output/**
-!CustomCardGenerators/output/.gitkeep
+monopoly-edition-generator/output/**
+!monopoly-edition-generator/output/.gitkeep
 
 # Cursor local state
 .cursor/projects/

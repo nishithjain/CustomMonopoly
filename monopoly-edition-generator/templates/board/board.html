@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Board · 50cm × 50cm · Clockwise 32 spaces</title>
+    <style>
+        /* --- GLOBAL RESET & VARIABLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --board-size: 50cm;
+            --corner-size: 6.5cm;
+            --edge-depth: 6.5cm;
+            --border-width: 1px;
+            --normal-space-width: calc((var(--board-size) - (2 * var(--corner-size))) / 8);
+            --center-size: calc(var(--board-size) - (2 * var(--corner-size)));
+        }
+
+        body {
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        .board-preview {
+            width: 100%;
+            overflow: auto;
+            padding: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        #monopoly-board {
+            width: var(--board-size);
+            height: var(--board-size);
+            display: grid;
+            grid-template-columns: var(--corner-size) repeat(8, var(--normal-space-width)) var(--corner-size);
+            grid-template-rows: var(--corner-size) repeat(8, var(--normal-space-width)) var(--corner-size);
+            background: #fafaf7;
+            border: var(--border-width) solid #222;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .board-corner {
+            width: var(--corner-size);
+            height: var(--corner-size);
+            background: #f0ede8;
+            border: var(--border-width) solid #333;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== GO CORNER ===== */
+        .board-corner[data-corner-type="go"] {
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            background: #05080d;
+            border-color: #d8bd79;
+        }
+
+        .go-corner-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #05080d;
+        }
+
+        .go-corner-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .go-salary-text {
+            position: absolute;
+            z-index: 2;
+
+            /* Move text inward so the left vertical border line does not overlap it */
+            left: 1.72cm;
+            top: 1.55cm;
+            width: 2.45cm;
+
+            transform: translate(-50%, -50%) rotate(-45deg);
+            transform-origin: center center;
+
+            color: #f7e4a8;
+
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            font-size: 0.31cm;
+            font-weight: 700;
+            line-height: 0.98;
+            letter-spacing: 0.010cm;
+            text-align: center;
+            white-space: normal;
+
+            text-shadow:
+                0 0.03cm 0.06cm rgba(0,0,0,0.92),
+                0 0 0.03cm rgba(0,0,0,0.60);
+        }
+
+        .go-salary-text .line {
+            display: block;
+        }
+
+        .go-salary-amount {
+            color: #ffe18b;
+            font-weight: 700;
+        }
+
+        /* ===== DECORATIVE STATIC CORNERS ===== */
+        .corner-image-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #05080d;
+        }
+
+        .corner-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .board-space {
+            background: #fcfaf7;
+            border: var(--border-width) solid #3a3a3a;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+        }
+
+        .space-content {
+            position: absolute;
+            width: var(--normal-space-width);
+            height: var(--edge-depth);
+            left: 50%;
+            top: 50%;
+            transform-origin: center center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .side-bottom .space-content {
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+        .side-left .space-content {
+            transform: translate(-50%, -50%) rotate(90deg);
+        }
+        .side-top .space-content {
+            transform: translate(-50%, -50%) rotate(180deg);
+        }
+        .side-right .space-content {
+            transform: translate(-50%, -50%) rotate(270deg);
+        }
+
+        .property-space { background: #f5f1e6; }
+        .event-space { background: transparent; }
+        .location-space { background: transparent; }
+
+        /* ===== EVENT & LOCATION TILES (4.625 cm × 6.5 cm artwork) ===== */
+        .board-event-tile,
+        .board-location-tile {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .board-event-image,
+        .board-location-image {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* ===== POLISHED PROPERTY TILE ===== */
+        .board-property-tile {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+
+            /* Classic board / deed-card feel */
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            color: var(--property-text, #fff4cf);
+
+            --property-dark: #7b3e20;
+            --property-light: #b66536;
+            --property-text: #fff4cf;
+
+            background:
+                linear-gradient(
+                    155deg,
+                    var(--property-light) 0%,
+                    var(--property-dark) 82%
+                );
+
+            border: 1px solid rgba(80, 55, 22, 0.72);
+
+            display: flex;
+            flex-direction: column;
+
+            box-shadow:
+                inset 0 0 0 0.45mm rgba(255,255,255,0.08),
+                inset 0 -1.2mm 2.4mm rgba(0,0,0,0.10);
+        }
+
+        /* Rent-level colour band */
+        .property-strip {
+            height: 1.15cm;
+            flex: 0 0 1.15cm;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    var(--property-light) 0%,
+                    var(--property-dark) 100%
+                );
+
+            border-bottom: 0.35mm solid rgba(70, 45, 18, 0.62);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0.10cm 0.14cm;
+
+            box-shadow:
+                inset 0 0.35mm 0 rgba(255,255,255,0.16),
+                inset 0 -0.35mm 0 rgba(0,0,0,0.12);
+        }
+
+        .level-track {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.04cm;
+        }
+
+        .level-diamond {
+            width: 0.50cm;
+            height: 0.50cm;
+
+            border: 0.45mm solid rgba(35, 25, 15, 0.72);
+            transform: rotate(45deg);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            background: rgba(255,255,255,0.10);
+
+            box-shadow:
+                inset 0 0 0 0.18mm rgba(255,255,255,0.10);
+        }
+
+        .level-diamond.active {
+            background: rgba(34, 24, 17, 0.76);
+            border-color: rgba(25, 18, 12, 0.92);
+        }
+
+        .level-diamond span {
+            transform: rotate(-45deg);
+
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            font-size: 0.23cm;
+            font-weight: 700;
+            line-height: 1;
+
+            color: #241b13;
+        }
+
+        .level-diamond.active span {
+            color: #fff1c6;
+        }
+
+        /* Main property information area */
+        .property-body {
+            flex: 1 1 auto;
+            min-height: 0;
+
+            /* Keep the property color group only in the top strip.
+               The main center/body of every property is black. */
+            background:
+                radial-gradient(
+                    circle at 50% 8%,
+                    rgba(255,255,255,0.06) 0%,
+                    rgba(255,255,255,0.02) 28%,
+                    transparent 58%
+                ),
+                linear-gradient(
+                    180deg,
+                    #171717 0%,
+                    #0d0d0d 58%,
+                    #050505 100%
+                );
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 0.30cm 0.18cm 0.30cm;
+
+            text-align: center;
+        }
+
+        /* Gold property number medallion */
+        .number-badge {
+            width: 1.20cm;
+            height: 1.20cm;
+            flex: 0 0 1.20cm;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                radial-gradient(
+                    circle at 32% 26%,
+                    #fff2a0 0%,
+                    #f3ce55 34%,
+                    #d6a52c 72%,
+                    #9c6915 100%
+                );
+
+            border: 0.05cm solid rgba(255, 226, 122, 0.90);
+
+            box-shadow:
+                0 0.05cm 0.10cm rgba(0,0,0,0.30),
+                inset 0 0.04cm 0.08cm rgba(255,255,255,0.48),
+                inset 0 -0.05cm 0.08cm rgba(95,55,5,0.18);
+
+            color: #24170c;
+
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            font-size: 0.68cm;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Property name */
+        .property-name {
+            margin-top: 0.24cm;
+
+            width: 100%;
+            max-width: 100%;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+            text-transform: uppercase;
+
+            color: var(--property-text);
+
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            font-size: 0.56cm;
+            font-weight: 700;
+            line-height: 0.96;
+            letter-spacing: 0.012cm;
+
+            text-shadow:
+                0 0.025cm 0.035cm rgba(0,0,0,0.16);
+
+            overflow: hidden;
+        }
+
+        .property-name .line {
+            display: block;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Long names scale down gently instead of becoming tiny */
+        .property-name.long-name {
+            font-size: 0.48cm;
+            line-height: 0.98;
+        }
+
+        .property-name.very-long-name {
+            font-size: 0.40cm;
+            line-height: 1.00;
+        }
+
+        /* Price kept visually close to the name */
+        .property-price {
+            margin-top: 0.52cm;
+            padding: 0.09cm 0.22cm 0.08cm;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: var(--property-text);
+
+            font-family: Cambria, "Times New Roman", Georgia, serif;
+            font-size: 0.56cm;
+            font-weight: 700;
+            line-height: 1;
+
+            letter-spacing: 0.012cm;
+
+            border-top: 0.22mm solid rgba(255,255,255,0.16);
+            border-bottom: 0.22mm solid rgba(0,0,0,0.12);
+            border-radius: 0.10cm;
+
+            background: rgba(30, 20, 12, 0.08);
+
+            text-shadow:
+                0 0.025cm 0.035cm rgba(0,0,0,0.14);
+        }
+
+        .property-price .currency {
+            margin-right: 0.04cm;
+        }
+
+        /* ===== INNER 37cm × 37cm CENTER ARTWORK ===== */
+        #board-center {
+            grid-column: 2 / 10;
+            grid-row: 2 / 10;
+
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+
+            background:
+                #080808
+                __INNER_BOX_IMAGE__
+                center center / cover
+                no-repeat;
+
+            /* The artwork already contains its own decorative border. */
+            border: 0;
+
+            overflow: hidden;
+            opacity: 1;
+            z-index: 0;
+
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        #board-center::after {
+            content: none;
+        }
+
+        @media print {
+            body { background: white; padding: 0; margin: 0; display: block; }
+            .board-preview { padding: 0; overflow: visible; display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh; }
+            #monopoly-board { box-shadow: none; border: 1px solid #000; width: var(--board-size); height: var(--board-size); page-break-inside: avoid; margin: 0 auto; }
+            .board-space, .board-corner, #board-center { border-color: #000 !important; background-color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+            .property-space { background: #f5f1e6 !important; }
+            .event-space { background: transparent !important; }
+            .location-space { background: transparent !important; }
+            .board-event-tile,
+            .board-location-tile,
+            .board-property-tile,
+            .go-corner-content,
+            .go-salary-text {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .board-corner[data-corner-type="go"] {
+                background-color: #05080d !important;
+            }
+            .print-note, .no-print { display: none !important; }
+        }
+
+        .print-note {
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            background: #f8f8f4;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            border: 1px solid #ccc;
+            color: #2e2e2e;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .print-note strong { font-weight: 600; }
+        @media print { .print-note { display: none !important; } }
+        @media screen and (max-width: 600px) { .print-note { font-size: 0.7rem; padding: 0.4rem 0.8rem; } }
+
+        .debug-label { display: none; }
+    </style>
+</head>
+<body>
+<div class="board-preview">
+    <div id="monopoly-board">
+        <div id="board-center"></div>
+    </div>
+</div>
+<div class="print-note">
+    ⚡ For correct physical dimensions, print using: <strong>Scale: 100% / Actual Size</strong> · Margins: <strong>None</strong>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        const DEBUG_MODE = false;
+        const DEBUG_LABELS = false;
+
+        // Updated by update_board_template.py from banking_values.json
+        const GO_DATA = {
+            salary: 20000,
+            currency: "₹"
+        };
+
+        // ========== 32 SPACES (8 per side) ==========
+        // Clockwise from GO (bottom-right):
+        // Bottom: right→left (seq 1-8)
+        // Left:   bottom→top (seq 9-16)
+        // Top:    left→right (seq 17-24)
+        // Right:  top→bottom (seq 25-32)
+        const boardSpaces = [
+            // --- BOTTOM (seq 1-8) movement: RIGHT → LEFT ---
+            { id: "space-01", sequence: 1, side: "bottom", type: "property", property: { number: 1, sequence: 1, name: ["CUBBON PARK"], colorGroup: "BROWN", purchasePrice: 6000, currency: "₹", activeRentLevel: 0, colors: { dark: "#7b3e20", light: "#b66536" } } },
+            { id: "space-02", sequence: 2, side: "bottom", type: "event" },
+            { id: "space-03", sequence: 3, side: "bottom", type: "property", property: { number: 2, sequence: 2, name: ["LODHI GARDEN"], colorGroup: "BROWN", purchasePrice: 6000, currency: "₹", activeRentLevel: 0, colors: { dark: "#7b3e20", light: "#b66536" } } },
+            { id: "space-04", sequence: 4, side: "bottom", type: "event" },
+            { id: "space-05", sequence: 5, side: "bottom", type: "property", property: { number: 3, sequence: 3, name: ["ROCK GARDEN"], colorGroup: "LIGHT_BLUE", purchasePrice: 10000, currency: "₹", activeRentLevel: 0, colors: { dark: "#4f91ad", light: "#8fc9df" } } },
+            { id: "space-06", sequence: 6, side: "bottom", type: "property", property: { number: 4, sequence: 4, name: ["MARINE DRIVE"], colorGroup: "LIGHT_BLUE", purchasePrice: 10000, currency: "₹", activeRentLevel: 0, colors: { dark: "#4f91ad", light: "#8fc9df" } } },
+            { id: "space-07", sequence: 7, side: "bottom", type: "location", location: { fee: 10000, currency: "₹" } },
+            { id: "space-08", sequence: 8, side: "bottom", type: "property", property: { number: 5, sequence: 5, name: ["JUHU BEACH"], colorGroup: "LIGHT_BLUE", purchasePrice: 12000, currency: "₹", activeRentLevel: 0, colors: { dark: "#4f91ad", light: "#8fc9df" } } },
+
+            // --- LEFT (seq 9-16) movement: BOTTOM → TOP ---
+            { id: "space-09", sequence: 9, side: "left", type: "property", property: { number: 6, sequence: 6, name: ["HAWA MAHAL"], colorGroup: "PINK", purchasePrice: 14000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a92f70", light: "#df66a1" } } },
+            { id: "space-10", sequence: 10, side: "left", type: "event" },
+            { id: "space-11", sequence: 11, side: "left", type: "property", property: { number: 7, sequence: 7, name: ["VICTORIA", "MEMORIAL"], colorGroup: "PINK", purchasePrice: 14000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a92f70", light: "#df66a1" } } },
+            { id: "space-12", sequence: 12, side: "left", type: "property", property: { number: 8, sequence: 8, name: ["INDIA GATE"], colorGroup: "PINK", purchasePrice: 16000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a92f70", light: "#df66a1" } } },
+            { id: "space-13", sequence: 13, side: "left", type: "property", property: { number: 9, sequence: 9, name: ["GATEWAY", "OF INDIA"], colorGroup: "ORANGE", purchasePrice: 18000, currency: "₹", activeRentLevel: 0, colors: { dark: "#c25a2a", light: "#e88a5a" } } },
+            { id: "space-14", sequence: 14, side: "left", type: "property", property: { number: 10, sequence: 10, name: ["MYSORE", "PALACE"], colorGroup: "ORANGE", purchasePrice: 18000, currency: "₹", activeRentLevel: 0, colors: { dark: "#c25a2a", light: "#e88a5a" } } },
+            { id: "space-15", sequence: 15, side: "left", type: "location", location: { fee: 10000, currency: "₹" } },
+            { id: "space-16", sequence: 16, side: "left", type: "property", property: { number: 11, sequence: 11, name: ["RED FORT"], colorGroup: "ORANGE", purchasePrice: 20000, currency: "₹", activeRentLevel: 0, colors: { dark: "#c25a2a", light: "#e88a5a" } } },
+
+            // --- TOP (seq 17-24) movement: LEFT → RIGHT ---
+            { id: "space-17", sequence: 17, side: "top", type: "property", property: { number: 12, sequence: 12, name: ["QUTUB MINAR"], colorGroup: "RED", purchasePrice: 22000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a52d2d", light: "#dc5b5b" } } },
+            { id: "space-18", sequence: 18, side: "top", type: "event" },
+            { id: "space-19", sequence: 19, side: "top", type: "property", property: { number: 13, sequence: 13, name: ["AMER FORT"], colorGroup: "RED", purchasePrice: 22000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a52d2d", light: "#dc5b5b" } } },
+            { id: "space-20", sequence: 20, side: "top", type: "property", property: { number: 14, sequence: 14, name: ["MEHRANGARH", "FORT"], colorGroup: "RED", purchasePrice: 24000, currency: "₹", activeRentLevel: 0, colors: { dark: "#a52d2d", light: "#dc5b5b" } } },
+            { id: "space-21", sequence: 21, side: "top", type: "property", property: { number: 15, sequence: 15, name: ["JAISALMER", "FORT"], colorGroup: "YELLOW", purchasePrice: 26000, currency: "₹", activeRentLevel: 0, colors: { dark: "#b89600", light: "#e3c93e" } } },
+            { id: "space-22", sequence: 22, side: "top", type: "property", property: { number: 16, sequence: 16, name: ["LAKE PICHOLA"], colorGroup: "YELLOW", purchasePrice: 26000, currency: "₹", activeRentLevel: 0, colors: { dark: "#b89600", light: "#e3c93e" } } },
+            { id: "space-23", sequence: 23, side: "top", type: "location", location: { fee: 10000, currency: "₹" } },
+            { id: "space-24", sequence: 24, side: "top", type: "property", property: { number: 17, sequence: 17, name: ["DAL LAKE"], colorGroup: "YELLOW", purchasePrice: 28000, currency: "₹", activeRentLevel: 0, colors: { dark: "#b89600", light: "#e3c93e" } } },
+
+            // --- RIGHT (seq 25-32) movement: TOP → BOTTOM ---
+            { id: "space-25", sequence: 25, side: "right", type: "property", property: { number: 18, sequence: 18, name: ["KERALA", "BACKWATERS"], colorGroup: "GREEN", purchasePrice: 30000, currency: "₹", activeRentLevel: 0, colors: { dark: "#237547", light: "#55aa73" } } },
+            { id: "space-26", sequence: 26, side: "right", type: "event" },
+            { id: "space-27", sequence: 27, side: "right", type: "property", property: { number: 19, sequence: 19, name: ["RANN OF", "KUTCH"], colorGroup: "GREEN", purchasePrice: 30000, currency: "₹", activeRentLevel: 0, colors: { dark: "#237547", light: "#55aa73" } } },
+            { id: "space-28", sequence: 28, side: "right", type: "property", property: { number: 20, sequence: 20, name: ["GOA BEACHES"], colorGroup: "GREEN", purchasePrice: 32000, currency: "₹", activeRentLevel: 0, colors: { dark: "#237547", light: "#55aa73" } } },
+            { id: "space-29", sequence: 29, side: "right", type: "event" },
+            { id: "space-30", sequence: 30, side: "right", type: "property", property: { number: 21, sequence: 21, name: ["UNITY ROAD"], colorGroup: "DARK_BLUE", purchasePrice: 35000, currency: "₹", activeRentLevel: 0, colors: { dark: "#244c92", light: "#4f78c8" } } },
+            { id: "space-31", sequence: 31, side: "right", type: "location", location: { fee: 10000, currency: "₹" } },
+            { id: "space-32", sequence: 32, side: "right", type: "property", property: { number: 22, sequence: 22, name: ["TAJ MOHALLA"], colorGroup: "DARK_BLUE", purchasePrice: 40000, currency: "₹", activeRentLevel: 0, colors: { dark: "#244c92", light: "#4f78c8" } } }
+        ];
+
+        // ========== VALIDATION ==========
+        function validateBoardConfiguration(spaces) {
+            const errors = [];
+            if (!Array.isArray(spaces)) {
+                errors.push("boardSpaces must be an array.");
+                return errors;
+            }
+            if (spaces.length !== 32) {
+                errors.push(`Expected 32 spaces, but got ${spaces.length}.`);
+            }
+
+            const idSet = new Set();
+            const seqSet = new Set();
+            const sideCount = { bottom: 0, left: 0, top: 0, right: 0 };
+            const typeCount = { property: 0, event: 0, location: 0 };
+            const propNumbers = new Set();
+            const validSides = ['bottom','left','top','right'];
+            const validTypes = ['property','event','location'];
+
+            spaces.forEach((s, idx) => {
+                if (!s.id) errors.push(`Space at index ${idx} missing 'id'`);
+                else if (idSet.has(s.id)) errors.push(`Duplicate id '${s.id}'`);
+                else idSet.add(s.id);
+
+                if (s.sequence === undefined || s.sequence === null) {
+                    errors.push(`Space '${s.id || idx}' missing 'sequence'`);
+                } else {
+                    if (typeof s.sequence !== 'number' || s.sequence < 1 || s.sequence > 32) {
+                        errors.push(`Space '${s.id}' sequence ${s.sequence} not in 1–32`);
+                    }
+                    if (seqSet.has(s.sequence)) errors.push(`Duplicate sequence ${s.sequence}`);
+                    else seqSet.add(s.sequence);
+                }
+
+                if (!s.side) errors.push(`Space '${s.id}' missing 'side'`);
+                else if (!validSides.includes(s.side)) {
+                    errors.push(`Space '${s.id}' has invalid side '${s.side}'`);
+                } else {
+                    sideCount[s.side] = (sideCount[s.side] || 0) + 1;
+                }
+
+                if (!s.type) errors.push(`Space '${s.id}' missing 'type'`);
+                else if (!validTypes.includes(s.type)) {
+                    errors.push(`Space '${s.id}' has unknown type '${s.type}' (valid: ${validTypes.join(',')})`);
+                } else {
+                    typeCount[s.type] = (typeCount[s.type] || 0) + 1;
+                }
+
+                if (s.type === 'property') {
+                    const p = s.property;
+                    if (!p) errors.push(`Property space '${s.id}' missing 'property' object`);
+                    else {
+                        if (p.number === undefined) errors.push(`Property '${s.id}' missing property.number`);
+                        else if (p.number < 1 || p.number > 22) errors.push(`Property '${s.id}' number ${p.number} out of range 1-22`);
+                        else if (propNumbers.has(p.number)) errors.push(`Duplicate property number ${p.number}`);
+                        else propNumbers.add(p.number);
+                        if (!p.name || !Array.isArray(p.name) || p.name.length === 0) {
+                            errors.push(`Property '${s.id}' property.name must be a non-empty array`);
+                        }
+                        if (p.purchasePrice === undefined) errors.push(`Property '${s.id}' missing property.purchasePrice`);
+                        if (!p.currency) errors.push(`Property '${s.id}' missing property.currency`);
+                        if (!p.colors || !p.colors.dark || !p.colors.light) {
+                            errors.push(`Property '${s.id}' missing colors.dark or colors.light`);
+                        }
+                    }
+                }
+
+                if (s.type === 'location') {
+                    const loc = s.location;
+                    if (!loc) {
+                        errors.push(`Location space '${s.id}' missing 'location' object`);
+                    } else {
+                        if (loc.fee === undefined) {
+                            errors.push(`Location '${s.id}' missing location.fee`);
+                        }
+                        if (!loc.currency) {
+                            errors.push(`Location '${s.id}' missing location.currency`);
+                        }
+                    }
+                }
+            });
+
+            for (const side of validSides) {
+                if (sideCount[side] !== 8) {
+                    errors.push(`Side '${side}' has ${sideCount[side] || 0} spaces, expected 8.`);
+                }
+            }
+
+            if (typeCount.property !== 22) errors.push(`Expected 22 properties, got ${typeCount.property}`);
+            if (typeCount.event !== 6) errors.push(`Expected 6 events, got ${typeCount.event}`);
+            if (typeCount.location !== 4) errors.push(`Expected 4 locations, got ${typeCount.location}`);
+
+            for (let i = 1; i <= 22; i++) {
+                if (!propNumbers.has(i)) errors.push(`Missing property number ${i}`);
+            }
+
+            const first = spaces.find(s => s.sequence === 1);
+            if (first) {
+                if (first.type !== 'property' || first.property?.number !== 1) errors.push("Sequence 1 must be Property #1");
+                if (first.side !== 'bottom') errors.push("Sequence 1 must be on bottom side");
+            }
+            const last = spaces.find(s => s.sequence === 32);
+            if (last) {
+                if (last.type !== 'property' || last.property?.number !== 22) errors.push("Sequence 32 must be Property #22");
+                if (last.side !== 'right') errors.push("Sequence 32 must be on right side");
+            }
+
+            return errors;
+        }
+
+        // ========== PROPERTY RENDER HELPERS ==========
+        function renderRentLevels(activeLevel) {
+            let html = '';
+            for (let level = 1; level <= 5; level++) {
+                const active = level === activeLevel ? 'active' : '';
+                html += `<div class="level-diamond ${active}"><span>${level}</span></div>`;
+            }
+            return html;
+        }
+
+        function renderPropertyName(lines) {
+            const totalLen = lines.join('').length;
+            let className = 'property-name';
+            if (totalLen > 20) className += ' very-long-name';
+            else if (totalLen > 12) className += ' long-name';
+            const inner = lines.map(line => `<span class="line">${line}</span>`).join('');
+            return `<div class="${className}">${inner}</div>`;
+        }
+
+        function renderPropertyTile(space) {
+            const prop = space.property;
+            const tile = document.createElement('div');
+            tile.className = 'board-property-tile';
+            tile.style.setProperty('--property-dark', prop.colors.dark);
+            tile.style.setProperty('--property-light', prop.colors.light);
+
+            // Property body is black for all color groups, so use cream text consistently.
+            tile.style.setProperty('--property-text', '#fff4cf');
+
+            tile.innerHTML = `
+                <div class="property-strip">
+                    <div class="level-track">
+                        ${renderRentLevels(prop.activeRentLevel || 0)}
+                    </div>
+                </div>
+                <div class="property-body">
+                    <div class="number-badge">${prop.number}</div>
+                    ${renderPropertyName(prop.name)}
+                    <div class="property-price">
+                        <span class="currency">${prop.currency}</span>
+                        <span>${prop.purchasePrice}</span>
+                    </div>
+                </div>
+            `;
+            return tile;
+        }
+
+
+        function renderGoCorner(corner) {
+            if (!corner) return;
+
+            corner.innerHTML = '';
+
+            const content = document.createElement('div');
+            content.className = 'go-corner-content';
+
+            content.innerHTML = `
+                <img
+                    class="go-corner-image"
+                    src="../../assets/board-spaces/go.png"
+                    alt="GO"
+                />
+
+                <div class="go-salary-text">
+                    <span class="line">COLLECT</span>
+                    <span class="line go-salary-amount">${GO_DATA.currency}${GO_DATA.salary}</span>
+                    <span class="line">SALARY</span>
+                    <span class="line">AS YOU PASS</span>
+                </div>
+            `;
+
+            corner.appendChild(content);
+        }
+
+
+        function renderStaticCorner(corner, imageFile, altText, cornerType) {
+            if (!corner) return;
+
+            corner.dataset.cornerType = cornerType || '';
+            corner.innerHTML = '';
+
+            const content = document.createElement('div');
+            content.className = 'corner-image-content';
+
+            content.innerHTML = `
+                <img
+                    class="corner-image"
+                    src="${imageFile}"
+                    alt="${altText}"
+                />
+            `;
+
+            corner.appendChild(content);
+        }
+
+
+        function renderEventTile() {
+            const tile = document.createElement('div');
+            tile.className = 'board-event-tile';
+
+            tile.innerHTML = `
+                <img
+                    class="board-event-image"
+                    src="../../assets/board-spaces/event-space.png"
+                    alt="Event"
+                />
+            `;
+
+            return tile;
+        }
+
+
+        function renderLocationTile(_space) {
+            const tile = document.createElement('div');
+            tile.className = 'board-location-tile';
+
+            tile.innerHTML = `
+                <img
+                    class="board-location-image"
+                    src="../../assets/board-spaces/location-space.png"
+                    alt="Location"
+                />
+            `;
+
+            return tile;
+        }
+
+        // ========== RENDER ENGINE ==========
+        function renderBoard(spaces) {
+            const board = document.getElementById('monopoly-board');
+            if (!board) return;
+
+            // Remove existing dynamic spaces
+            const toRemove = [];
+            for (const child of board.children) {
+                if (child.classList && child.classList.contains('board-space')) {
+                    toRemove.push(child);
+                }
+            }
+            toRemove.forEach(el => el.remove());
+
+            // Ensure corners exist
+            const cornerIds = ['corner-1','corner-2','corner-3','corner-4'];
+            for (const cid of cornerIds) {
+                let el = document.getElementById(cid);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = cid;
+                    el.className = 'board-corner';
+                    board.appendChild(el);
+                }
+            }
+
+            // 10x10 grid: corners at (0,0), (9,0), (9,9), (0,9)
+            const cornerMap = {
+                'corner-1': { col: 0, row: 0 },
+                'corner-2': { col: 9, row: 0 },
+                'corner-3': { col: 9, row: 9 },
+                'corner-4': { col: 0, row: 9 }
+            };
+
+            const topLeftCorner = document.getElementById('corner-1');
+            if (topLeftCorner) {
+                renderStaticCorner(
+                    topLeftCorner,
+                    '../../assets/board-spaces/free-parking.png',
+                    'Free Parking',
+                    'parking'
+                );
+            }
+
+            const topRightCorner = document.getElementById('corner-2');
+            if (topRightCorner) {
+                renderStaticCorner(
+                    topRightCorner,
+                    '../../assets/board-spaces/go-to-jail.png',
+                    'Go To Jail',
+                    'go-to-jail'
+                );
+            }
+
+            const goCorner = document.getElementById('corner-3');
+            if (goCorner) {
+                goCorner.dataset.cornerType = 'go';
+                renderGoCorner(goCorner);
+            }
+
+            const bottomLeftCorner = document.getElementById('corner-4');
+            if (bottomLeftCorner) {
+                renderStaticCorner(
+                    bottomLeftCorner,
+                    '../../assets/board-spaces/jail.png',
+                    'Jail / Just Visiting',
+                    'jail'
+                );
+            }
+
+            const center = document.getElementById('board-center');
+            if (center) {
+                center.style.gridColumn = '2 / 10';
+                center.style.gridRow = '2 / 10';
+            }
+
+            for (const cid of cornerIds) {
+                const el = document.getElementById(cid);
+                if (el && cornerMap[cid]) {
+                    el.style.gridColumn = cornerMap[cid].col + 1;
+                    el.style.gridRow = cornerMap[cid].row + 1;
+                }
+            }
+
+            // Create space elements
+            spaces.forEach(space => {
+                const div = document.createElement('div');
+                div.id = space.id;
+                div.className = `board-space ${space.type}-space side-${space.side}`;
+                div.dataset.type = space.type;
+                div.dataset.side = space.side;
+                div.dataset.sequence = space.sequence;
+
+                const content = document.createElement('div');
+                content.className = 'space-content';
+
+                if (space.type === 'property') {
+                    const tile = renderPropertyTile(space);
+                    content.appendChild(tile);
+                } else if (space.type === 'event') {
+                    const tile = renderEventTile();
+                    content.appendChild(tile);
+                } else if (space.type === 'location') {
+                    const tile = renderLocationTile(space);
+                    content.appendChild(tile);
+                }
+
+                if (DEBUG_MODE) {
+                    const debugDiv = document.createElement('div');
+                    debugDiv.className = 'debug-label';
+                    let labelText = '';
+                    if (DEBUG_LABELS) {
+                        const typeShort = space.type.charAt(0).toUpperCase();
+                        labelText = `${typeShort}\n`;
+                    }
+                    labelText += `${space.id}\n#${space.sequence}\n${space.type}`;
+                    debugDiv.textContent = labelText;
+                    content.appendChild(debugDiv);
+                }
+
+                div.appendChild(content);
+
+                // ---- GRID POSITIONING ----
+                let col = 0, row = 0;
+                const seq = space.sequence;
+
+                if (space.side === 'bottom') {
+                    const index = seq - 1;
+                    col = 8 - index;
+                    row = 9;
+                } else if (space.side === 'left') {
+                    const index = seq - 9;
+                    col = 0;
+                    row = 8 - index;
+                } else if (space.side === 'top') {
+                    const index = seq - 17;
+                    col = 1 + index;
+                    row = 0;
+                } else if (space.side === 'right') {
+                    const index = seq - 25;
+                    col = 9;
+                    row = 1 + index;
+                }
+
+                div.style.gridColumn = col + 1;
+                div.style.gridRow = row + 1;
+
+                board.appendChild(div);
+            });
+
+            const centerEl = document.getElementById('board-center');
+            if (centerEl) {
+                centerEl.style.zIndex = '0';
+            }
+        }
+
+        // ========== BOOT ==========
+        const errors = validateBoardConfiguration(boardSpaces);
+        if (errors.length > 0) {
+            console.error('❌ Board configuration invalid:');
+            errors.forEach(e => console.error('  •', e));
+        } else {
+            console.log('✅ Board configuration valid.');
+        }
+
+        renderBoard(boardSpaces);
+
+        // Log verification
+        const propCount = boardSpaces.filter(s => s.type === 'property').length;
+        const eventCount = boardSpaces.filter(s => s.type === 'event').length;
+        const locCount = boardSpaces.filter(s => s.type === 'location').length;
+        console.log('Board path validated:', {
+            normalSpaces: 32,
+            properties: propCount,
+            events: eventCount,
+            locations: locCount,
+            direction: 'clockwise',
+            firstProperty: boardSpaces.find(s => s.sequence === 1)?.property?.number || '?',
+            lastProperty: boardSpaces.find(s => s.sequence === 32)?.property?.number || '?'
+        });
+        console.log('🏁 Board rendered. Dimensions:', {
+            board: '50cm × 50cm',
+            corner: '6.5cm × 6.5cm',
+            normalWidth: '4.625cm',
+            center: '37cm × 37cm'
+        });
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Printer - Automatic Orientation</title>
+    <style>
+        /* =========================================================
+           GENERAL
+        ========================================================= */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #e9e9e9;
+            color: #222;
+        }
+        /* =========================================================
+           TOOLBAR
+        ========================================================= */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #222;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 9px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            background: #1976d2;
+        }
+        button:hover { opacity: 0.85; }
+        .btn-green { background: #2e7d32; }
+        .btn-gray { background: #555; }
+        .btn-red { background: #c62828; }
+        .orientation-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            background: #333;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+        }
+        .orientation-toggle input {
+            width: 17px;
+            height: 17px;
+            margin: 0;
+            cursor: pointer;
+        }
+        #status { margin-left: auto; font-size: 13px; }
+        /* =========================================================
+           MAIN
+        ========================================================= */
+        .main { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        /* =========================================================
+           INFORMATION PANEL
+        ========================================================= */
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .panel h2 { margin-top: 0; }
+        .help { color: #555; font-size: 14px; line-height: 1.6; }
+        /* =========================================================
+           FILE TABLE
+        ========================================================= */
+        .file-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        .file-table th {
+            background: #333;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        .file-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        .file-table tr:hover { background: #f5f5f5; }
+        .number-cell {
+            width: 60px;
+            font-weight: bold;
+            text-align: center;
+        }
+        /* =========================================================
+           IMAGE / FILENAME CELL
+        ========================================================= */
+        .file-cell {
+            display: flex;
+            align-items: center;
+            min-width: 330px;
+        }
+        .thumb {
+            width: 100px;
+            height: 60px;
+            object-fit: contain;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .filename-container { min-width: 0; }
+        .filename {
+            font-size: 13px;
+            word-break: break-all;
+            display: block;
+        }
+        .file-type {
+            font-size: 11px;
+            color: #777;
+            margin-top: 3px;
+            display: block;
+        }
+        /* =========================================================
+           STATUS
+        ========================================================= */
+        .status-ok { color: #2e7d32; font-weight: bold; }
+        /* =========================================================
+           REMOVE BUTTON
+        ========================================================= */
+        .remove-btn { background: #c62828; padding: 5px 9px; font-size: 12px; }
+        /* =========================================================
+           EMPTY MESSAGE
+        ========================================================= */
+        .empty-message { padding: 30px; text-align: center; color: #777; }
+        /* =========================================================
+           PREVIEW
+        ========================================================= */
+        #preview {
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sheet {
+            width: 210mm;
+            height: 297mm;
+            box-sizing: border-box;
+            background: white;
+            margin: 0 auto 30px auto;
+            display: grid;
+            overflow: hidden;
+            page-break-after: always;
+            break-after: page;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+            flex-shrink: 0;
+        }
+        .sheet:last-child {
+            page-break-after: auto;
+            break-after: auto;
+        }
+        .card {
+            min-width: 0;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+        .image-frame {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .image-frame img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            transform-origin: center;
+        }
+        .cut-line {
+            position: absolute;
+            inset: 0;
+            border: 0.25mm dashed #777;
+            pointer-events: none;
+        }
+        /* =========================================================
+           PRINT
+        ========================================================= */
+        @media print {
+            body { background: white; }
+            .toolbar,
+            .main > .panel,
+            .file-table-container { display: none !important; }
+            #preview { padding: 0; }
+            .sheet { margin: 0; box-shadow: none; }
+        }
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =======================================================
+     TOOLBAR
+======================================================= -->
+<div class="toolbar">
+    <button onclick="selectImages()">Load Images</button>
+    <button class="btn-green" onclick="generateSheets()">Generate Preview</button>
+    <button class="btn-gray" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-red" onclick="clearAll()">Clear All</button>
+    <label class="orientation-toggle">
+        <input id="orientationToggle" type="checkbox">
+        <span>Change orientation</span>
+    </label>
+    <span id="status">No images loaded</span>
+</div>
+
+<!-- =======================================================
+     FILE INPUTS
+======================================================= -->
+<input id="imageInput" type="file" accept="image/*" multiple style="display:none">
+
+<!-- =======================================================
+     MAIN
+======================================================= -->
+<div class="main">
+    <!-- INFORMATION -->
+    <div class="panel">
+        <h2>Card Printer</h2>
+        <div class="help">
+            <p>Images are loaded in <strong>lexicographic filename order</strong>.</p>
+            <p>Landscape images print at <strong>86 × 54 mm</strong>: 2 columns × 5 rows = 10 cards per A4 sheet.</p>
+            <p>Portrait images print at <strong>54 × 86 mm</strong>: 3 columns × 3 rows = 9 cards per A4 sheet.</p>
+            <p>JPG, JPEG, PNG, WEBP and other browser-supported image formats are supported.</p>
+            <p>The browser reads each image's pixel dimensions first and chooses the matching physical card orientation automatically.</p>
+            <p>Select <strong>Change orientation</strong> to rotate every image 90° and switch it to the opposite print layout.</p>
+            <p>If portrait and landscape images are mixed, their filename order is preserved and a new sheet starts when the orientation changes.</p>
+        </div>
+    </div>
+
+    <!-- FILE TABLE -->
+    <div class="file-table-container">
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th class="number-cell">#</th>
+                    <th>IMAGE</th>
+                    <th>PIXEL DIMENSIONS</th>
+                    <th>PRINT LAYOUT</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="fileTableBody">
+                <tr><td colspan="5" class="empty-message">Load images to see them here.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PRINT PREVIEW -->
+    <div id="preview"></div>
+</div>
+
+<script>
+    /* =========================================================
+       DATA
+    ========================================================= */
+    let imageItems = [];
+    let unreadableImageCount = 0;
+
+    const LAYOUTS = {
+        landscape: {
+            width: 86,
+            height: 54,
+            columns: 2,
+            rows: 5,
+            columnGap: 8,
+            rowGap: 3,
+            label: "86 × 54 mm (landscape)"
+        },
+        portrait: {
+            width: 54,
+            height: 86,
+            columns: 3,
+            rows: 3,
+            columnGap: 6,
+            rowGap: 6,
+            label: "54 × 86 mm (portrait)"
+        }
+    };
+
+    /* =========================================================
+       FILE SELECT
+    ========================================================= */
+    function selectImages() {
+        document.getElementById("imageInput").click();
+    }
+
+    /* =========================================================
+       READ IMAGE DIMENSIONS
+    ========================================================= */
+    function readImageDimensions(file) {
+        return new Promise(function(resolve, reject) {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+
+            img.onload = function() {
+                const orientation = img.naturalWidth >= img.naturalHeight
+                    ? "landscape"
+                    : "portrait";
+
+                resolve({
+                    file: file,
+                    url: url,
+                    pixelWidth: img.naturalWidth,
+                    pixelHeight: img.naturalHeight,
+                    orientation: orientation
+                });
+            };
+
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                reject(new Error("Could not read " + file.name));
+            };
+
+            img.src = url;
+        });
+    }
+
+    /* =========================================================
+       LOAD IMAGES
+    ========================================================= */
+    document.getElementById("imageInput").addEventListener("change", async function(event) {
+        const selectedFiles = Array.from(event.target.files);
+        if (!selectedFiles.length) return;
+
+        releaseImageURLs();
+        imageItems = [];
+        unreadableImageCount = 0;
+        document.getElementById("fileTableBody").innerHTML = `<tr><td colspan="5" class="empty-message">Reading image dimensions...</td></tr>`;
+        document.getElementById("preview").innerHTML = "";
+        document.getElementById("status").textContent = "Reading dimensions for " + selectedFiles.length + " image(s)...";
+
+        const results = await Promise.allSettled(selectedFiles.map(readImageDimensions));
+        imageItems = results
+            .filter(function(result) { return result.status === "fulfilled"; })
+            .map(function(result) { return result.value; })
+            .sort(compareImageItems);
+
+        unreadableImageCount = results.length - imageItems.length;
+        event.target.value = "";
+        updateEverything();
+    });
+
+    /* =========================================================
+       LEXICOGRAPHIC FILENAME SORT
+    ========================================================= */
+    function compareImageItems(a, b) {
+        const primary = a.file.name.localeCompare(
+            b.file.name,
+            undefined,
+            { numeric: false, sensitivity: "base" }
+        );
+        if (primary !== 0) return primary;
+
+        return a.file.name.localeCompare(
+            b.file.name,
+            undefined,
+            { numeric: false, sensitivity: "variant" }
+        );
+    }
+
+    /* =========================================================
+       EFFECTIVE ORIENTATION
+    ========================================================= */
+    function isOrientationChanged() {
+        return document.getElementById("orientationToggle").checked;
+    }
+
+    function getEffectiveOrientation(item) {
+        if (!isOrientationChanged()) return item.orientation;
+        return item.orientation === "landscape" ? "portrait" : "landscape";
+    }
+
+    /* =========================================================
+       GET FILE TYPE
+    ========================================================= */
+    function getFileType(file) {
+        if (!file) return "";
+        const name = file.name;
+        const dot = name.lastIndexOf(".");
+        if (dot !== -1) {
+            return name.substring(dot + 1).toUpperCase();
+        }
+        return file.type || "IMAGE";
+    }
+
+    /* =========================================================
+       UPDATE EVERYTHING
+    ========================================================= */
+    function updateEverything() {
+        updateStatus();
+        updateFileTable();
+        generateSheets();
+    }
+
+    /* =========================================================
+       UPDATE STATUS
+    ========================================================= */
+    function updateStatus() {
+        if (!imageItems.length) {
+            document.getElementById("status").textContent = unreadableImageCount
+                ? "No readable images | Skipped: " + unreadableImageCount
+                : "No images loaded";
+            return;
+        }
+
+        const landscapeCount = imageItems.filter(function(item) {
+            return getEffectiveOrientation(item) === "landscape";
+        }).length;
+        const portraitCount = imageItems.length - landscapeCount;
+        let status = "Images: " + imageItems.length
+            + " | Landscape: " + landscapeCount
+            + " | Portrait: " + portraitCount;
+        if (isOrientationChanged()) status += " | Orientation changed";
+        if (unreadableImageCount) status += " | Skipped: " + unreadableImageCount;
+        document.getElementById("status").textContent = status;
+    }
+
+    /* =========================================================
+       UPDATE FILE TABLE
+    ========================================================= */
+    function updateFileTable() {
+        const tbody = document.getElementById("fileTableBody");
+        tbody.innerHTML = "";
+
+        if (!imageItems.length) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-message">Load images to see them here.</td></tr>`;
+            return;
+        }
+
+        imageItems.forEach(function(item, index) {
+            const row = document.createElement("tr");
+
+            const numberCell = document.createElement("td");
+            numberCell.className = "number-cell";
+            numberCell.textContent = String(index + 1);
+            row.appendChild(numberCell);
+
+            row.appendChild(createFileCell(item));
+
+            const dimensionsCell = document.createElement("td");
+            dimensionsCell.textContent = item.pixelWidth + " × " + item.pixelHeight + " px";
+            row.appendChild(dimensionsCell);
+
+            const layoutCell = document.createElement("td");
+            const effectiveOrientation = getEffectiveOrientation(item);
+            layoutCell.textContent = LAYOUTS[effectiveOrientation].label
+                + (isOrientationChanged() ? " — changed" : "");
+            layoutCell.className = "status-ok";
+            row.appendChild(layoutCell);
+
+            const actionCell = document.createElement("td");
+            const removeButton = document.createElement("button");
+            removeButton.className = "remove-btn";
+            removeButton.textContent = "Remove";
+            removeButton.onclick = function() { removeImage(item); };
+            actionCell.appendChild(removeButton);
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    /* =========================================================
+       CREATE FILE CELL
+    ========================================================= */
+    function createFileCell(item) {
+        const cell = document.createElement("td");
+        const container = document.createElement("div");
+        container.className = "file-cell";
+
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.src = item.url;
+        img.alt = item.file.name;
+        container.appendChild(img);
+
+        const filenameContainer = document.createElement("div");
+        filenameContainer.className = "filename-container";
+
+        const filename = document.createElement("span");
+        filename.className = "filename";
+        filename.textContent = item.file.name;
+        filenameContainer.appendChild(filename);
+
+        const fileType = document.createElement("span");
+        fileType.className = "file-type";
+        fileType.textContent = getFileType(item.file) + " | " + Math.round(item.file.size / 1024) + " KB";
+        filenameContainer.appendChild(fileType);
+
+        container.appendChild(filenameContainer);
+        cell.appendChild(container);
+        return cell;
+    }
+
+    /* =========================================================
+       REMOVE IMAGE
+    ========================================================= */
+    function removeImage(itemToRemove) {
+        URL.revokeObjectURL(itemToRemove.url);
+        imageItems = imageItems.filter(function(item) {
+            return item !== itemToRemove;
+        });
+        updateEverything();
+    }
+
+    /* =========================================================
+       RELEASE IMAGE URLS
+    ========================================================= */
+    function releaseImageURLs() {
+        imageItems.forEach(function(item) {
+            URL.revokeObjectURL(item.url);
+        });
+    }
+
+    /* =========================================================
+       CREATE PRINT CARD
+    ========================================================= */
+    function createPrintCard(item, layout, rotateImage) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.width = layout.width + "mm";
+        card.style.height = layout.height + "mm";
+
+        const imageFrame = document.createElement("div");
+        imageFrame.className = "image-frame";
+
+        const img = document.createElement("img");
+        img.src = item.url;
+        img.alt = item.file.name;
+        if (rotateImage) {
+            img.style.width = layout.height + "mm";
+            img.style.height = layout.width + "mm";
+            img.style.transform = "rotate(90deg)";
+        }
+        imageFrame.appendChild(img);
+        card.appendChild(imageFrame);
+
+        const cutLine = document.createElement("div");
+        cutLine.className = "cut-line";
+        card.appendChild(cutLine);
+
+        return card;
+    }
+
+    /* =========================================================
+       CREATE SHEET
+    ========================================================= */
+    function createSheet(items, layout, rotateImages) {
+        const sheet = document.createElement("div");
+        sheet.className = "sheet";
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const gridWidth = layout.columns * layout.width
+            + (layout.columns - 1) * layout.columnGap;
+        const gridHeight = layout.rows * layout.height
+            + (layout.rows - 1) * layout.rowGap;
+        const padX = Math.max(0, (pageWidth - gridWidth) / 2);
+        const padY = Math.max(0, (pageHeight - gridHeight) / 2);
+
+        sheet.style.gridTemplateColumns = `repeat(${layout.columns}, ${layout.width}mm)`;
+        sheet.style.gridTemplateRows = `repeat(${layout.rows}, ${layout.height}mm)`;
+        sheet.style.columnGap = layout.columnGap + "mm";
+        sheet.style.rowGap = layout.rowGap + "mm";
+        sheet.style.padding = `${padY}mm ${padX}mm`;
+
+        items.forEach(function(item) {
+            sheet.appendChild(createPrintCard(item, layout, rotateImages));
+        });
+        return sheet;
+    }
+
+    /* =========================================================
+       GENERATE PRINT PREVIEW
+    ========================================================= */
+    function generateSheets() {
+        const preview = document.getElementById("preview");
+        preview.innerHTML = "";
+
+        if (!imageItems.length) return;
+
+        let index = 0;
+        const rotateImages = isOrientationChanged();
+        while (index < imageItems.length) {
+            const orientation = getEffectiveOrientation(imageItems[index]);
+            const layout = LAYOUTS[orientation];
+            const capacity = layout.columns * layout.rows;
+            const sheetItems = [];
+
+            while (
+                index < imageItems.length
+                && getEffectiveOrientation(imageItems[index]) === orientation
+                && sheetItems.length < capacity
+            ) {
+                sheetItems.push(imageItems[index]);
+                index += 1;
+            }
+
+            preview.appendChild(createSheet(sheetItems, layout, rotateImages));
+        }
+    }
+
+    /* =========================================================
+       CLEAR ALL
+    ========================================================= */
+    function clearAll() {
+        releaseImageURLs();
+        imageItems = [];
+        unreadableImageCount = 0;
+        document.getElementById("imageInput").value = "";
+        document.getElementById("orientationToggle").checked = false;
+        document.getElementById("fileTableBody").innerHTML = `<tr><td colspan="5" class="empty-message">Load images to see them here.</td></tr>`;
+        document.getElementById("preview").innerHTML = "";
+        updateStatus();
+    }
+
+    /* =========================================================
+       AUTOMATIC PREVIEW UPDATE
+    ========================================================= */
+    document.getElementById("orientationToggle").addEventListener("change", updateEverything);
+
+    /* =========================================================
+       CLEAN UP OBJECT URLS
+    ========================================================= */
+    window.addEventListener("beforeunload", releaseImageURLs);
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+output/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+pytest-cache-files-*/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# OS / temp / logs
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~
