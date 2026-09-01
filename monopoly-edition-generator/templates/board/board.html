@@ -205,6 +205,28 @@
             object-fit: contain;
         }
 
+
+        .energy-grid-space { background: transparent; }
+
+        .board-energy-grid-tile {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .board-energy-grid-image {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
         /* ===== POLISHED PROPERTY TILE ===== */
         .board-property-tile {
             width: 100%;
@@ -492,8 +514,10 @@
             .property-space { background: #f5f1e6 !important; }
             .event-space { background: transparent !important; }
             .location-space { background: transparent !important; }
+            .energy-grid-space { background: transparent !important; }
             .board-event-tile,
             .board-location-tile,
+            .board-energy-grid-tile,
             .board-property-tile,
             .go-corner-content,
             .go-salary-text {
@@ -546,6 +570,13 @@
             salary: 20000,
             currency: "₹"
         };
+
+
+        __BOARD_VALIDATION__
+
+        __ENERGY_GRID_DATA__
+
+        __ENERGY_GRID_ASSETS__
 
         // ========== 32 SPACES (8 per side) ==========
         // Clockwise from GO (bottom-right):
@@ -609,10 +640,11 @@
             const idSet = new Set();
             const seqSet = new Set();
             const sideCount = { bottom: 0, left: 0, top: 0, right: 0 };
-            const typeCount = { property: 0, event: 0, location: 0 };
+            const typeCount = { property: 0, event: 0, location: 0, "energy-grid": 0 };
             const propNumbers = new Set();
+            const energyGridIds = new Set();
             const validSides = ['bottom','left','top','right'];
-            const validTypes = ['property','event','location'];
+            const validTypes = ['property','event','location','energy-grid'];
 
             spaces.forEach((s, idx) => {
                 if (!s.id) errors.push(`Space at index ${idx} missing 'id'`);
@@ -675,6 +707,28 @@
                         }
                     }
                 }
+
+                if (s.type === 'energy-grid') {
+                    const gridId = s.energyGridId;
+                    if (!gridId) {
+                        errors.push(`Energy Grid space '${s.id}' missing energyGridId`);
+                    } else {
+                        if (energyGridIds.has(gridId)) {
+                            errors.push(`Duplicate energyGridId '${gridId}'`);
+                        } else {
+                            energyGridIds.add(gridId);
+                        }
+                        if (!ENERGY_GRID_DATA || !ENERGY_GRID_DATA.energyGrids) {
+                            errors.push('ENERGY_GRID_DATA is missing for energy-grid spaces');
+                        } else {
+                            const known = ENERGY_GRID_DATA.energyGrids.some(g => g.energyGridId === gridId);
+                            if (!known) errors.push(`Energy Grid '${gridId}' not found in ENERGY_GRID_DATA`);
+                        }
+                        if (!ENERGY_GRID_ASSETS || !ENERGY_GRID_ASSETS[gridId]) {
+                            errors.push(`Energy Grid artwork missing for '${gridId}'`);
+                        }
+                    }
+                }
             });
 
             for (const side of validSides) {
@@ -683,9 +737,18 @@
                 }
             }
 
-            if (typeCount.property !== 22) errors.push(`Expected 22 properties, got ${typeCount.property}`);
-            if (typeCount.event !== 6) errors.push(`Expected 6 events, got ${typeCount.event}`);
-            if (typeCount.location !== 4) errors.push(`Expected 4 locations, got ${typeCount.location}`);
+            if (typeCount.property !== BOARD_VALIDATION.property) {
+                errors.push(`Expected ${BOARD_VALIDATION.property} properties, got ${typeCount.property}`);
+            }
+            if (typeCount.event !== BOARD_VALIDATION.event) {
+                errors.push(`Expected ${BOARD_VALIDATION.event} events, got ${typeCount.event}`);
+            }
+            if (typeCount.location !== BOARD_VALIDATION.location) {
+                errors.push(`Expected ${BOARD_VALIDATION.location} locations, got ${typeCount.location}`);
+            }
+            if (typeCount['energy-grid'] !== BOARD_VALIDATION.energyGrid) {
+                errors.push(`Expected ${BOARD_VALIDATION.energyGrid} energy grids, got ${typeCount['energy-grid']}`);
+            }
 
             for (let i = 1; i <= 22; i++) {
                 if (!propNumbers.has(i)) errors.push(`Missing property number ${i}`);
@@ -702,9 +765,42 @@
                 if (last.side !== 'right') errors.push("Sequence 32 must be on right side");
             }
 
+            const checkSequences = (label, expected) => {
+                if (!expected || expected.length === 0) return;
+                const actual = spaces.filter(s => s.type === label).map(s => s.sequence).sort((a, b) => a - b);
+                const want = [...expected].sort((a, b) => a - b);
+                if (JSON.stringify(actual) !== JSON.stringify(want)) {
+                    errors.push(`Expected ${label} sequences ${want.join(', ')}, got ${actual.join(', ')}`);
+                }
+            };
+
+            checkSequences('event', BOARD_VALIDATION.eventSequences);
+            checkSequences('location', BOARD_VALIDATION.locationSequences);
+            checkSequences('energy-grid', BOARD_VALIDATION.energyGridSequences);
+
+            if (BOARD_VALIDATION.requireOneEventPerSide) {
+                for (const side of validSides) {
+                    const count = spaces.filter(s => s.side === side && s.type === 'event').length;
+                    if (count !== 1) errors.push(`Side '${side}' must have exactly 1 event, got ${count}`);
+                }
+            }
+            if (BOARD_VALIDATION.requireOneEnergyGridPerSide) {
+                for (const side of validSides) {
+                    const count = spaces.filter(s => s.side === side && s.type === 'energy-grid').length;
+                    if (count !== 1) errors.push(`Side '${side}' must have exactly 1 energy grid, got ${count}`);
+                }
+            }
+
+            if (BOARD_VALIDATION.energyGridIds && BOARD_VALIDATION.energyGridIds.length) {
+                for (const gridId of BOARD_VALIDATION.energyGridIds) {
+                    if (!energyGridIds.has(gridId)) {
+                        errors.push(`Missing required energy grid '${gridId}' on the board`);
+                    }
+                }
+            }
+
             return errors;
         }
-
         // ========== PROPERTY RENDER HELPERS ==========
         function renderRentLevels(activeLevel) {
             let html = '';
@@ -832,6 +928,29 @@
             return tile;
         }
 
+        function renderEnergyGridTile(space) {
+            const gridId = space.energyGridId;
+            if (!gridId) {
+                throw new Error(`Energy Grid space '${space.id}' is missing energyGridId`);
+            }
+            const assetPath = ENERGY_GRID_ASSETS[gridId];
+            if (!assetPath) {
+                throw new Error(`No artwork configured for Energy Grid '${gridId}'`);
+            }
+            const grid = (ENERGY_GRID_DATA?.energyGrids || []).find(item => item.energyGridId === gridId);
+            const alt = grid?.energyName ? `${grid.energyName} Energy Grid` : `Energy Grid ${gridId}`;
+
+            const tile = document.createElement('div');
+            tile.className = 'board-energy-grid-tile';
+            tile.innerHTML = `
+                <img
+                    class="board-energy-grid-image"
+                    src="${assetPath}"
+                    alt="${alt}"
+                />
+            `;
+            return tile;
+        }
         // ========== RENDER ENGINE ==========
         function renderBoard(spaces) {
             const board = document.getElementById('monopoly-board');
@@ -937,6 +1056,9 @@
                 } else if (space.type === 'location') {
                     const tile = renderLocationTile(space);
                     content.appendChild(tile);
+                } else if (space.type === 'energy-grid') {
+                    const tile = renderEnergyGridTile(space);
+                    content.appendChild(tile);
                 }
 
                 if (DEBUG_MODE) {
@@ -1003,11 +1125,13 @@
         const propCount = boardSpaces.filter(s => s.type === 'property').length;
         const eventCount = boardSpaces.filter(s => s.type === 'event').length;
         const locCount = boardSpaces.filter(s => s.type === 'location').length;
+        const energyGridCount = boardSpaces.filter(s => s.type === 'energy-grid').length;
         console.log('Board path validated:', {
             normalSpaces: 32,
             properties: propCount,
             events: eventCount,
             locations: locCount,
+            energyGrids: energyGridCount,
             direction: 'clockwise',
             firstProperty: boardSpaces.find(s => s.sequence === 1)?.property?.number || '?',
             lastProperty: boardSpaces.find(s => s.sequence === 32)?.property?.number || '?'

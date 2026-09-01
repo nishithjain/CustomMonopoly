@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from monopoly_edition_generator.generators.board import (
     BOARD_PATTERN,
+    INDIA_BOARD_PATTERN,
+    INDIA_BOARD_VALIDATION,
+    INDIA_ENERGY_GRID_BY_SEQUENCE,
     PROPERTY_BOARD_SEQUENCES,
+    UK_BOARD_PATTERN,
     generate_board_spaces,
     split_property_name,
 )
@@ -29,6 +33,7 @@ def test_generate_board_spaces_for_india() -> None:
     banking = load_edition_json("india", "banking_values.json")
     theme = load_theme()
     spaces = generate_board_spaces(
+        "india",
         properties,
         currency_symbol(banking),
         banking["locationFee"],
@@ -36,5 +41,25 @@ def test_generate_board_spaces_for_india() -> None:
     )
     assert "const boardSpaces = [" in spaces
     assert spaces.count('type: "property"') == 22
-    assert spaces.count('type: "event"') == 6
-    assert spaces.count('type: "location"') == 4
+    assert spaces.count('type: "event"') == 4
+    assert spaces.count('type: "location"') == 2
+    assert spaces.count('type: "energy-grid"') == 4
+
+
+def test_india_board_pattern_counts() -> None:
+    assert INDIA_BOARD_PATTERN.count("property") == 22
+    assert INDIA_BOARD_PATTERN.count("event") == 4
+    assert INDIA_BOARD_PATTERN.count("location") == 2
+    assert INDIA_BOARD_PATTERN.count("energy-grid") == 4
+    assert UK_BOARD_PATTERN.count("event") == 6
+    assert UK_BOARD_PATTERN.count("location") == 4
+
+
+def test_india_energy_grid_sequences() -> None:
+    assert INDIA_BOARD_VALIDATION["energyGridSequences"] == [4, 15, 23, 29]
+    assert INDIA_ENERGY_GRID_BY_SEQUENCE == {
+        4: "ENG_04",
+        15: "ENG_01",
+        23: "ENG_03",
+        29: "ENG_02",
+    }

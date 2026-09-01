@@ -45,14 +45,36 @@ WORKSPACE_ROOT = discover_workspace_root()
 TEMPLATES_DIR = PROJECT_ROOT / "templates"
 THEMES_DIR = PROJECT_ROOT / "themes"
 BOARD_SPACES_DIR = PROJECT_ROOT / "assets" / "board-spaces"
+ENERGY_GRID_ASSETS_DIR = BOARD_SPACES_DIR / "energy-grids"
 OUTPUT_ROOT = PROJECT_ROOT / "output"
 LEGACY_COMMON_INNERBOX = PROJECT_ROOT / "assets" / "common" / "InnerBox.png"
+
+ENERGY_GRIDS_JSON = discover_workspace_root() / "EnergyGrid_Board" / "energy_grids.json"
+ENERGY_GRID_BOARD_DIR = discover_workspace_root() / "EnergyGrid_Board"
+
+ENERGY_GRID_WIDTH_CM = 4.625
+ENERGY_GRID_HEIGHT_CM = 6.5
+
+ENERGY_GRID_ASSET_FILES = {
+    "ENG_01": "eng_01_solar.png",
+    "ENG_02": "eng_02_wind.png",
+    "ENG_03": "eng_03_hydroelectric.png",
+    "ENG_04": "eng_04_biomass.png",
+}
+
+ENERGY_GRID_HTML_SOURCES = {
+    "ENG_01": "ENG_01_Solar_Energy.html",
+    "ENG_02": "ENG_02_Wind_Energy.html",
+    "ENG_03": "ENG_03_Hydroelectric_Energy.html",
+    "ENG_04": "ENG_04_Biomass_Energy.html",
+}
 
 BOARD_TEMPLATE = TEMPLATES_DIR / "board" / "board.html"
 EVENT_CARD_TEMPLATE = TEMPLATES_DIR / "cards" / "event-card.html"
 PROPERTY_CARD_TEMPLATE = TEMPLATES_DIR / "cards" / "property-card.html"
 
 BOARD_ASSET_PREFIX = "../../assets/board-spaces"
+ENERGY_GRID_ASSET_PREFIX = "../../assets/board-spaces/energy-grids"
 
 # Fixed Monopoly board geometry. Do not expose these as editable settings.
 OUTER_BOARD_SIZE_CM = 50.0
@@ -288,8 +310,14 @@ def posix_relative(from_dir: Path, to_path: Path) -> str:
 
 def rewrite_board_asset_paths(html: str, html_output_path: Path) -> str:
     """Point board artwork at assets/board-spaces from the generated HTML location."""
+    relative_energy = posix_relative(html_output_path.parent, ENERGY_GRID_ASSETS_DIR)
+    html = html.replace(ENERGY_GRID_ASSET_PREFIX, relative_energy)
     relative_assets = posix_relative(html_output_path.parent, BOARD_SPACES_DIR)
-    return html.replace(BOARD_ASSET_PREFIX, relative_assets)
+    return re.sub(
+        re.escape(BOARD_ASSET_PREFIX) + r"(?!/energy-grids)",
+        relative_assets,
+        html,
+    )
 
 
 def normalize_name(name: str) -> str:

@@ -170,6 +170,26 @@ python scripts/legacy/html_to_png.py --input output/india/board/Board_India.html
 
 Prefer `python generate.py <edition>` for new work.
 
+## Energy Grid board-space tiles
+
+Authoritative Energy Grid data lives at `../EnergyGrid_Board/energy_grids.json`. India board spaces reference grid IDs only; prices and rent are injected at generation time from that file.
+
+Render portrait board-space PNGs (4.625 cm × 6.5 cm, 300 DPI) before generating the India board:
+
+```bash
+python scripts/render_energy_grid_board_spaces.py
+```
+
+Output:
+
+```text
+assets/board-spaces/energy-grids/
+    eng_01_solar.png
+    eng_02_wind.png
+    eng_03_hydroelectric.png
+    eng_04_biomass.png
+```
+
 ## PNG rendering
 
 Board PNGs are 50 cm × 50 cm. At 300 DPI that is 5906 × 5906. Property and event cards are 108 mm × 172 mm.

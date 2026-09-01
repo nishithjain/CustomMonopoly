@@ -6,8 +6,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from monopoly_edition_generator.energy_grids import asset_filename_for_grid, load_energy_grids
 from monopoly_edition_generator.paths import (
     BOARD_TEMPLATE,
+    ENERGY_GRID_ASSET_PREFIX,
     GeneratorError,
     board_tile_colors,
     currency_symbol,
@@ -25,7 +27,7 @@ from monopoly_edition_generator.paths import (
     theme_id_for_edition,
 )
 
-BOARD_PATTERN = [
+UK_BOARD_PATTERN = [
     "property", "event", "property", "event",
     "property", "property", "location", "property",
     "property", "event", "property", "property",
@@ -36,13 +38,69 @@ BOARD_PATTERN = [
     "event", "property", "location", "property",
 ]
 
-PROPERTY_BOARD_SEQUENCES = [
-    index + 1
-    for index, space_type in enumerate(BOARD_PATTERN)
-    if space_type == "property"
+INDIA_BOARD_PATTERN = [
+    "property", "event", "property", "energy-grid",
+    "property", "property", "location", "property",
+    "property", "event", "property", "property",
+    "property", "property", "energy-grid", "property",
+    "property", "event", "property", "property",
+    "property", "property", "energy-grid", "property",
+    "property", "event", "property", "property",
+    "energy-grid", "property", "location", "property",
 ]
 
+INDIA_ENERGY_GRID_BY_SEQUENCE = {
+    4: "ENG_04",
+    15: "ENG_01",
+    23: "ENG_03",
+    29: "ENG_02",
+}
+
+BOARD_PATTERN = UK_BOARD_PATTERN
+
+INDIA_BOARD_VALIDATION = {
+    "property": 22,
+    "event": 4,
+    "location": 2,
+    "energyGrid": 4,
+    "eventSequences": [2, 10, 18, 26],
+    "locationSequences": [7, 31],
+    "energyGridSequences": [4, 15, 23, 29],
+    "requireOneEventPerSide": True,
+    "requireOneEnergyGridPerSide": True,
+    "energyGridIds": ["ENG_01", "ENG_02", "ENG_03", "ENG_04"],
+}
+
+UK_BOARD_VALIDATION = {
+    "property": 22,
+    "event": 6,
+    "location": 4,
+    "energyGrid": 0,
+    "eventSequences": [],
+    "locationSequences": [],
+    "energyGridSequences": [],
+    "requireOneEventPerSide": False,
+    "requireOneEnergyGridPerSide": False,
+    "energyGridIds": [],
+}
+
 INNER_BOX_TOKEN = "__INNER_BOX_IMAGE__"
+BOARD_VALIDATION_TOKEN = "__BOARD_VALIDATION__"
+ENERGY_GRID_DATA_TOKEN = "__ENERGY_GRID_DATA__"
+ENERGY_GRID_ASSETS_TOKEN = "__ENERGY_GRID_ASSETS__"
+
+
+def board_pattern_for_edition(edition_id: str) -> list[str]:
+    if edition_id == "india":
+        return INDIA_BOARD_PATTERN
+    return UK_BOARD_PATTERN
+
+
+def property_board_sequences(pattern: list[str]) -> list[int]:
+    return [index + 1 for index, space_type in enumerate(pattern) if space_type == "property"]
+
+
+PROPERTY_BOARD_SEQUENCES = property_board_sequences(UK_BOARD_PATTERN)
 
 
 def split_property_name(name: str, max_lines: int = 2) -> list[str]:
@@ -120,11 +178,13 @@ def side_for_board_sequence(sequence: int) -> str:
 
 
 def generate_board_spaces(
+    edition_id: str,
     properties: list[dict[str, Any]],
     currency: str,
     location_fee: int | float,
     tile_colors: dict[str, dict[str, str]],
 ) -> str:
+    pattern = board_pattern_for_edition(edition_id)
     property_iter = iter(properties)
     lines = [
         "        const boardSpaces = [",
@@ -136,7 +196,7 @@ def generate_board_spaces(
         25: "            // --- RIGHT (seq 25-32) movement: TOP → BOTTOM ---",
     }
 
-    for board_sequence, space_type in enumerate(BOARD_PATTERN, start=1):
+    for board_sequence, space_type in enumerate(pattern, start=1):
         if board_sequence in side_headings:
             lines.append("")
             lines.append(side_headings[board_sequence])
@@ -160,6 +220,13 @@ def generate_board_spaces(
                 f'location: {{ fee: {json.dumps(location_fee, ensure_ascii=False)}, '
                 f'currency: {js_string(currency)} }} }},'
             )
+        elif space_type == "energy-grid":
+            grid_id = INDIA_ENERGY_GRID_BY_SEQUENCE[board_sequence]
+            lines.append(
+                f'            {{ id: "space-{board_sequence:02d}", '
+                f'sequence: {board_sequence}, side: "{side}", type: "energy-grid", '
+                f'energyGridId: {js_string(grid_id)} }},'
+            )
         else:
             lines.append(
                 f'            {{ id: "space-{board_sequence:02d}", '
@@ -180,6 +247,28 @@ def generate_go_data(currency: str, go_salary: int | float) -> str:
             "        };",
         ]
     )
+
+
+def generate_board_validation(edition_id: str) -> str:
+    payload = INDIA_BOARD_VALIDATION if edition_id == "india" else UK_BOARD_VALIDATION
+    return "        const BOARD_VALIDATION = " + json.dumps(payload, ensure_ascii=False, indent=4) + ";"
+
+
+def generate_energy_grid_data(edition_id: str) -> str:
+    if edition_id != "india":
+        return "        const ENERGY_GRID_DATA = null;"
+    data = load_energy_grids()
+    return "        const ENERGY_GRID_DATA = " + json.dumps(data, ensure_ascii=False, indent=4) + ";"
+
+
+def generate_energy_grid_assets(edition_id: str) -> str:
+    if edition_id != "india":
+        return "        const ENERGY_GRID_ASSETS = {};"
+    assets = {
+        grid_id: f"{ENERGY_GRID_ASSET_PREFIX}/{asset_filename_for_grid(grid_id)}"
+        for grid_id in INDIA_BOARD_VALIDATION["energyGridIds"]
+    }
+    return "        const ENERGY_GRID_ASSETS = " + json.dumps(assets, ensure_ascii=False, indent=4) + ";"
 
 
 def find_declaration_block(
@@ -237,6 +326,12 @@ def find_declaration_block(
     return line_start, semicolon + 1
 
 
+def apply_token(html: str, token: str, replacement: str) -> str:
+    if token not in html:
+        raise GeneratorError(f"Board template is missing the {token} placeholder.")
+    return html.replace(token, replacement)
+
+
 def apply_inner_box(html: str, edition_id: str, html_output_path: Path) -> tuple[str, dict]:
     status = inner_box_status(edition_id)
     if INNER_BOX_TOKEN not in html:
@@ -263,6 +358,7 @@ def generate_board(
     edition_config = load_edition_config(edition_id)
     theme = load_theme(theme_id_for_edition(edition_config))
     tile_colors = board_tile_colors(theme)
+    pattern = board_pattern_for_edition(edition_id)
 
     properties = sorted(properties_data["properties"], key=lambda item: item["sequence"])
     currency = currency_symbol(banking_data)
@@ -272,10 +368,14 @@ def generate_board(
     template_path = template_path or BOARD_TEMPLATE
     html = read_text(template_path)
 
+    html = apply_token(html, BOARD_VALIDATION_TOKEN, generate_board_validation(edition_id))
+    html = apply_token(html, ENERGY_GRID_DATA_TOKEN, generate_energy_grid_data(edition_id))
+    html = apply_token(html, ENERGY_GRID_ASSETS_TOKEN, generate_energy_grid_assets(edition_id))
+
     board_start, board_end = find_declaration_block(html, "const boardSpaces", "[", "]")
     updated_html = (
         html[:board_start]
-        + generate_board_spaces(properties, currency, location_fee, tile_colors)
+        + generate_board_spaces(edition_id, properties, currency, location_fee, tile_colors)
         + html[board_end:]
     )
     go_start, go_end = find_declaration_block(updated_html, "const GO_DATA", "{", "}")
@@ -299,5 +399,6 @@ def generate_board(
     print(f"Currency symbol: {currency}")
     print(f"GO salary: {go_salary}")
     print(f"Location fee: {location_fee}")
-    print("Property board positions: " + ", ".join(map(str, PROPERTY_BOARD_SEQUENCES)))
+    sequences = property_board_sequences(pattern)
+    print("Property board positions: " + ", ".join(map(str, sequences)))
     return output_path

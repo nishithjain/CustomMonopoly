@@ -8,6 +8,8 @@ from monopoly_edition_generator.paths import (
     BOARD_ASSET_PREFIX,
     BOARD_SPACES_DIR,
     BOARD_TEMPLATE,
+    ENERGY_GRID_ASSET_PREFIX,
+    ENERGY_GRID_ASSETS_DIR,
     EVENT_CARD_TEMPLATE,
     PROPERTY_CARD_TEMPLATE,
     PROJECT_ROOT,
@@ -68,6 +70,15 @@ def test_rewrite_board_asset_paths() -> None:
     rewritten = rewrite_board_asset_paths(html, output)
     expected = posix_relative(output.parent, BOARD_SPACES_DIR)
     assert rewritten == f'<img src="{expected}/go.png">'
+
+
+def test_rewrite_board_energy_grid_paths_do_not_double_replace() -> None:
+    html = f'"{ENERGY_GRID_ASSET_PREFIX}/eng_01_solar.png"'
+    output = PROJECT_ROOT / "output" / "india" / "board" / "Board_India.html"
+    rewritten = rewrite_board_asset_paths(html, output)
+    expected = posix_relative(output.parent, ENERGY_GRID_ASSETS_DIR)
+    assert rewritten == f'"{expected}/eng_01_solar.png"'
+    assert rewritten.count("../") == 3
 
 
 def test_edition_output_dir_scoped_to_edition() -> None:

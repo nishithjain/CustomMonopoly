@@ -8,6 +8,9 @@ from monopoly_edition_generator.paths import (
     BOARD_SPACES_DIR,
     BOARD_TEMPLATE,
     DEFAULT_THEME_ID,
+    ENERGY_GRID_ASSET_FILES,
+    ENERGY_GRID_ASSETS_DIR,
+    ENERGY_GRIDS_JSON,
     EVENT_CARD_TEMPLATE,
     PROPERTY_CARD_TEMPLATE,
     REQUIRED_BOARD_ASSETS,
@@ -25,6 +28,7 @@ from monopoly_edition_generator.paths import (
     property_card_base_colors,
     theme_id_for_edition,
 )
+from monopoly_edition_generator.energy_grids import load_energy_grids
 
 REQUIRED_TEMPLATES = (
     ("board/board.html", BOARD_TEMPLATE, ("const boardSpaces", "const GO_DATA")),
@@ -137,6 +141,7 @@ def validate_edition(edition_id: str) -> ValidationResult:
     _validate_board_relationships(result, edition_id)
     _validate_templates(result)
     _validate_assets(result)
+    _validate_energy_grid_assets(result, edition_id)
     _validate_inner_box(result, edition_id)
 
     missing_files = []
@@ -383,6 +388,39 @@ def _validate_assets(result: ValidationResult) -> None:
     theme_path = THEMES_DIR / f"{DEFAULT_THEME_ID}.json"
     if not theme_path.is_file():
         _error(result, "themes", f"Theme: {DEFAULT_THEME_ID}", "theme", f"Missing {theme_path}")
+
+
+def _validate_energy_grid_assets(result: ValidationResult, edition_id: str) -> None:
+    if edition_id != "india":
+        return
+
+    if not ENERGY_GRIDS_JSON.is_file():
+        _error(
+            result,
+            "energy_grids.json",
+            "Energy Grids",
+            "energy_grids.json",
+            f"Missing authoritative Energy Grid data at {ENERGY_GRIDS_JSON}",
+        )
+        return
+
+    try:
+        load_energy_grids()
+        result.notes.append("energy_grids.json")
+    except GeneratorError as exc:
+        _error(result, "energy_grids.json", "Energy Grids", "energy_grids.json", str(exc))
+        return
+
+    for grid_id, filename in ENERGY_GRID_ASSET_FILES.items():
+        path = ENERGY_GRID_ASSETS_DIR / filename
+        if not path.is_file():
+            _error(
+                result,
+                "assets",
+                f"Energy Grid: {grid_id}",
+                filename,
+                f"Missing Energy Grid board-space PNG at {path}. Run scripts/render_energy_grid_board_spaces.py",
+            )
 
 
 def _validate_inner_box(result: ValidationResult, edition_id: str) -> None:

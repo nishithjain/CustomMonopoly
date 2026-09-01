@@ -400,7 +400,19 @@ def render_board_png(html_path: Path, output_path: Path, dpi: float = 300) -> Pa
 def render_card_pngs(
     jobs: list[tuple[Path, Path]],
     selector: str,
+    *,
+    width_mm: float = CARD_WIDTH_MM,
+    height_mm: float = CARD_HEIGHT_MM,
     dpi: float = 300,
     on_progress=None,
 ) -> list[Path]:
-    return asyncio.run(capture_cards_png(jobs, selector, dpi=dpi, on_progress=on_progress))
+    return asyncio.run(
+        capture_cards_png(
+            jobs,
+            selector,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            dpi=dpi,
+            on_progress=on_progress,
+        )
+    )

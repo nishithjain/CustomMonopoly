@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 1,
+  "editionId": "india",
+  "profileId": "india-events-v1",
+  "globalEventRules": {
+    "maximumChainedEvents": 3,
+    "allowStackedRentWaivers": false,
+    "allowStackedJailPasses": false,
+    "allowStackedSkipTurns": false,
+    "allowStackedExtraTurns": false
+  },
+  "events": [
+    {
+      "eventId": "EVT_01",
+      "name": "Advance to GO",
+      "actions": [
+        {
+          "actionType": "MOVE_TO_SPACE",
+          "targetSpaceSemanticType": "GO",
+          "collectGoAmount": true,
+          "goAmountSource": "banking_values.goSalary",
+          "collectAmountExactlyOnce": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_02",
+      "name": "Wrong Turn!",
+      "actions": [
+        {
+          "actionType": "MOVE_BACKWARD",
+          "spaceCount": 3,
+          "collectGoWhenCrossed": false,
+          "resolveLanding": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_03",
+      "name": "UPI Cashback",
+      "actions": [
+        {
+          "actionType": "BANK_CREDIT",
+          "amount": 5000
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_04",
+      "name": "Income Tax Refund",
+      "actions": [
+        {
+          "actionType": "BANK_CREDIT",
+          "amount": 10000
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_05",
+      "name": "Hospital Expense",
+      "actions": [
+        {
+          "actionType": "BANK_DEBIT",
+          "amount": 10000,
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_06",
+      "name": "Festival Contribution",
+      "actions": [
+        {
+          "actionType": "PAY_EACH_PLAYER",
+          "amountPerOtherPlayer": 5000,
+          "recipientOrder": "NORMAL_TURN_ORDER",
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_07",
+      "name": "Birthday Celebration",
+      "actions": [
+        {
+          "actionType": "COLLECT_FROM_EACH_PLAYER",
+          "amountPerOtherPlayer": 5000,
+          "payerOrder": "NORMAL_TURN_ORDER",
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_08",
+      "name": "Municipal Maintenance",
+      "actions": [
+        {
+          "actionType": "DEBIT_PER_OWNED_PROPERTY",
+          "amountPerProperty": 2000,
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_09",
+      "name": "Green Building Grant",
+      "actions": [
+        {
+          "actionType": "CREDIT_PER_OWNED_PROPERTY",
+          "amountPerProperty": 2000
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_10",
+      "name": "Rent Relief",
+      "actions": [
+        {
+          "actionType": "NEXT_RENT_WAIVER",
+          "waivedPaymentCount": 1,
+          "consumeOnlyForPositiveRent": true,
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_11",
+      "name": "Get Out of Jail Pass",
+      "actions": [
+        {
+          "actionType": "GET_OUT_OF_JAIL_PASS",
+          "passCount": 1,
+          "jailFeeSource": "banking_values.jailReleaseFee",
+          "useMode": "PLAYER_CHOICE",
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_12",
+      "name": "Traffic Court",
+      "actions": [
+        {
+          "actionType": "MOVE_TO_JAIL",
+          "collectGoAmount": false,
+          "endCurrentTurn": true,
+          "cancelPendingExtraTurn": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_13",
+      "name": "Local Market Boom",
+      "actions": [
+        {
+          "actionType": "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+          "levelChange": 1,
+          "ownedPropertiesOnly": true,
+          "requireBelowMaximumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_14",
+      "name": "Market Correction",
+      "actions": [
+        {
+          "actionType": "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
+          "levelChange": 1,
+          "ownedPropertiesOnly": true,
+          "requireAboveMinimumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_15",
+      "name": "Lucky Draw",
+      "actions": [
+        {
+          "actionType": "DRAW_ANOTHER_EVENT",
+          "additionalEventCount": 1,
+          "maximumChainDepth": 3,
+          "inputMode": "PHYSICAL_CARD_SCAN"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_16",
+      "name": "Community Development",
+      "actions": [
+        {
+          "actionType": "COOPERATIVE_PROPERTY_UPGRADE",
+          "actingPlayerPropertyCount": 1,
+          "otherPlayerPropertyCount": 1,
+          "levelIncreasePerProperty": 1,
+          "requireBelowMaximumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_17",
+      "name": "Lucky Break",
+      "actions": [
+        {
+          "actionType": "GAMBLE_ON_DICE_ROLL",
+          "diceCount": 2,
+          "maximumAttempts": 3,
+          "successCondition": "DOUBLES_AT_LEAST_ONCE",
+          "jackpotAmount": 15000,
+          "penaltyAmount": 5000,
+          "stopAfterSuccess": true,
+          "moveToken": false,
+          "grantExtraTurnForDoubles": false,
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_18",
+      "name": "Metro Delay",
+      "actions": [
+        {
+          "actionType": "SKIP_NEXT_TURN",
+          "skipTurnCount": 1,
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_19",
+      "name": "Eminent Domain",
+      "actions": [
+        {
+          "actionType": "FORCED_PROPERTY_SELLBACK",
+          "propertySelection": "LOWEST_PURCHASE_PRICE",
+          "tieBehaviour": "ACTING_PLAYER_SELECTS",
+          "payoutBasis": "PURCHASE_PRICE",
+          "payoutMultiplier": 2.0,
+          "returnToBankAsUnowned": true,
+          "resetToEditionInitialRentLevel": true,
+          "removeTemporaryPropertyEffects": true,
+          "noOwnedPropertyBehaviour": "DO_NOTHING"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_20",
+      "name": "Economic Relief Grant",
+      "actions": [
+        {
+          "actionType": "TOP_UP_BALANCE_TO_THRESHOLD",
+          "thresholdAmount": 30000,
+          "topUpMode": "CREDIT_DIFFERENCE_TO_THRESHOLD",
+          "atOrAboveThresholdBehaviour": "DO_NOTHING"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_21",
+      "name": "Wrong Terminal",
+      "actions": [
+        {
+          "actionType": "MOVE_TO_NEAREST_STATION",
+          "stationSemanticType": "ENERGY_STATION",
+          "searchDirection": "FORWARD",
+          "collectGoIfPassed": true,
+          "goAmountSource": "banking_values.goSalary",
+          "resolveLanding": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_22",
+      "name": "Cloud Storage Subscription Renewal",
+      "actions": [
+        {
+          "actionType": "BANK_DEBIT",
+          "amount": 5000,
+          "invokeDebtFlowIfNeeded": true
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_23",
+      "name": "Beauty Contest Winner",
+      "actions": [
+        {
+          "actionType": "BANK_CREDIT",
+          "amount": 5000
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_24",
+      "name": "Second Wind",
+      "actions": [
+        {
+          "actionType": "EXTRA_TURN",
+          "extraTurnCount": 1,
+          "stackBehaviour": "DO_NOT_STACK",
+          "cancelIfSentToJail": true,
+          "pendingSkipTurnBehaviour": "CONSUME_SKIP_AND_CANCEL_EXTRA_TURN"
+        }
+      ]
+    },
+    {
+      "eventId": "EVT_25",
+      "name": "Green Energy Rebate",
+      "actions": [
+        {
+          "actionType": "COMPLETE_COLOR_SET_BONUS_CREDIT",
+          "minimumCompleteColorSets": 1,
+          "baseRebateAmount": 5000,
+          "rewardMultiplier": 2.0,
+          "maximumRewardCount": 1,
+          "maximumCreditAmount": 10000,
+          "noCompleteColorSetBehaviour": "DO_NOTHING"
+        }
+      ]
+    }
+  ]
+}
