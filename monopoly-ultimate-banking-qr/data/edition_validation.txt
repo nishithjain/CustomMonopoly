@@ -16,9 +16,9 @@ event artwork fronts: 23 / 23
 INDIA
 edition.json: PASS
 properties: 22 / 22
-events: 23 / 23
-property artwork: INCOMPLETE (0/22)
-event artwork: INCOMPLETE (0/23)
+events: 25 / 25
+property artwork: INCOMPLETE (22/22)
+event artwork: INCOMPLETE (23/25)
 exposed in New Game: NO
 
 RESULT: PASS

@@ -169,6 +169,18 @@ async def wait_for_card(page, selector: str) -> None:
             if (document.fonts && document.fonts.ready) {
                 await document.fonts.ready;
             }
+
+            const images = [...document.images];
+            await Promise.all(
+                images.map(image =>
+                    image.complete
+                        ? image.decode()
+                        : new Promise((resolve, reject) => {
+                            image.addEventListener("load", resolve, { once: true });
+                            image.addEventListener("error", reject, { once: true });
+                        })
+                )
+            );
         }
         """
     )

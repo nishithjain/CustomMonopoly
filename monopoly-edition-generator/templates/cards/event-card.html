@@ -14,6 +14,13 @@
       --card-width: 108mm;
       --card-height: 172mm;
 
+      --header-height: 28mm;
+      --subtitle-height: 14mm;
+      --artwork-size: 90mm;
+      --description-height: 22mm;
+      --identifier-height: 2.7mm;
+      --section-gap: 1.5mm;
+
       --paper: #fffdf8;
       --ink: #232629;
 
@@ -64,8 +71,14 @@
       overflow: hidden;
 
       display: grid;
-      grid-template-rows: auto auto 1fr auto auto;
+      grid-template-rows:
+        var(--header-height)
+        var(--subtitle-height)
+        var(--artwork-size)
+        var(--description-height)
+        var(--identifier-height);
 
+      row-gap: var(--section-gap);
       padding: 5mm 5mm 4mm;
 
       border: 0.25mm solid rgba(34, 45, 50, 0.10);
@@ -113,8 +126,14 @@
     .top-frame {
       position: relative;
       z-index: 1;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
 
-      padding: 2.5mm 2.8mm 2.8mm;
+      display: flex;
+      align-items: center;
+
+      padding: 1.8mm 2.2mm;
       border-radius: 4mm 4mm 2.6mm 2.6mm;
 
       background:
@@ -137,14 +156,16 @@
 
     .title-banner {
       position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
       overflow: hidden;
-      min-height: 18.5mm;
 
       display: grid;
       place-items: center;
       text-align: center;
 
-      padding: 2.5mm 3.5mm;
+      padding: 1.5mm 3mm;
 
       border: 0.2mm solid rgba(123, 83, 6, .23);
       border-radius: 2.2mm;
@@ -193,9 +214,9 @@
     .event-title {
       position: relative;
       z-index: 2;
+      max-width: 100%;
 
       font-family: "Montserrat", "Arial Black", sans-serif;
-      font-size: @@TITLE_FONT_SIZE@@;
       font-weight: 900;
       line-height: 0.98;
       letter-spacing: 0.02em;
@@ -207,6 +228,26 @@
         0 0.3mm 0 rgba(117, 80, 6, .10);
 
       overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+    }
+
+    .event-title.title-short {
+      font-size: 9.2mm;
+    }
+
+    .event-title.title-medium {
+      font-size: 7.8mm;
+    }
+
+    .event-title.title-long {
+      font-size: 6.7mm;
+    }
+
+    .event-title.title-extra-long {
+      font-size: 5.6mm;
     }
 
     /* ---------- Subtitle ---------- */
@@ -214,16 +255,21 @@
     .event-subtitle {
       position: relative;
       z-index: 1;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
 
-      width: 100%;
-      max-width: 92mm;
-      margin: 4.7mm auto 3.5mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
       padding: 0 3mm;
-
       text-align: center;
-      font-size: @@SUBTITLE_FONT_SIZE@@;
+
+      font-size: 4.8mm;
       font-weight: 500;
-      line-height: 1.16;
+      line-height: 1.12;
       letter-spacing: -0.015em;
       color: #25292d;
     }
@@ -233,36 +279,30 @@
       display: block;
       width: 9mm;
       height: 0.65mm;
-      margin: 2.7mm auto 0;
+      margin-top: 1.2mm;
       border-radius: 999px;
       background: linear-gradient(90deg, transparent, rgba(23,63,80,.58), transparent);
+      flex-shrink: 0;
     }
 
-    /* ---------- Blank event image area ---------- */
+    /* ---------- Artwork viewport ---------- */
 
     .event-image {
+      width: var(--artwork-size);
+      height: var(--artwork-size);
+      min-width: var(--artwork-size);
+      min-height: var(--artwork-size);
+      max-width: var(--artwork-size);
+      max-height: var(--artwork-size);
+
+      justify-self: center;
+      align-self: center;
+
       position: relative;
       z-index: 1;
-
-      width: 100%;
-      min-height: 0;
       overflow: hidden;
-
       border-radius: 3mm;
-
-      /*
-        Intentionally blank.
-        Add the event artwork later, for example:
-
-        <img src="your-event-image.png" alt="">
-
-        or set:
-        background-image: url("your-event-image.png");
-      */
       background: #f6f4ee;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
 
       box-shadow:
         0 1.2mm 3.2mm rgba(41, 48, 52, .07),
@@ -270,10 +310,17 @@
         inset 0 0.2mm 0 rgba(255,255,255,.8);
     }
 
-    .event-image > img {
+    .event-image > img,
+    .event-image > .event-artwork {
       width: 100%;
       height: 100%;
       display: block;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .event-image > img.artwork-cover,
+    .event-image > .event-artwork.artwork-cover {
       object-fit: cover;
     }
 
@@ -283,13 +330,20 @@
       position: relative;
       z-index: 1;
 
-      margin: 3.2mm 1.7mm 0;
-      padding: 3.2mm 4mm 3mm;
+      height: var(--description-height);
+      margin: 0 1.7mm;
+      padding: 2.5mm 4mm;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       text-align: center;
-      font-size: @@DESCRIPTION_FONT_SIZE@@;
+      overflow: hidden;
+
+      font-size: 3.7mm;
       font-weight: 500;
-      line-height: 1.34;
+      line-height: 1.25;
       letter-spacing: -0.01em;
       color: #262a2d;
 
@@ -304,6 +358,10 @@
         0 1mm 2.5mm rgba(80, 70, 50, .05);
     }
 
+    .event-description.is-long {
+      font-size: 3.35mm;
+    }
+
     /* ---------- Bottom identifier ---------- */
 
     .bottom-placeholder {
@@ -311,8 +369,9 @@
       z-index: 1;
 
       width: 20mm;
-      height: 2.7mm;
-      margin: 2.5mm auto 0;
+      height: 100%;
+      justify-self: center;
+      align-self: center;
       border-radius: 999px;
 
       background: linear-gradient(180deg, #ffffff, #ece7dc);
@@ -363,15 +422,15 @@
 
       <header class="top-frame">
         <div class="title-banner">
-          <div class="event-title">@@EVENT_NAME@@</div>
+          <div class="event-title @@TITLE_CLASS@@">@@EVENT_NAME@@</div>
         </div>
       </header>
 
       <div class="event-subtitle">@@EVENT_SUBTITLE@@</div>
 
-      <div class="event-image"></div>
+      @@ARTWORK_BLOCK@@
 
-      <div class="event-description">@@EVENT_DESCRIPTION@@</div>
+      <div class="event-description@@DESCRIPTION_CLASS@@">@@EVENT_DESCRIPTION@@</div>
 
       <div class="bottom-placeholder"></div>
 

@@ -240,15 +240,15 @@ def main() -> int:
 
     india_prop_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "PropertyCards", "_Front.png")
     india_event_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "EventCards", "_Front.png")
-    india_art_status = "READY" if india_prop_art >= 22 and india_event_art >= 23 else "INCOMPLETE"
+    india_art_status = "READY" if india_prop_art >= 22 and india_event_art >= 25 else "INCOMPLETE"
 
     lines += [
         "INDIA",
         f"edition.json: {'PASS' if india_edition.get('editionId') == 'india' else 'FAIL'}",
         f"properties: {len(india_props)} / 22",
-        f"events: {len(india_events)} / 23",
+        f"events: {len(india_events)} / 25",
         f"property artwork: {india_art_status} ({india_prop_art}/22)",
-        f"event artwork: {india_art_status} ({india_event_art}/23)",
+        f"event artwork: {india_art_status} ({india_event_art}/25)",
         "exposed in New Game: NO",
         "",
     ]

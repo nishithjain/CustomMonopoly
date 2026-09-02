@@ -29,6 +29,7 @@ from monopoly_edition_generator.paths import (
     theme_id_for_edition,
 )
 from monopoly_edition_generator.energy_grids import load_energy_grids
+from monopoly_edition_generator.event_artwork import map_edition_artwork
 
 REQUIRED_TEMPLATES = (
     ("board/board.html", BOARD_TEMPLATE, ("const boardSpaces", "const GO_DATA")),
@@ -137,6 +138,7 @@ def validate_edition(edition_id: str) -> ValidationResult:
 
     _validate_properties(result, edition_id, property_colors, tile_colors)
     _validate_events(result, edition_id)
+    _validate_event_artwork(result, edition_id)
     _validate_banking(result, edition_id)
     _validate_board_relationships(result, edition_id)
     _validate_templates(result)
@@ -321,6 +323,41 @@ def _validate_events(result: ValidationResult, edition_id: str) -> None:
                 _error(result, source, entity, "eventId", f"Duplicate event ID (also {previous}).")
             else:
                 ids[event_id] = label
+
+
+def _validate_event_artwork(result: ValidationResult, edition_id: str) -> None:
+    source = "events.json"
+    try:
+        data = load_edition_json(edition_id, source)
+    except GeneratorError:
+        return
+
+    events = data.get("events") if isinstance(data, dict) else None
+    if not isinstance(events, list):
+        return
+
+    if not any(
+        isinstance(event, dict) and str(event.get("artworkAsset") or "").strip()
+        for event in events
+    ):
+        return
+
+    try:
+        records = map_edition_artwork(edition_id, events)
+    except GeneratorError as exc:
+        _error(result, source, "Event artwork", "artworkAsset", str(exc))
+        return
+
+    result.notes.append(f"event artwork ({len(records)} files)")
+    for record in records:
+        for warning in record.warnings:
+            _warn(
+                result,
+                source,
+                f"Event: {record.event_id}",
+                record.filename,
+                warning,
+            )
 
 
 def _validate_banking(result: ValidationResult, edition_id: str) -> None:

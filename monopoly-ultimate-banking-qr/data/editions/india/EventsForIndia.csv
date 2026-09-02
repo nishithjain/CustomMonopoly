@@ -1,0 +1,47 @@
+#,Event name,Category,Suggested card instruction,ActionType
+1,Advance to GO,Travel & Transport,Move directly to GO and collect the configured GO amount once.,MOVE_TO_SPACE
+2,Wrong Turn!,Travel & Transport,Move backward three spaces and resolve the new landing. Do not collect the GO amount when moving backward.,MOVE_BACKWARD
+3,UPI Cashback,Bank & Rewards,Collect the configured cashback amount from the bank.,BANK_CREDIT
+4,Income Tax Refund,Bank & Rewards,Collect the configured income-tax refund from the bank,BANK_CREDIT
+5,Hospital Expense,Bills & Expenses,Pay the configured medical expense to the bank.,BANK_DEBIT
+6,Festival Contribution,Community & Players,Pay the configured contribution to each other player.,PAY_EACH_PLAYER
+7,Birthday Celebration,Community & Players,Collect the configured gift from each other player.,COLLECT_FROM_EACH_PLAYER
+8,Municipal Maintenance,Property & Maintenance,Pay the configured maintenance fee to the bank for each Property you own.,DEBIT_PER_OWNED_PROPERTY
+9,Green Building Grant,Property & Maintenance,Collect the configured reward from the bank for each Property you own.,CREDIT_PER_OWNED_PROPERTY
+10,Rent Relief,Rent & Opportunity,Your next rent payment is waived.,NEXT_RENT_WAIVER
+11,Get Out of Jail Pass,Jail & Penalties,Keep this pass. Use it once to leave Jail without paying the configured Jail fee.,GET_OUT_OF_JAIL_PASS
+12,Traffic Court,Jail & Penalties,Move directly to Jail without collecting the GO amount. End your current turn.,MOVE_TO_JAIL
+13,Local Market Boom,Property & Maintenance,Select any Property you own and increase its rent level by one level.,INCREASE_SELECTED_PROPERTY_RENT_LEVEL
+14,Market Correction,Property & Maintenance,Select any Property you own that is above the minimum rent level. Decrease its rent level by one.,DECREASE_SELECTED_PROPERTY_RENT_LEVEL
+15,Lucky Draw,Special,Draw and resolve one additional Event Card.,DRAW_ANOTHER_EVENT
+16,Community Development,Community & Players,Select one eligible Property you own and one eligible Property owned by another player. Increase both Properties by one rent level.,COOPERATIVE_PROPERTY_UPGRADE
+17,Lucky Break,Risk & Reward,"Roll both dice up to three times. If you roll doubles at least once, collect the configured jackpot from the bank. Otherwise, pay the configured penalty to the bank.
+
+Do not move the token.
+Do not award an extra turn for doubles.
+The player can stop immediately after rolling doubles.",GAMBLE_ON_DICE_ROLL
+18,Metro Delay,Travel & Transport,Skip your next scheduled turn.,SKIP_NEXT_TURN
+19,Eminent Domain,Property & Maintenance,"The city claims one of your least valuable properties. The bank buys it back from you at double its face value.
+
+Recommended resolution:
+
+Find owned Properties with the lowest purchase price.
+If tied, let the player select one of the tied Properties.
+Return it to the bank as unowned.
+Reset it to the edition’s initial rent level.
+Remove temporary effects associated with it.
+If the player owns no Properties, the Event has no effect.",FORCED_PROPERTY_SELLBACK
+20,Economic Relief Grant,Bank & Rewards,"If your balance is below the configured threshold, the bank increases it to that threshold.",TOP_UP_BALANCE_TO_THRESHOLD
+21,Wrong Terminal,Travel & Transport,"Move forward to the next Energy Station. Collect the configured GO amount if you pass GO, then resolve the Energy Station normally.",MOVE_TO_NEAREST_STATION
+22,Cloud Storage Subscription Renewal,Bills & Expenses,Pay your annual digital subscription configured amount fee to the bank.,BANK_DEBIT
+23,Beauty Contest Winner,Bank & Rewards,Collect the configured prize from the bank for your dazzling look.,BANK_CREDIT
+24,Second Wind,Special,"After your current turn ends, immediately take one additional turn.
+
+Recommended rules:
+
+Extra turns cannot stack.
+Going to Jail cancels the pending extra turn.
+An extra turn is still a complete normal turn.
+A pending SKIP_NEXT_TURN consumes and cancels the extra turn first.",EXTRA_TURN
+25,Green Energy Rebate,Property & Maintenance,"If you own at least one complete colour group, collect twice the configured rebate from the bank. This reward is paid only once, regardless of how many complete colour groups you own.",MONOPOLY_GROUP_BONUS_CREDIT
+,,,,

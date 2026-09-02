@@ -12,6 +12,8 @@ from typing import Any
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent.parent
 
+EVENT_CARD_ARTWORK_ROOT = PROJECT_ROOT / "assets" / "cards" / "editions"
+
 WORKSPACE_ENV_VAR = "MONOPOLY_WORKSPACE_ROOT"
 
 
@@ -306,6 +308,17 @@ def posix_relative(from_dir: Path, to_path: Path) -> str:
     import os
 
     return Path(os.path.relpath(to_path.resolve(), from_dir.resolve())).as_posix()
+
+
+def project_asset_path(asset_ref: str) -> Path:
+    normalized = asset_ref.replace("\\", "/").lstrip("/")
+    if normalized.startswith("assets/"):
+        return (PROJECT_ROOT / normalized).resolve()
+    return (PROJECT_ROOT / normalized).resolve()
+
+
+def event_artwork_dir(edition_id: str) -> Path:
+    return EVENT_CARD_ARTWORK_ROOT / edition_id / "event-artwork"
 
 
 def rewrite_board_asset_paths(html: str, html_output_path: Path) -> str:

@@ -47,6 +47,74 @@ python generate.py india --only properties
 python generate.py india --only events
 ```
 
+Event card text is read from `monopoly-ultimate-banking-qr/data/editions/<edition>/events.json`.
+
+Monetary amounts in event descriptions use named placeholders such as `{amount}` and `{goSalary}`. During generation, the event-card generator resolves those placeholders from:
+
+* `{edition}_event_balance_config.json` (event-specific amounts, matched by `eventId`)
+* `banking_values.json` (GO salary, Jail release fee, currency formatting)
+
+Editions without a balance configuration file (for example UK) pass event text through unchanged when no placeholders are present.
+
+### Replace stale India event HTML (23 → 25 cards)
+
+If `output/india/event_cards/html/` still contains old UK-deck files (for example `E01_Boom_Town.html`), regenerate events. **You do not need to delete them manually** — the generator removes the entire `event_cards/html/` and `event_cards/png/` folders for that edition before writing new files.
+
+From `monopoly-edition-generator/` (your usual working folder):
+
+```bash
+# 1. Rebuild events.json (note: ../ not monopoly-ultimate-banking-qr/ alone)
+python ../monopoly-ultimate-banking-qr/tools/build_india_events.py
+
+# 2. Regenerate event-card HTML only
+python generate.py india --only events --no-png
+```
+
+Or change directory first:
+
+```bash
+cd ../monopoly-ultimate-banking-qr
+python tools/build_india_events.py
+cd ../monopoly-edition-generator
+python generate.py india --only events --no-png
+```
+
+From the Monopoly repo root (`C:\Personal\Monopoly`):
+
+```bash
+python monopoly-ultimate-banking-qr/tools/build_india_events.py
+cd monopoly-edition-generator && python generate.py india --only events --no-png
+```
+
+If `events.json` is already up to date, skip step 1 and run only:
+
+```bash
+python generate.py india --only events --no-png
+```
+
+Expected result:
+
+```text
+output/india/event_cards/html/
+    E01_Advance_to_GO.html
+    ...
+    E25_Green_Energy_Rebate.html
+```
+
+To render printable PNGs as well, omit `--no-png` (requires Playwright + Chromium):
+
+```bash
+python generate.py india --only events
+```
+
+Optional manual cleanup (only needed if you want to clear output without regenerating):
+
+```bash
+rm -rf output/india/event_cards/html output/india/event_cards/png
+```
+
+UK edition uses the same commands with `uk` instead of `india` (23 events).
+
 ## Generate Board Only
 
 ```bash
