@@ -78,6 +78,12 @@ internal object TransactionHistoryEntries {
     private val headlineOrder = listOf(
         TransactionType.BANKRUPTCY,
         TransactionType.JAIL_STATUS_CHANGE,
+        TransactionType.JAIL_PASS_USED,
+        TransactionType.TURN_ADVANCED,
+        TransactionType.TURN_SKIPPED,
+        TransactionType.EXTRA_TURN_STARTED,
+        TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP,
+        TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL,
         TransactionType.RENT_PAYMENT,
         TransactionType.PROPERTY_PURCHASE,
         TransactionType.AUCTION_WIN,
@@ -146,6 +152,13 @@ internal object TransactionHistoryEntries {
         TransactionType.TEMPORARY_EFFECT_CREATED -> "Effect started"
         TransactionType.TEMPORARY_EFFECT_CONSUMED -> "Effect used"
         TransactionType.JAIL_STATUS_CHANGE -> "Jail"
+        TransactionType.JAIL_PASS_USED -> "Get Out of Jail pass"
+        TransactionType.TURN_SKIPPED -> "Turn skipped"
+        TransactionType.TURN_ADVANCED -> "Next turn"
+        TransactionType.EXTRA_TURN_STARTED -> "Extra turn"
+        TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP -> "Extra turn cancelled"
+        TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL -> "Extra turn cancelled"
+        TransactionType.EXTRA_TURN_GRANTED -> "Extra turn granted"
         TransactionType.BANKRUPTCY -> "Bankruptcy"
         TransactionType.UNDO -> "Undo"
     }
@@ -233,6 +246,27 @@ internal object TransactionHistoryEntries {
                     undone = undone,
                 ),
             )
+        }
+
+        val skipTxs = group.filter { it.transactionType == TransactionType.TURN_SKIPPED }
+        if (skipTxs.isNotEmpty()) {
+            val entries = skipTxs.map { skipTx ->
+                HistoryEntry(
+                    title = label(TransactionType.TURN_SKIPPED),
+                    time = time,
+                    detail = buildSingleDetail(skipTx, session, definitions),
+                    undone = undone,
+                )
+            }.toMutableList()
+            group.firstOrNull { it.transactionType == TransactionType.TURN_ADVANCED }?.let { advanceTx ->
+                entries += HistoryEntry(
+                    title = label(TransactionType.TURN_ADVANCED),
+                    time = time,
+                    detail = buildSingleDetail(advanceTx, session, definitions),
+                    undone = undone,
+                )
+            }
+            return entries
         }
 
         val title = if (event != null) {
@@ -360,13 +394,17 @@ internal object TransactionHistoryEntries {
         Instant.ofEpochMilli(epochMillis).atZone(zone).format(timeFormatter)
 
     private fun detailText(tx: Transaction, definitions: GameDefinitions): String? {
-        val amount = tx.amount ?: return null
         return when (tx.transactionType) {
-            in moneyTypes -> formatMoney(amount, definitions)
+            in moneyTypes -> tx.amount?.let { formatMoney(it, definitions) }
+            TransactionType.JAIL_PASS_USED -> "used Get Out of Jail pass"
+            TransactionType.TURN_SKIPPED -> "skips this turn"
+            TransactionType.EXTRA_TURN_STARTED -> "takes an extra turn"
+            TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP -> "extra turn cancelled by skip"
+            TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL -> "extra turn cancelled by Jail"
             TransactionType.TEMPORARY_EFFECT_CREATED ->
-                "Active for $amount ${plural(amount, "rent payment")}"
+                tx.amount?.let { "Active for $it ${plural(it, "rent payment")}" }
             TransactionType.TEMPORARY_EFFECT_CONSUMED ->
-                if (amount == 0) "Effect finished" else "$amount ${plural(amount, "use")} left"
+                tx.amount?.let { if (it == 0) "Effect finished" else "$it ${plural(it, "use")} left" }
             else -> null
         }
     }

@@ -258,21 +258,35 @@ fun AdvancedBankingScreen(
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text("IN JAIL", style = MaterialTheme.typography.titleMedium)
+                    val jailPassLabel = viewModel.jailPassActionLabel(step.playerId)
                     BankingActionBar(
                         confirmLabel = BankingActionLabels.confirm("PAY ${viewModel.jailFeeText()} TO LEAVE JAIL"),
                         onConfirm = { viewModel.onPayJailFee(step.playerId) },
-                        extraActions = listOf(
-                            BankingExtraAction(
-                                label = "RELEASE AFTER DOUBLES",
-                                onClick = { viewModel.onJailDoubles(step.playerId) },
-                                contentDescription = "Release player after rolling doubles",
-                            ),
-                            BankingExtraAction(
-                                label = "RECORD FAILED DOUBLES",
-                                onClick = viewModel::onFailedDoublesInfo,
-                                contentDescription = "Show failed doubles guidance",
-                            ),
-                        ),
+                        extraActions = buildList {
+                            if (jailPassLabel != null) {
+                                add(
+                                    BankingExtraAction(
+                                        label = jailPassLabel,
+                                        onClick = { viewModel.onUseJailPass(step.playerId) },
+                                        contentDescription = "Use Get Out of Jail pass",
+                                    ),
+                                )
+                            }
+                            add(
+                                BankingExtraAction(
+                                    label = "RELEASE AFTER DOUBLES",
+                                    onClick = { viewModel.onJailDoubles(step.playerId) },
+                                    contentDescription = "Release player after rolling doubles",
+                                ),
+                            )
+                            add(
+                                BankingExtraAction(
+                                    label = "RECORD FAILED DOUBLES",
+                                    onClick = viewModel::onFailedDoublesInfo,
+                                    contentDescription = "Show failed doubles guidance",
+                                ),
+                            )
+                        },
                         cancelLabel = BankingActionLabels.cancel("BACK"),
                         onCancel = viewModel::onBack,
                     )

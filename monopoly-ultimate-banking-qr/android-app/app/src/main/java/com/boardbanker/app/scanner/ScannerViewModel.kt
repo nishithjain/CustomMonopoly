@@ -157,7 +157,8 @@ class ScannerViewModel(
     }
 
     private fun handlePayload(payload: String) {
-        if (_uiModel.value.state == ScannerUiState.CARD_RESOLVED ||
+        if (_uiModel.value.state == ScannerUiState.PROCESSING ||
+            _uiModel.value.state == ScannerUiState.CARD_RESOLVED ||
             _uiModel.value.state == ScannerUiState.UNKNOWN_CARD ||
             _uiModel.value.state == ScannerUiState.WRONG_CARD_TYPE
         ) {

@@ -44,4 +44,26 @@ class ScanProcessorTest {
         val result = processor.onQrPayload("MUB:P:02")
         assertTrue(result is ScanProcessorResult.Ignored)
     }
+
+    @Test
+    fun whitespacePayloadIsNormalizedBeforeResolution() {
+        val result = processor.onQrPayload("  MUB:P:01  ")
+        assertTrue(result is ScanProcessorResult.CardResolved)
+        assertEquals("PRP_01", (result as ScanProcessorResult.CardResolved).resolution.cardId)
+    }
+
+    @Test
+    fun emptyPayloadIsIgnoredWithoutResolution() {
+        val result = processor.onQrPayload("   ")
+        assertTrue(result is ScanProcessorResult.Ignored)
+    }
+
+    @Test
+    fun unlockAllowsRetryAfterWrongScanAttempt() {
+        processor.onQrPayload("MUB:P:01")
+        processor.lock()
+        processor.unlock()
+        val retry = processor.onQrPayload("MUB:P:01")
+        assertTrue(retry is ScanProcessorResult.CardResolved)
+    }
 }

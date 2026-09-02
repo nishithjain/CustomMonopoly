@@ -80,9 +80,9 @@ class EditionArchitectureTests {
     }
 
     @Test
-    fun bundledEditionsExposeDefinitionVersionOne() {
+    fun bundledEditionsExposeExpectedDefinitionVersions() {
         assertEquals(1, TestFixtures.definitions.edition!!.definitionVersion)
-        assertEquals(1, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
+        assertEquals(2, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
     }
 
     @Test
@@ -90,13 +90,19 @@ class EditionArchitectureTests {
         val india = TestFixtures.loadEdition(EditionIds.INDIA)
         val engine = DefaultGameEngine(india)
         val session = engine.process(
-            com.boardbanker.core.model.GameSession(gameId = "INDIA_TEST", editionId = EditionIds.INDIA),
+            com.boardbanker.core.model.GameSession(
+                gameId = "INDIA_TEST",
+                editionId = EditionIds.INDIA,
+                editionDefinitionVersion = 2,
+            ),
             com.boardbanker.core.command.GameCommand.CreateGame("INDIA_TEST"),
         ).session
         assertEquals(EditionIds.INDIA, session.editionId)
         assertEquals("Cubbon Park", india.properties["PRP_01"]!!.name)
-        assertEquals(23, india.events.size)
+        assertEquals(25, india.events.size)
         assertEquals(4, india.edition!!.cardConfiguration!!.playerCardCount)
         assertEquals(40, india.boardLayout.size)
+        assertEquals("Advance to GO", india.events["EVT_01"]!!.name)
+        assertEquals("MOVE_TO_SPACE", india.events["EVT_01"]!!.actions.first().actionType)
     }
 }

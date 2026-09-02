@@ -1,29 +1,32 @@
 CARD REGISTRY VALIDATION
 ========================
 
-User Cards
+Common User Cards
 Expected: 4
 Found:    4
 
-Event Cards
-Expected: 23
-Found:    23
+Edition: india
+  Event cards expected:    25
+  Event cards found:       25
+  Property cards expected: 22
+  Property cards found:    22
 
-Property Cards
-Expected: 22
-Found:    22
+Edition: uk
+  Event cards expected:    23
+  Event cards found:       23
+  Property cards expected: 22
+  Property cards found:    22
 
-Total Active QR Cards
-Expected: 49
-Found:    49
+Total QR Cards (common + all editions)
+Expected decode targets: 96
 
 QR Decode
-Successful: 49
+Successful: 96
 Failed:     0
 
 Unique QR Payloads
-Expected: 49
-Found:    49
+Expected: 96
+Found:    96
 
 Missing Front Assets: 0
 Missing QR Assets:    0

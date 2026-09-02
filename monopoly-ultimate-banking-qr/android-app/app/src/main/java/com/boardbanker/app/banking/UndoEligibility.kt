@@ -44,6 +44,26 @@ class UndoEligibility(private val definitions: GameDefinitions) {
                 val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
                 "Jail payment:\n$playerName paid to leave Jail."
             }
+            TransactionType.JAIL_PASS_USED -> {
+                val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
+                "Jail pass:\n$playerName used a Get Out of Jail pass."
+            }
+            TransactionType.TURN_ADVANCED -> {
+                val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
+                "Turn advance:\n$playerName begins their turn."
+            }
+            TransactionType.EXTRA_TURN_STARTED -> {
+                val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
+                "Extra turn:\n$playerName takes an extra turn."
+            }
+            TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP -> {
+                val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
+                "Extra turn cancelled:\n$playerName's skipped turn cancelled the extra turn."
+            }
+            TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL -> {
+                val playerName = lastTx.playerId?.let { resolveName(session, it) } ?: "Player"
+                "Extra turn cancelled:\n$playerName's extra turn was cancelled by Jail."
+            }
             else -> "Last action: ${lastTx.transactionType.name.replace('_', ' ')}."
         }
     }

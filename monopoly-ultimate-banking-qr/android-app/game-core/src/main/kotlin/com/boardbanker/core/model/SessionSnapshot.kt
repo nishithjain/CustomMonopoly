@@ -12,5 +12,9 @@ data class SessionSnapshot(
     val auction: AuctionState? = null,
     val pendingEventChoice: PendingEventChoice? = null,
     val pendingEventExecution: PendingEventExecution? = null,
+    val pendingEventDraw: PendingEventDraw? = null,
+    val pendingDiceGamble: PendingDiceGamble? = null,
+    val eventChainDepth: Int = 0,
+    val turnState: TurnState? = null,
     val status: GameStatus = GameStatus.ACTIVE,
 )

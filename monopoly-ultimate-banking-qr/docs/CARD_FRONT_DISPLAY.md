@@ -111,6 +111,8 @@ Writes `data/card_front_asset_validation.txt` and verifies per edition:
 
 Editions marked `artworkStatus: INCOMPLETE` may ship zero property/event fronts; runtime lookup returns a missing-artwork placeholder instead of UK fallback artwork.
 
+`FRONTS_READY` means published card fronts exist under `Resources/Editions/<edition>/`, but QR Card Backs may still be pending.
+
 ## Runtime lookup (`:app` only)
 
 Game Core remains unaware of PNG/JPG assets.

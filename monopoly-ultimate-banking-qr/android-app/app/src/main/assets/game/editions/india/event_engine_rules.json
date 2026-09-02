@@ -1,0 +1,523 @@
+{
+  "schemaVersion": 1,
+  "globalEventRules": {
+    "maximumChainedEvents": 3,
+    "allowStackedRentWaivers": false,
+    "allowStackedJailPasses": false,
+    "allowStackedSkipTurns": false,
+    "allowStackedExtraTurns": false
+  },
+  "events": [
+    {
+      "eventId": "EVT_01",
+      "name": "Advance to GO",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_TO_SPACE",
+      "targetType": "NONE",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "targetSpaceSemanticType": "GO",
+        "collectGoAmount": true,
+        "goAmountSource": "banking_values.goSalary",
+        "collectAmountExactlyOnce": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_02",
+      "name": "Wrong Turn!",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_BACKWARD",
+      "targetType": "NONE",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "spaceCount": 3,
+        "collectGoWhenCrossed": false,
+        "resolveLanding": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_03",
+      "name": "UPI Cashback",
+      "engineStatus": "RESOLVED",
+      "actionType": "BANK_CREDIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amount": 5000
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_04",
+      "name": "Income Tax Refund",
+      "engineStatus": "RESOLVED",
+      "actionType": "BANK_CREDIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amount": 10000
+      },
+      "amount": 10000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_05",
+      "name": "Hospital Expense",
+      "engineStatus": "RESOLVED",
+      "actionType": "BANK_DEBIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amount": 10000,
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 10000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_06",
+      "name": "Festival Contribution",
+      "engineStatus": "RESOLVED",
+      "actionType": "PAY_EACH_PLAYER",
+      "targetType": "ALL_PLAYERS",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amountPerOtherPlayer": 5000,
+        "recipientOrder": "NORMAL_TURN_ORDER",
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_07",
+      "name": "Birthday Celebration",
+      "engineStatus": "RESOLVED",
+      "actionType": "COLLECT_FROM_EACH_PLAYER",
+      "targetType": "ALL_PLAYERS",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amountPerOtherPlayer": 5000,
+        "payerOrder": "NORMAL_TURN_ORDER",
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_08",
+      "name": "Municipal Maintenance",
+      "engineStatus": "RESOLVED",
+      "actionType": "DEBIT_PER_OWNED_PROPERTY",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amountPerProperty": 2000,
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 2000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_09",
+      "name": "Green Building Grant",
+      "engineStatus": "RESOLVED",
+      "actionType": "CREDIT_PER_OWNED_PROPERTY",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amountPerProperty": 2000
+      },
+      "amount": 2000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_10",
+      "name": "Rent Relief",
+      "engineStatus": "RESOLVED",
+      "actionType": "NEXT_RENT_WAIVER",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "waivedPaymentCount": 1,
+        "consumeOnlyForPositiveRent": true,
+        "stackBehaviour": "DO_NOT_STACK"
+      },
+      "amount": null,
+      "temporaryEffect": true,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_11",
+      "name": "Get Out of Jail Pass",
+      "engineStatus": "RESOLVED",
+      "actionType": "GET_OUT_OF_JAIL_PASS",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "passCount": 1,
+        "jailFeeSource": "banking_values.jailReleaseFee",
+        "useMode": "PLAYER_CHOICE",
+        "stackBehaviour": "DO_NOT_STACK"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_12",
+      "name": "Traffic Court",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_TO_JAIL",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "collectGoAmount": false,
+        "endCurrentTurn": true,
+        "cancelPendingExtraTurn": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_13",
+      "name": "Local Market Boom",
+      "engineStatus": "RESOLVED",
+      "actionType": "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "levelChange": 1,
+        "ownedPropertiesOnly": true,
+        "requireBelowMaximumRentLevel": true,
+        "noEligibleTargetBehaviour": "DO_NOTHING"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_14",
+      "name": "Market Correction",
+      "engineStatus": "RESOLVED",
+      "actionType": "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "levelChange": 1,
+        "ownedPropertiesOnly": true,
+        "requireAboveMinimumRentLevel": true,
+        "noEligibleTargetBehaviour": "DO_NOTHING"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_15",
+      "name": "Lucky Draw",
+      "engineStatus": "RESOLVED",
+      "actionType": "DRAW_ANOTHER_EVENT",
+      "targetType": "NONE",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "additionalEventCount": 1,
+        "maximumChainDepth": 3,
+        "inputMode": "PHYSICAL_CARD_SCAN"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_16",
+      "name": "Community Development",
+      "engineStatus": "RESOLVED",
+      "actionType": "COOPERATIVE_PROPERTY_UPGRADE",
+      "targetType": "TWO_PLAYERS_AND_PROPERTIES",
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "actingPlayerPropertyCount": 1,
+        "otherPlayerPropertyCount": 1,
+        "levelIncreasePerProperty": 1,
+        "requireBelowMaximumRentLevel": true,
+        "noEligibleTargetBehaviour": "DO_NOTHING"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": false,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_17",
+      "name": "Lucky Break",
+      "engineStatus": "RESOLVED",
+      "actionType": "GAMBLE_ON_DICE_ROLL",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "diceCount": 2,
+        "maximumAttempts": 3,
+        "successCondition": "DOUBLES_AT_LEAST_ONCE",
+        "jackpotAmount": 15000,
+        "penaltyAmount": 5000,
+        "stopAfterSuccess": true,
+        "moveToken": false,
+        "grantExtraTurnForDoubles": false,
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 15000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_18",
+      "name": "Metro Delay",
+      "engineStatus": "RESOLVED",
+      "actionType": "SKIP_NEXT_TURN",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "skipTurnCount": 1,
+        "stackBehaviour": "DO_NOT_STACK"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_19",
+      "name": "Eminent Domain",
+      "engineStatus": "RESOLVED",
+      "actionType": "FORCED_PROPERTY_SELLBACK",
+      "targetType": "OWNED_PROPERTY",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "parameters": {
+        "propertySelection": "LOWEST_PURCHASE_PRICE",
+        "tieBehaviour": "ACTING_PLAYER_SELECTS",
+        "payoutBasis": "PURCHASE_PRICE",
+        "payoutMultiplier": 2.0,
+        "returnToBankAsUnowned": true,
+        "resetToEditionInitialRentLevel": true,
+        "removeTemporaryPropertyEffects": true,
+        "noOwnedPropertyBehaviour": "DO_NOTHING"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": false,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_20",
+      "name": "Economic Relief Grant",
+      "engineStatus": "RESOLVED",
+      "actionType": "TOP_UP_BALANCE_TO_THRESHOLD",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "thresholdAmount": 30000,
+        "topUpMode": "CREDIT_DIFFERENCE_TO_THRESHOLD",
+        "atOrAboveThresholdBehaviour": "DO_NOTHING"
+      },
+      "amount": 30000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_21",
+      "name": "Wrong Terminal",
+      "engineStatus": "RESOLVED",
+      "actionType": "MOVE_TO_NEAREST_STATION",
+      "targetType": "NONE",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "stationSemanticType": "ENERGY_STATION",
+        "searchDirection": "FORWARD",
+        "collectGoIfPassed": true,
+        "goAmountSource": "banking_values.goSalary",
+        "resolveLanding": true
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": true,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_22",
+      "name": "Cloud Storage Subscription Renewal",
+      "engineStatus": "RESOLVED",
+      "actionType": "BANK_DEBIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amount": 5000,
+        "invokeDebtFlowIfNeeded": true
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_23",
+      "name": "Beauty Contest Winner",
+      "engineStatus": "RESOLVED",
+      "actionType": "BANK_CREDIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "amount": 5000
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_24",
+      "name": "Second Wind",
+      "engineStatus": "RESOLVED",
+      "actionType": "EXTRA_TURN",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "extraTurnCount": 1,
+        "stackBehaviour": "DO_NOT_STACK",
+        "cancelIfSentToJail": true,
+        "pendingSkipTurnBehaviour": "CONSUME_SKIP_AND_CANCEL_EXTRA_TURN"
+      },
+      "amount": null,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    },
+    {
+      "eventId": "EVT_25",
+      "name": "Green Energy Rebate",
+      "engineStatus": "RESOLVED",
+      "actionType": "COMPLETE_COLOR_SET_BONUS_CREDIT",
+      "targetType": "CURRENT_PLAYER",
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "parameters": {
+        "minimumCompleteColorSets": 1,
+        "baseRebateAmount": 5000,
+        "rewardMultiplier": 2.0,
+        "maximumRewardCount": 1,
+        "maximumCreditAmount": 10000,
+        "noCompleteColorSetBehaviour": "DO_NOTHING"
+      },
+      "amount": 5000,
+      "temporaryEffect": false,
+      "physicalActionRequired": false,
+      "ownedPropertiesOnly": true,
+      "printedTextValidated": true,
+      "notes": ""
+    }
+  ]
+}

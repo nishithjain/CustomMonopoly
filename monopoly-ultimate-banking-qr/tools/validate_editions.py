@@ -107,6 +107,26 @@ def load_edition_cards(edition_id: str) -> list[dict]:
     return common_cards + edition_cards
 
 
+def is_edition_exposed_in_catalog(edition_id: str) -> bool:
+    catalog_path = DATA / "editions" / "index.json"
+    if not catalog_path.is_file():
+        return False
+    catalog = load(catalog_path)
+    for entry in catalog.get("editions", []):
+        if str(entry.get("editionId", "")).strip() == edition_id and entry.get("enabled", True):
+            return True
+    return False
+
+
+def android_catalog_matches_source() -> bool:
+    android_catalog_path = (
+        PROJECT_ROOT / "android-app" / "app" / "src" / "main" / "assets" / "game" / "editions" / "index.json"
+    )
+    if not android_catalog_path.is_file():
+        return False
+    return load(android_catalog_path) == load(DATA / "editions" / "index.json")
+
+
 def main() -> int:
     problems: list[str] = []
     lines: list[str] = ["EDITION VALIDATION", "==================", ""]
@@ -241,6 +261,12 @@ def main() -> int:
     india_prop_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "PropertyCards", "_Front.png")
     india_event_art = count_fronts(WORKSPACE_ROOT / "Resources" / "Editions" / "india" / "EventCards", "_Front.png")
     india_art_status = "READY" if india_prop_art >= 22 and india_event_art >= 25 else "INCOMPLETE"
+    india_exposed = is_edition_exposed_in_catalog("india")
+    android_catalog_ok = android_catalog_matches_source()
+    if not india_exposed:
+        problems.append("India edition is not enabled in data/editions/index.json")
+    if not android_catalog_ok:
+        problems.append("Android bundled editions/index.json does not match data/editions/index.json")
 
     lines += [
         "INDIA",
@@ -249,7 +275,7 @@ def main() -> int:
         f"events: {len(india_events)} / 25",
         f"property artwork: {india_art_status} ({india_prop_art}/22)",
         f"event artwork: {india_art_status} ({india_event_art}/25)",
-        "exposed in New Game: NO",
+        f"exposed in New Game: {'YES' if india_exposed and android_catalog_ok else 'NO'}",
         "",
     ]
 

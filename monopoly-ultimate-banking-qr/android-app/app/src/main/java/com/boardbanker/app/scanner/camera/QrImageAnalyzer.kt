@@ -1,5 +1,9 @@
+@file:OptIn(androidx.camera.core.ExperimentalGetImage::class)
+
 package com.boardbanker.app.scanner.camera
 
+import android.annotation.SuppressLint
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import com.boardbanker.app.scanner.QrDetectionEvent
 import com.google.mlkit.vision.barcode.BarcodeScanner
@@ -15,6 +19,7 @@ internal class QrImageAnalyzer(
     @Volatile
     private var processing = false
 
+    @SuppressLint("UnsafeOptInUsageError")
     override fun analyze(imageProxy: ImageProxy) {
         if (closed) {
             imageProxy.close()

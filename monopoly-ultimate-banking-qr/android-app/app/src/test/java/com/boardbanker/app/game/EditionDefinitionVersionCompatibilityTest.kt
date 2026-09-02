@@ -28,13 +28,13 @@ class EditionDefinitionVersionCompatibilityTest {
     }
 
     @Test
-    fun newIndiaGameStoresEditionDefinitionVersionOne() = runTest {
+    fun newIndiaGameStoresEditionDefinitionVersionTwo() = runTest {
         val repository = FakeGameSessionRepository()
         val manager = managerWithEditionAwareRepository(repository)
         val result = manager.createNewGame(EditionIds.INDIA)
         val session = (result as ProcessCommitResult.Committed).session
         assertEquals(EditionIds.INDIA, session.editionId)
-        assertEquals(1, session.editionDefinitionVersion)
+        assertEquals(2, session.editionDefinitionVersion)
     }
 
     @Test
@@ -42,8 +42,17 @@ class EditionDefinitionVersionCompatibilityTest {
         val repository = FakeGameSessionRepository()
         val store = CommittedGameSessionStore(editionAwareRepository(repository))
         val manager = managerWithEditionAwareRepository(repository, store)
-        val session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
-        repository.save(session.copy(status = GameStatus.ACTIVE))
+        var session = (manager.createNewGame(EditionIds.UK) as ProcessCommitResult.Committed).session
+        session = (
+            manager.processCommand(session, com.boardbanker.core.command.GameCommand.RegisterPlayer("USR_01", "Nishith"))
+                as ProcessCommitResult.Committed
+            ).session
+        session = (
+            manager.processCommand(session, com.boardbanker.core.command.GameCommand.RegisterPlayer("USR_02", "Aditya"))
+                as ProcessCommitResult.Committed
+            ).session
+        session = (manager.processCommand(session, com.boardbanker.core.command.GameCommand.StartGame) as ProcessCommitResult.Committed).session
+        repository.save(session)
 
         val restoredManager = managerWithEditionAwareRepository(
             repository,

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "editionId": "india",
-  "definitionVersion": 1,
+  "definitionVersion": 2,
   "name": "India Edition",
   "countryCode": "IN",
   "currency": {
@@ -16,14 +16,15 @@
     "boardRelationships": "board_relationships.json",
     "boardLayout": "board_layout.json",
     "cardRegistry": "card_registry.json",
-    "gameRules": "game_rules.json"
+    "gameRules": "game_rules.json",
+    "eventEngineRules": "event_engine_rules.json"
   },
   "resources": {
     "propertyCards": "Editions/india/PropertyCards",
     "eventCards": "Editions/india/EventCards"
   },
   "artworkStatus": "READY",
-  "notes": "India edition uses a 25-card event deck defined in events.json and EventsForIndia.csv. Event artwork for the new deck is not yet present under Resources/Editions/india/EventCards.",
+  "notes": "India edition uses a 25-card event deck. Published card fronts and QR card backs live under Resources/Editions/india/. definitionVersion 2 ships the full India event engine rules.",
   "cardConfiguration": {
     "playerCardCount": 4,
     "propertyCardCount": 22,

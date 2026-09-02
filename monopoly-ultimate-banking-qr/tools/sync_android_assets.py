@@ -22,6 +22,7 @@ EDITION_FILES = [
     "board_layout.json",
     "card_registry.json",
     "game_rules.json",
+    "event_engine_rules.json",
 ]
 
 
@@ -94,6 +95,8 @@ def main() -> int:
         for filename in EDITION_FILES:
             source = data_dir / "editions" / edition / filename
             if not source.is_file():
+                if filename == "event_engine_rules.json":
+                    continue
                 print(f"Missing {source}", file=sys.stderr)
                 return 1
             destination = destination_root / "editions" / edition / filename

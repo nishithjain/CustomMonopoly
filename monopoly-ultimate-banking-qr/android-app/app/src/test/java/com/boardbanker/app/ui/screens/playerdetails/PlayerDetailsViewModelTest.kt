@@ -115,6 +115,74 @@ class PlayerDetailsViewModelTest {
     }
 
     @Test
+    fun useJailPass_releasesPlayerWithoutChargingFee() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val indiaExecutor = BankingCommandExecutor(manager)
+
+        var session = (manager.createNewGame(EditionIds.INDIA) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
+        val balanceBefore = session.players["USR_01"]!!.balance
+        indiaExecutor.execute(GameCommand.ApplyEvent("EVT_11", "USR_01"))
+        indiaExecutor.execute(GameCommand.SendPlayerToJail("USR_01"))
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.jailPassCount)
+        viewModel.onGetOutOfJail()
+        assertEquals("Use Jail Pass", viewModel.jailPassActionLabel())
+        viewModel.onUseJailPass()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.inJail)
+        assertEquals(0, viewModel.uiState.value.jailPassCount)
+        assertEquals(balanceBefore, manager.currentSession()!!.players["USR_01"]!!.balance)
+        assertTrue(viewModel.uiState.value.result!!.primaryMessage.contains("No Jail fee was charged"))
+    }
+
+    @Test
+    fun jailPassActionLabel_showsCountWhenMultiplePasses() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+
+        var session = (manager.createNewGame(EditionIds.INDIA) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_01", "Nishith")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.RegisterPlayer("USR_02", "Aditya")) as ProcessCommitResult.Committed).session
+        session = (manager.processCommand(session, GameCommand.StartGame) as ProcessCommitResult.Committed).session
+        val jailedWithTwoPasses = session.copy(
+            players = session.players + (
+                "USR_01" to session.players["USR_01"]!!.copy(jailStatus = true, jailPassCount = 2)
+            ),
+        )
+        repository.save(jailedWithTwoPasses)
+        manager.restoreFromStorage()
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertEquals("Use Jail Pass (2)", viewModel.jailPassActionLabel())
+    }
+
+    @Test
     fun ownedProperties_sortedByBoardSequence() = runTest {
         startActiveGame()
         executor.execute(GameCommand.PurchaseProperty("USR_01", "PRP_22"))

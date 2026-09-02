@@ -28,6 +28,7 @@ import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.ui.components.BankingActionBar
+import com.boardbanker.core.model.TurnKind
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
 import com.boardbanker.app.ui.components.CardFrontImage
@@ -197,6 +198,16 @@ fun GameScreen(
                 when (val workflow = uiState.workflowState) {
                     GameplayWorkflowState.Ready -> {
                         if (uiState.result == null && !uiState.gameplayLocked) {
+                            val turnLabel = when (uiState.turnKind) {
+                                TurnKind.EXTRA -> uiState.activePlayerName?.let { "$it's Extra Turn" }
+                                else -> uiState.activePlayerName?.let { "Current turn: $it" }
+                            }
+                            turnLabel?.let { label ->
+                                Text(
+                                    label,
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
                             Button(
                                 onClick = viewModel::onScanCardRequested,
                                 enabled = !uiState.commandInFlight,
@@ -210,6 +221,15 @@ fun GameScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text("BANK ACTIONS")
+                            }
+                            if (uiState.activePlayerId != null) {
+                                Button(
+                                    onClick = viewModel::onEndTurn,
+                                    enabled = !uiState.commandInFlight,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text("END TURN")
+                                }
                             }
                         } else if (uiState.gameplayLocked) {
                             Text(
@@ -281,6 +301,22 @@ fun GameScreen(
                         onCancel = viewModel::onCancelWorkflow,
                         commandInFlight = uiState.commandInFlight,
                     )
+                    is GameplayWorkflowState.EventDiceGamble -> {
+                        uiState.diceGamble?.let { gamble ->
+                            LuckyBreakContent(
+                                state = gamble,
+                                onRollDice = viewModel::onRollLuckyBreakDice,
+                            )
+                        }
+                    }
+                    is GameplayWorkflowState.EventDrawScanRequired -> {
+                        uiState.eventDraw?.let { draw ->
+                            LuckyDrawContent(
+                                state = draw,
+                                onScanEventCard = viewModel::onScanLuckyDrawEventRequested,
+                            )
+                        }
+                    }
                     is GameplayWorkflowState.LocationWaitingForDestinationProperty -> {
                         Text("LOCATION", style = MaterialTheme.typography.titleMedium)
                         PlayerIdentity(

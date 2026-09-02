@@ -58,7 +58,32 @@ object EventWorkflowPlanner {
 
     fun classify(rule: EventEngineRule): EventWorkflowPattern = when (rule.actionType) {
         "MOVE_THEN_PROPERTY_CHOICE" -> EventWorkflowPattern.MOVE_THEN_PROPERTY_CHOICE
-        "TEMPORARY_RENT_CAP", "TOTAL_GRIDLOCK_V1" -> EventWorkflowPattern.EVENT_ONLY
+        "TEMPORARY_RENT_CAP",
+        "TOTAL_GRIDLOCK_V1",
+        "MOVE_TO_SPACE",
+        "MOVE_BACKWARD",
+        "MOVE_TO_JAIL",
+        "MOVE_TO_NEAREST_STATION",
+        "BANK_CREDIT",
+        "BANK_DEBIT",
+        "PAY_EACH_PLAYER",
+        "COLLECT_FROM_EACH_PLAYER",
+        "DEBIT_PER_OWNED_PROPERTY",
+        "CREDIT_PER_OWNED_PROPERTY",
+        "NEXT_RENT_WAIVER",
+        "GET_OUT_OF_JAIL_PASS",
+        "SKIP_NEXT_TURN",
+        "EXTRA_TURN",
+        "TOP_UP_BALANCE_TO_THRESHOLD",
+        "COMPLETE_COLOR_SET_BONUS_CREDIT",
+        "DRAW_ANOTHER_EVENT",
+        "GAMBLE_ON_DICE_ROLL",
+        -> EventWorkflowPattern.EVENT_ONLY
+        "COOPERATIVE_PROPERTY_UPGRADE" -> EventWorkflowPattern.TWO_PLAYER_TWO_PROPERTY
+        "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+        "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
+        "FORCED_PROPERTY_SELLBACK",
+        -> EventWorkflowPattern.PROPERTY_TARGET
         else -> when (rule.targetType) {
             "CURRENT_PLAYER" -> EventWorkflowPattern.ACTING_PLAYER_ONLY
             "OTHER_PLAYER" -> EventWorkflowPattern.PLAYER_TARGET

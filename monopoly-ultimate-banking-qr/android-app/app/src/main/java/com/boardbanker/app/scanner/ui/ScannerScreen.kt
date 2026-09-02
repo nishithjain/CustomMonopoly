@@ -189,9 +189,10 @@ fun ScannerScreen(
                     onCameraError = viewModel::onCameraError,
                     statusText = when (uiModel.state) {
                         ScannerUiState.STARTING_CAMERA -> "Starting camera..."
-                        ScannerUiState.PROCESSING -> "Processing..."
+                        ScannerUiState.PROCESSING -> "Processing scan..."
                         else -> scanRequest.overlayInstruction
                     },
+                    expectedCardType = scanRequest.singleExpectedType?.let { expectedTypeLabel(it) },
                 )
             }
 
@@ -202,12 +203,19 @@ fun ScannerScreen(
     }
 }
 
+private fun expectedTypeLabel(type: CardType): String = when (type) {
+    CardType.USER -> "Expected: Player Card"
+    CardType.PROPERTY -> "Expected: Property Card"
+    CardType.EVENT -> "Expected: Event Card"
+}
+
 @Composable
 private fun ScanningContent(
     cameraSource: CameraQrCodeSource,
     onCameraReady: () -> Unit,
     onCameraError: (String) -> Unit,
     statusText: String,
+    expectedCardType: String? = null,
 ) {
     Box(
         modifier = Modifier
@@ -239,6 +247,14 @@ private fun ScanningContent(
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
     )
+    if (expectedCardType != null) {
+        Text(
+            text = expectedCardType,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium,
+        )
+    }
     Text(
         text = "Hold card steady",
         modifier = Modifier.fillMaxWidth(),

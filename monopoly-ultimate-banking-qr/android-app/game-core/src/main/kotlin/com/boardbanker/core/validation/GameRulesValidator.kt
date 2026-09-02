@@ -199,7 +199,12 @@ object EventActionValidator {
                 problems += "$path amount '$amount' is outside rent level bounds"
             }
         }
-        if (!action.ownedPropertiesOnly) {
+        if (!action.ownedPropertiesOnly &&
+            action.actionType !in setOf(
+                "FORCED_PROPERTY_SELLBACK",
+                "COOPERATIVE_PROPERTY_UPGRADE",
+            )
+        ) {
             problems += "$path ownedPropertiesOnly=false is not supported by the current event engine"
         }
         return problems

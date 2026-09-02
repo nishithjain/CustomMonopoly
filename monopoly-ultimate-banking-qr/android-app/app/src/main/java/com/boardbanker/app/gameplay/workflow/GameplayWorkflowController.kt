@@ -75,6 +75,18 @@ sealed class GameplayWorkflowState {
         val propertyId: String,
     ) : GameplayWorkflowState()
 
+    data class EventDiceGamble(
+        val eventId: String,
+        val actingPlayerId: String,
+    ) : GameplayWorkflowState()
+
+    data class EventDrawScanRequired(
+        val parentEventId: String,
+        val actingPlayerId: String,
+        val chainDepth: Int,
+        val maximumChainDepth: Int,
+    ) : GameplayWorkflowState()
+
     data class WaitingForAuctionStarter(
         val propertyId: String,
         val landingPlayerId: String? = null,
@@ -113,6 +125,10 @@ sealed class WorkflowCommandContext {
         val propertyId: String,
         val choice: GameCommand.EventPropertyChoiceType,
     ) : WorkflowCommandContext()
+
+    data class RollEventDice(val eventId: String) : WorkflowCommandContext()
+
+    data class ResolvePendingEventDraw(val eventId: String) : WorkflowCommandContext()
 }
 
 sealed class WorkflowAction {
@@ -265,6 +281,16 @@ class GameplayWorkflowController(
     }
 
     fun restoreWorkflowFromSession(session: GameSession): List<WorkflowAction> {
+        session.pendingDiceGamble?.let { pending ->
+            state = GameplayWorkflowState.EventDiceGamble(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+            )
+            return listOf(WorkflowAction.StateChanged(state))
+        }
+        session.pendingEventDraw?.let { pending ->
+            return enterEventDrawScan(pending.parentEventId, pending.actingPlayerId, pending.chainDepth, pending.maximumChainDepth)
+        }
         session.pendingEventChoice?.let { choice ->
             state = GameplayWorkflowState.EventPropertyChoice(
                 eventId = choice.eventId,
@@ -280,9 +306,54 @@ class GameplayWorkflowController(
     }
 
     fun hasMandatoryEventActionPending(): Boolean =
-        state is GameplayWorkflowState.EventCollectingTargets ||
+        state is GameplayWorkflowState.EventDiceGamble ||
+            state is GameplayWorkflowState.EventDrawScanRequired ||
+            state is GameplayWorkflowState.EventCollectingTargets ||
             state is GameplayWorkflowState.EventConfirm ||
             state is GameplayWorkflowState.EventPropertyChoice
+
+    fun enterEventDrawScan(
+        parentEventId: String,
+        actingPlayerId: String,
+        chainDepth: Int,
+        maximumChainDepth: Int,
+    ): List<WorkflowAction> {
+        state = GameplayWorkflowState.EventDrawScanRequired(
+            parentEventId = parentEventId,
+            actingPlayerId = actingPlayerId,
+            chainDepth = chainDepth,
+            maximumChainDepth = maximumChainDepth,
+        )
+        return listOf(WorkflowAction.StateChanged(state))
+    }
+
+    fun onPendingEventDrawScanned(eventId: String, session: GameSession): List<WorkflowAction> {
+        val pending = session.pendingEventDraw ?: return emptyList()
+        if (definitions.events[eventId] == null) {
+            return listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.EVENT,
+                    message = "EVENT CARD EXPECTED\n\nScan an Event card from this edition.",
+                ),
+            )
+        }
+        return listOf(
+            WorkflowAction.ExecuteCommand(
+                WorkflowCommandRequest(
+                    command = GameCommand.ResolvePendingEventDraw(
+                        eventId = eventId,
+                        actingPlayerId = pending.actingPlayerId,
+                    ),
+                    context = WorkflowCommandContext.ResolvePendingEventDraw(eventId),
+                ),
+            ),
+        )
+    }
+
+    fun enterDiceGamble(eventId: String, actingPlayerId: String): List<WorkflowAction> {
+        state = GameplayWorkflowState.EventDiceGamble(eventId, actingPlayerId)
+        return listOf(WorkflowAction.StateChanged(state))
+    }
 
     private fun beginEventActionCollection(
         eventId: String,
@@ -538,6 +609,17 @@ class GameplayWorkflowController(
                 when {
                     session.pendingEventChoice != null -> Unit
                     session.pendingEventExecution != null -> Unit
+                    session.pendingDiceGamble != null -> Unit
+                    session.pendingEventDraw != null -> Unit
+                    else -> reset()
+                }
+            }
+            is WorkflowCommandContext.ResolvePendingEventDraw -> {
+                when {
+                    session.pendingEventChoice != null -> Unit
+                    session.pendingEventExecution != null -> Unit
+                    session.pendingDiceGamble != null -> Unit
+                    session.pendingEventDraw != null -> Unit
                     else -> reset()
                 }
             }

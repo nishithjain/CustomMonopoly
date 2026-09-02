@@ -1,10 +1,13 @@
 package com.boardbanker.app.ui.screens.game
 
+import com.boardbanker.app.gameplay.presentation.DiceGambleUiState
+import com.boardbanker.app.gameplay.presentation.EventDrawUiState
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.model.GameStatus
+import com.boardbanker.core.model.TurnKind
 
 data class PlayerDashboardUi(
     val playerId: String,
@@ -12,6 +15,7 @@ data class PlayerDashboardUi(
     val balanceText: String,
     val propertyCount: Int = 0,
     val inJail: Boolean = false,
+    val isActiveTurn: Boolean = false,
     val summaryLine: String = "",
 )
 
@@ -39,6 +43,11 @@ data class GameUiState(
     val commandInFlight: Boolean = false,
     val activeEventMessage: String? = null,
     val gameplayLocked: Boolean = false,
+    val activePlayerId: String? = null,
+    val activePlayerName: String? = null,
+    val turnKind: TurnKind? = null,
+    val diceGamble: DiceGambleUiState? = null,
+    val eventDraw: EventDrawUiState? = null,
     val cardPresentation: CardPresentationUi? = null,
 )
 

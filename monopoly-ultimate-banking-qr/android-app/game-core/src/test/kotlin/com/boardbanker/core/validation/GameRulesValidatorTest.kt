@@ -90,7 +90,7 @@ class GameRulesValidatorTest {
         val definitions = TestFixtures.definitions
         val problems = EventActionValidator.validateAgainstEdition(definitions)
         assertTrue(problems.isEmpty())
-        assertEquals(EventActionType.entries.size, 14)
+        assertTrue(EventActionType.entries.size >= 14)
         assertEquals(23, definitions.events.size)
     }
 

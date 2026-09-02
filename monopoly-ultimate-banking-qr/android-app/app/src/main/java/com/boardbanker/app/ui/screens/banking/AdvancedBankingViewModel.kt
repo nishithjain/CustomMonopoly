@@ -347,6 +347,28 @@ class AdvancedBankingViewModel(
         }
     }
 
+    fun onUseJailPass(playerId: String) {
+        executeCommand(GameCommand.UseGetOutOfJailPass(playerId)) { outcome ->
+            when (outcome) {
+                is BankingCommitOutcome.Success -> {
+                    val session = sessionManager.currentSession()
+                    resultMapper.mapJailPassResult(playerId, session ?: return@executeCommand null)
+                }
+                is BankingCommitOutcome.Rejected ->
+                    resultMapper.errorResult(outcome.result.error?.let { it.toString() } ?: "Unable to use Jail pass.")
+                is BankingCommitOutcome.PersistenceFailed ->
+                    resultMapper.errorResult("Unable to save the game.\nPlease try again.")
+                else -> null
+            }
+        }
+    }
+
+    fun jailPassActionLabel(playerId: String): String? {
+        val count = sessionManager.currentSession()?.players[playerId]?.jailPassCount ?: 0
+        if (count <= 0) return null
+        return if (count > 1) "Use Jail Pass ($count)" else "Use Jail Pass"
+    }
+
     fun onJailDoubles(playerId: String) {
         _uiState.update { it.copy(step = AdvancedBankingStep.JailDoublesConfirm(playerId)) }
     }

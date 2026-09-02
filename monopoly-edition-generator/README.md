@@ -115,6 +115,18 @@ rm -rf output/india/event_cards/html output/india/event_cards/png
 
 UK edition uses the same commands with `uk` instead of `india` (23 events).
 
+## Publish card fronts to Resources
+
+Generated PNG fronts in `output/<edition>/` are not canonical. Publish them to top-level `Resources/` with:
+
+```bash
+cd ../monopoly-ultimate-banking-qr
+python tools/publish_edition_card_fronts.py --edition india --card-type all --dry-run
+python tools/publish_edition_card_fronts.py --edition india --card-type all
+```
+
+See `ASSET_LIFECYCLE.md` at the repository root for the full asset workflow.
+
 ## Generate Board Only
 
 ```bash

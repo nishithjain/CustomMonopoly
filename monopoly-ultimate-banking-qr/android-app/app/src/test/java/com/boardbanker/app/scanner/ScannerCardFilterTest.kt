@@ -70,4 +70,19 @@ class ScannerCardFilterTest {
         assertTrue(validation is CardTypeValidation.WrongCard)
         assertEquals("Please scan Arun's Player Card.", (validation as CardTypeValidation.WrongCard).message)
     }
+
+    @Test
+    fun luckyDrawEventScanRequest_rejectsPlayerCard() {
+        val resolution = CardResolution.Success(
+            cardId = "USR_01",
+            cardType = CardType.USER,
+            displayName = "Car",
+            qrPayload = "MUB:PL:CAR",
+        )
+        val validation = ScannerCardFilter.validate(resolution, ScanRequest.event())
+        assertTrue(validation is CardTypeValidation.WrongType)
+        val wrongType = validation as CardTypeValidation.WrongType
+        assertEquals(CardType.EVENT, wrongType.expected)
+        assertEquals(CardType.USER, wrongType.actual)
+    }
 }

@@ -10,19 +10,23 @@ import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.rules.RentLevelOperations
 
 object ActiveGamePresentation {
-    fun buildPlayerDashboard(session: GameSession, definitions: GameDefinitions): List<PlayerDashboardUi> =
-        session.players.map { (playerId, playerState) ->
+    fun buildPlayerDashboard(session: GameSession, definitions: GameDefinitions): List<PlayerDashboardUi> {
+        val activePlayerId = session.turnState?.activePlayerId
+        return session.players.map { (playerId, playerState) ->
             val propertyCount = session.properties.values.count { it.ownerPlayerId == playerId }
             val jailLabel = if (playerState.jailStatus) "IN JAIL" else "Active"
+            val turnLabel = if (playerId == activePlayerId) " • CURRENT TURN" else ""
             PlayerDashboardUi(
                 playerId = playerId,
                 playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
                 balanceText = formatMoney(playerState.balance, definitions),
                 propertyCount = propertyCount,
                 inJail = playerState.jailStatus,
-                summaryLine = "$propertyCount Properties • $jailLabel",
+                isActiveTurn = playerId == activePlayerId,
+                summaryLine = "$propertyCount Properties • $jailLabel$turnLabel",
             )
         }
+    }
 
     fun buildOwnedProperties(
         session: GameSession,

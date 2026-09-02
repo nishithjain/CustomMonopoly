@@ -8,17 +8,18 @@ import json
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 import cv2
-import numpy as np
 
-from card_definitions import ALL_CARDS, CATEGORY_DIRS, CardSpec
+from card_definitions import ALL_CARDS, CATEGORY_DIRS, USER_CARDS
 
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESOURCES_ROOT = WORKSPACE_ROOT / "Resources"
 DATA_DIR = PROJECT_ROOT / "data"
+EDITIONS_DIR = DATA_DIR / "editions"
 
 FRONT_ROLE = "FRONT"
 QR_ROLE = "QR"
@@ -28,8 +29,78 @@ OTHER_ROLE = "OTHER"
 NEW_FRONT_PATTERN = re.compile(r"_front_(new|New)", re.IGNORECASE)
 
 
+@dataclass(frozen=True)
+class DecodeTarget:
+    card_id: str
+    card_type: str
+    sequence: int
+    name: str
+    qr_asset: str
+    expected_payload: str
+    edition_id: str | None = None
+
+
 def relative_resource_path(path: Path) -> str:
     return str(path.relative_to(WORKSPACE_ROOT)).replace("\\", "/")
+
+
+def load_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def list_edition_ids() -> list[str]:
+    if not EDITIONS_DIR.is_dir():
+        return []
+    return sorted(
+        path.name
+        for path in EDITIONS_DIR.iterdir()
+        if path.is_dir() and (path / "edition.json").is_file()
+    )
+
+
+def iter_decode_targets() -> list[DecodeTarget]:
+    targets: list[DecodeTarget] = []
+    for card in USER_CARDS:
+        category_dir = RESOURCES_ROOT / CATEGORY_DIRS["USER"]
+        targets.append(
+            DecodeTarget(
+                card_id=card.card_id,
+                card_type=card.card_type,
+                sequence=card.sequence,
+                name=card.name,
+                qr_asset=relative_resource_path(category_dir / card.qr_filename),
+                expected_payload="",
+            )
+        )
+
+    for edition_id in list_edition_ids():
+        edition_dir = EDITIONS_DIR / edition_id
+        for item in load_json(edition_dir / "events.json")["events"]:
+            targets.append(
+                DecodeTarget(
+                    card_id=item["eventId"],
+                    card_type="EVENT",
+                    sequence=item["sequence"],
+                    name=item["name"],
+                    qr_asset=item["qrAsset"],
+                    expected_payload=item["qrPayload"],
+                    edition_id=edition_id,
+                )
+            )
+        for item in load_json(edition_dir / "properties.json")["properties"]:
+            targets.append(
+                DecodeTarget(
+                    card_id=item["propertyId"],
+                    card_type="PROPERTY",
+                    sequence=item["sequence"],
+                    name=item["name"],
+                    qr_asset=item["qrAsset"],
+                    expected_payload=item["qrPayload"],
+                    edition_id=edition_id,
+                )
+            )
+    return targets
 
 
 def is_legacy_back(filename: str) -> bool:
@@ -47,14 +118,12 @@ def is_front_asset(filename: str) -> bool:
 
 
 def front_preference_key(filename: str) -> tuple[int, str]:
-    """Prefer _New/_new variants over original front assets."""
     if NEW_FRONT_PATTERN.search(filename):
         return (0, filename.lower())
     return (1, filename.lower())
 
 
 def find_preferred_front(category_dir: Path, base_front: str) -> str | None:
-    """Resolve preferred front asset, preferring _New/_new variants when present."""
     if not category_dir.exists():
         return None
 
@@ -84,18 +153,13 @@ def find_preferred_front(category_dir: Path, base_front: str) -> str | None:
 
 
 def decode_qr_image(image_path: Path) -> tuple[str | None, str | None]:
-    """Decode QR payload from image using OpenCV QRCodeDetector."""
     image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
     if image is None:
         return None, "Failed to load image"
 
     detector = cv2.QRCodeDetector()
-
-    for variant_name, variant in (
-        ("color", image),
-        ("grayscale", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)),
-    ):
-        data, points, _ = detector.detectAndDecode(variant)
+    for variant in (image, cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)):
+        data, _points, _ = detector.detectAndDecode(variant)
         if data:
             return data, None
 
@@ -108,7 +172,7 @@ def decode_qr_image(image_path: Path) -> tuple[str | None, str | None]:
     return None, "QR code not detected by OpenCV QRCodeDetector"
 
 
-def infer_inventory_entry(category: str, path: Path) -> dict | None:
+def infer_user_inventory_entry(path: Path) -> dict | None:
     filename = path.name
     rel_path = relative_resource_path(path)
 
@@ -131,20 +195,15 @@ def infer_inventory_entry(category: str, path: Path) -> dict | None:
 
     sequence = ""
     canonical_name = ""
+    category_dir = RESOURCES_ROOT / CATEGORY_DIRS["USER"]
 
-    for card in ALL_CARDS:
-        card_dir = CATEGORY_DIRS[card.card_type]
-        if category != card.card_type:
+    for card in USER_CARDS:
+        if path.parent.resolve() != category_dir.resolve():
             continue
-        card_folder = RESOURCES_ROOT / card_dir
-        if path.parent.resolve() != card_folder.resolve():
-            continue
-
         if filename == card.qr_filename:
             sequence = card.sequence
             canonical_name = card.name
             preferred = True
-            notes = notes or ""
             break
 
         base_front = card.front_filename
@@ -155,16 +214,17 @@ def infer_inventory_entry(category: str, path: Path) -> dict | None:
             sequence = card.sequence
             canonical_name = card.name
             if role == FRONT_ROLE:
-                preferred_front = find_preferred_front(card_folder, base_front)
+                preferred_front = find_preferred_front(category_dir, base_front)
                 preferred = filename == preferred_front
-                if preferred:
-                    notes = "Preferred front display asset"
-                else:
-                    notes = "Alternate front artwork variant"
+                notes = (
+                    "Preferred front display asset"
+                    if preferred
+                    else "Alternate front artwork variant"
+                )
             break
 
     return {
-        "category": category,
+        "category": "USER",
         "sequence": sequence,
         "canonical_name": canonical_name,
         "asset_role": role,
@@ -177,16 +237,46 @@ def infer_inventory_entry(category: str, path: Path) -> dict | None:
 
 def build_inventory_rows() -> list[dict]:
     rows: list[dict] = []
-    for category, folder_name in CATEGORY_DIRS.items():
-        category_dir = RESOURCES_ROOT / folder_name
-        if not category_dir.exists():
-            continue
+    category_dir = RESOURCES_ROOT / CATEGORY_DIRS["USER"]
+    if category_dir.exists():
         for path in sorted(category_dir.iterdir()):
             if not path.is_file():
                 continue
-            entry = infer_inventory_entry(category, path)
+            entry = infer_user_inventory_entry(path)
             if entry:
                 rows.append(entry)
+
+    for edition_id in list_edition_ids():
+        edition = load_json(EDITIONS_DIR / edition_id / "edition.json")
+        resources = edition.get("resources", {})
+        for resource_key, folder_name in resources.items():
+            category_dir = RESOURCES_ROOT / folder_name
+            if not category_dir.exists():
+                continue
+            for path in sorted(category_dir.iterdir()):
+                if not path.is_file():
+                    continue
+                filename = path.name
+                if is_qr_back(filename):
+                    role = QR_ROLE
+                elif is_legacy_back(filename):
+                    role = LEGACY_BACK_ROLE
+                elif is_front_asset(filename):
+                    role = FRONT_ROLE
+                else:
+                    role = OTHER_ROLE
+                rows.append(
+                    {
+                        "category": resource_key,
+                        "sequence": "",
+                        "canonical_name": "",
+                        "asset_role": role,
+                        "filename": filename,
+                        "relative_path": relative_resource_path(path),
+                        "preferred": "false",
+                        "notes": f"Edition {edition_id}",
+                    }
+                )
     return rows
 
 
@@ -211,20 +301,19 @@ def write_inventory_csv(rows: list[dict]) -> None:
 
 def decode_all_qr_cards() -> list[dict]:
     results: list[dict] = []
-    payload_to_cards: dict[str, list[str]] = defaultdict(list)
+    payload_to_cards: dict[tuple[str, str], list[str]] = defaultdict(list)
 
-    for card in ALL_CARDS:
-        category_dir = RESOURCES_ROOT / CATEGORY_DIRS[card.card_type]
-        qr_path = category_dir / card.qr_filename
-        rel_qr = relative_resource_path(qr_path)
-
+    for target in iter_decode_targets():
+        qr_path = WORKSPACE_ROOT / target.qr_asset
+        edition_key = target.edition_id or "common"
         if not qr_path.exists():
             results.append(
                 {
-                    "category": card.card_type,
-                    "card_id": card.card_id,
-                    "canonical_name": card.name,
-                    "qr_file": rel_qr,
+                    "edition_id": target.edition_id or "",
+                    "category": target.card_type,
+                    "card_id": target.card_id,
+                    "canonical_name": target.name,
+                    "qr_file": target.qr_asset,
                     "qr_payload": "",
                     "decode_status": "FAILED",
                     "error": "QR file not found",
@@ -233,39 +322,57 @@ def decode_all_qr_cards() -> list[dict]:
             continue
 
         payload, error = decode_qr_image(qr_path)
-        if payload:
-            payload_to_cards[payload].append(card.card_id)
+        if not payload:
             results.append(
                 {
-                    "category": card.card_type,
-                    "card_id": card.card_id,
-                    "canonical_name": card.name,
-                    "qr_file": rel_qr,
-                    "qr_payload": payload,
-                    "decode_status": "SUCCESS",
-                    "error": "",
-                }
-            )
-        else:
-            results.append(
-                {
-                    "category": card.card_type,
-                    "card_id": card.card_id,
-                    "canonical_name": card.name,
-                    "qr_file": rel_qr,
+                    "edition_id": target.edition_id or "",
+                    "category": target.card_type,
+                    "card_id": target.card_id,
+                    "canonical_name": target.name,
+                    "qr_file": target.qr_asset,
                     "qr_payload": "",
                     "decode_status": "FAILED",
                     "error": error or "Unknown decode failure",
                 }
             )
+            continue
+
+        status = "SUCCESS"
+        mismatch_error = ""
+        if target.expected_payload and payload != target.expected_payload:
+            status = "FAILED"
+            mismatch_error = (
+                f"Decoded payload '{payload}' does not match expected "
+                f"'{target.expected_payload}'"
+            )
+        else:
+            payload_to_cards[(edition_key, payload)].append(target.card_id)
+
+        results.append(
+            {
+                "edition_id": target.edition_id or "",
+                "category": target.card_type,
+                "card_id": target.card_id,
+                "canonical_name": target.name,
+                "qr_file": target.qr_asset,
+                "qr_payload": payload,
+                "decode_status": status,
+                "error": mismatch_error,
+            }
+        )
 
     for row in results:
         payload = row["qr_payload"]
-        if payload and len(payload_to_cards[payload]) > 1:
+        edition_key = row["edition_id"] or "common"
+        if (
+            payload
+            and row["decode_status"] == "SUCCESS"
+            and len(payload_to_cards[(edition_key, payload)]) > 1
+        ):
             row["decode_status"] = "DUPLICATE_PAYLOAD"
             row["error"] = (
                 "Duplicate payload shared with: "
-                + ", ".join(payload_to_cards[payload])
+                + ", ".join(payload_to_cards[(edition_key, payload)])
             )
 
     return results
@@ -274,6 +381,7 @@ def decode_all_qr_cards() -> list[dict]:
 def write_qr_decode_csv(results: list[dict]) -> None:
     output = DATA_DIR / "qr_decode_results.csv"
     fieldnames = [
+        "edition_id",
         "category",
         "card_id",
         "canonical_name",
@@ -289,18 +397,19 @@ def write_qr_decode_csv(results: list[dict]) -> None:
     print(f"Wrote {output}")
 
 
-def build_registry(decode_results: list[dict]) -> tuple[list[dict], list[dict]]:
+def build_common_registry(decode_results: list[dict]) -> tuple[list[dict], list[dict]]:
     decode_by_id = {row["card_id"]: row for row in decode_results}
     json_cards: list[dict] = []
     csv_rows: list[dict] = []
 
-    for card in ALL_CARDS:
-        category_dir = RESOURCES_ROOT / CATEGORY_DIRS[card.card_type]
+    category_dir = RESOURCES_ROOT / CATEGORY_DIRS["USER"]
+    for card in USER_CARDS:
         preferred_front = find_preferred_front(category_dir, card.front_filename)
         front_filename = preferred_front or card.front_filename
         front_rel = relative_resource_path(category_dir / front_filename)
         qr_rel = relative_resource_path(category_dir / card.qr_filename)
         decode = decode_by_id.get(card.card_id, {})
+        payload = decode.get("qr_payload") or decode_by_id.get(card.card_id, {}).get("qr_payload", "")
 
         json_cards.append(
             {
@@ -308,21 +417,20 @@ def build_registry(decode_results: list[dict]) -> tuple[list[dict], list[dict]]:
                 "cardType": card.card_type,
                 "sequence": card.sequence,
                 "name": card.name,
-                "qrPayload": decode.get("qr_payload", ""),
+                "qrPayload": payload,
                 "assets": {
                     "front": front_rel,
                     "qr": qr_rel,
                 },
             }
         )
-
         csv_rows.append(
             {
                 "card_id": card.card_id,
                 "card_type": card.card_type,
                 "sequence": card.sequence,
                 "name": card.name,
-                "qr_payload": decode.get("qr_payload", ""),
+                "qr_payload": payload,
                 "front_asset": front_rel,
                 "qr_asset": qr_rel,
                 "decode_status": decode.get("decode_status", "FAILED"),
@@ -341,22 +449,36 @@ def write_cards_json(cards: list[dict]) -> None:
     print(f"Wrote {output}")
 
 
-def write_card_registry_csv(rows: list[dict]) -> None:
+def write_card_registry_csv(rows: list[dict], decode_results: list[dict]) -> None:
     output = DATA_DIR / "card_registry.csv"
     fieldnames = [
+        "edition_id",
         "card_id",
         "card_type",
         "sequence",
         "name",
         "qr_payload",
-        "front_asset",
         "qr_asset",
         "decode_status",
+        "error",
     ]
     with output.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(rows)
+        for row in decode_results:
+            writer.writerow(
+                {
+                    "edition_id": row["edition_id"],
+                    "card_id": row["card_id"],
+                    "card_type": row["category"],
+                    "sequence": "",
+                    "name": row["canonical_name"],
+                    "qr_payload": row["qr_payload"],
+                    "qr_asset": row["qr_file"],
+                    "decode_status": row["decode_status"],
+                    "error": row["error"],
+                }
+            )
     print(f"Wrote {output}")
 
 
@@ -373,9 +495,9 @@ def main() -> int:
     decode_results = decode_all_qr_cards()
     write_qr_decode_csv(decode_results)
 
-    json_cards, csv_rows = build_registry(decode_results)
+    json_cards, _csv_rows = build_common_registry(decode_results)
     write_cards_json(json_cards)
-    write_card_registry_csv(csv_rows)
+    write_card_registry_csv(_csv_rows, decode_results)
 
     success = sum(1 for row in decode_results if row["decode_status"] == "SUCCESS")
     failed = sum(1 for row in decode_results if row["decode_status"] == "FAILED")

@@ -110,6 +110,7 @@ object GameplayOutcomeAudio {
         is GameCommand.PayLocationFee -> GameplayAudioCue.MONEY_LOST
         is GameCommand.SendPlayerToJail -> GameplayAudioCue.GO_TO_JAIL
         is GameCommand.PayJailFee -> GameplayAudioCue.KA_CHING
+        is GameCommand.UseGetOutOfJailPass -> GameplayAudioCue.JAIL_WORKFLOW
         is GameCommand.UndoLastAction ->
             if (result.transactions.any { it.transactionType == TransactionType.UNDO }) {
                 GameplayAudioCue.UNDO_LAST_ACTION
@@ -144,7 +145,19 @@ object GameplayOutcomeAudio {
             is WorkflowCommandContext.PropertyLanding -> resolvePropertyLandingCue(result, context, sessionBefore)
             is WorkflowCommandContext.ApplyEvent -> resolveEventCue(context.eventId, result, sessionBefore)
             is WorkflowCommandContext.EventChoice -> resolveEventCue(context.eventId, result, sessionBefore)
+            is WorkflowCommandContext.ResolvePendingEventDraw -> resolveEventCue(context.eventId, result, sessionBefore)
+            is WorkflowCommandContext.RollEventDice -> resolveDiceGambleCue(result)
         }
+    }
+
+    private fun resolveDiceGambleCue(result: GameResult): GameplayAudioCue? {
+        if (result.transactions.any { it.transactionType == TransactionType.BANK_CREDIT }) {
+            return GameplayAudioCue.KA_CHING
+        }
+        if (result.transactions.any { it.transactionType == TransactionType.BANK_DEBIT }) {
+            return GameplayAudioCue.MONEY_LOST
+        }
+        return null
     }
 
     private fun resolvePurchaseCue(result: GameResult): GameplayAudioCue? {

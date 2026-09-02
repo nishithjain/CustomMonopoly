@@ -166,6 +166,20 @@ class SavedGameRestoreOrchestratorTest {
         assertEquals(null, orchestrator.validateForSave(session))
     }
 
+    @Test
+    fun activeGameMissingTurnStateFailsRestoreValidation() {
+        val indiaDefinitions = TestFixtures.loadEdition(EditionIds.INDIA)
+        val orchestrator = orchestratorFor(
+            editionLoader = { indiaDefinitions },
+            manifestLoader = { indiaDefinitions.edition!! },
+        )
+        val session = indiaSession().copy(turnState = null)
+        val result = orchestrator.restore(raw(session))
+
+        assertTrue(result is SavedGameLoadResult.SessionValidationFailed)
+        assertTrue((result as SavedGameLoadResult.SessionValidationFailed).reason.contains("missing turn state"))
+    }
+
     private fun orchestratorFor(
         editionId: String = EditionIds.UK,
         editionLoader: (String) -> com.boardbanker.core.model.GameDefinitions = { id ->
@@ -195,7 +209,7 @@ class SavedGameRestoreOrchestratorTest {
     private fun indiaSession(): GameSession {
         val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(TestFixtures.loadEdition(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "INDIA_RESTORE", editionId = EditionIds.INDIA, editionDefinitionVersion = 1),
+            GameSession(gameId = "INDIA_RESTORE", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
             GameCommand.CreateGame("INDIA_RESTORE"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))

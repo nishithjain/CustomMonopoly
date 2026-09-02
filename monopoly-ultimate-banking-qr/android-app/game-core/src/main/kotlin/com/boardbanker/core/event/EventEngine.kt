@@ -13,6 +13,7 @@ import com.boardbanker.core.model.TemporaryEffect
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.rules.DebtRules
+import com.boardbanker.core.rules.GoRules
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.RentLevelOperations
 import com.boardbanker.core.transaction.TransactionFactory
@@ -27,6 +28,48 @@ class EventEngine(
 ) {
     private val rules = definitions.rules
     private val policies = definitions.policies
+    private val indiaHandlers = IndiaEventHandlers(
+        definitions = definitions,
+        transactionFactory = transactionFactory,
+        debtRules = debtRules,
+        jailRules = jailRules,
+        goRules = GoRules(definitions, transactionFactory),
+    )
+
+    companion object {
+        private val INDIA_ACTION_TYPES = setOf(
+            "MOVE_TO_SPACE",
+            "MOVE_BACKWARD",
+            "BANK_CREDIT",
+            "BANK_DEBIT",
+            "PAY_EACH_PLAYER",
+            "COLLECT_FROM_EACH_PLAYER",
+            "DEBIT_PER_OWNED_PROPERTY",
+            "CREDIT_PER_OWNED_PROPERTY",
+            "NEXT_RENT_WAIVER",
+            "GET_OUT_OF_JAIL_PASS",
+            "MOVE_TO_JAIL",
+            "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+            "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
+            "DRAW_ANOTHER_EVENT",
+            "COOPERATIVE_PROPERTY_UPGRADE",
+            "GAMBLE_ON_DICE_ROLL",
+            "SKIP_NEXT_TURN",
+            "FORCED_PROPERTY_SELLBACK",
+            "TOP_UP_BALANCE_TO_THRESHOLD",
+            "MOVE_TO_NEAREST_STATION",
+            "EXTRA_TURN",
+            "COMPLETE_COLOR_SET_BONUS_CREDIT",
+        )
+    }
+
+    fun rollEventDice(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        diceResults: List<Int>,
+        timestamp: Long = System.currentTimeMillis(),
+    ): EventResult = indiaHandlers.rollDiceGamble(session, eventId, actingPlayerId, diceResults, timestamp)
 
     fun apply(
         session: GameSession,
@@ -182,6 +225,16 @@ class EventEngine(
             null
         }
         "SEND_PLAYER_TO_JAIL" -> if (targetPlayerId == null) "Target player required" else null
+        "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+        "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
+        "FORCED_PROPERTY_SELLBACK",
+        -> if (propertyId == null) "Property scan required" else null
+        "COOPERATIVE_PROPERTY_UPGRADE" -> when {
+            targetPlayerId == null && secondPlayerId == null -> "Scan another player's card"
+            propertyId == null -> "Scan one of your eligible Property Cards"
+            secondPropertyId == null -> "Scan that player's eligible Property Card"
+            else -> null
+        }
         else -> null
     }
 
@@ -197,6 +250,37 @@ class EventEngine(
         timestamp: Long,
         finalizeEvent: Boolean,
     ): EventResult {
+        if (rule.actionType in INDIA_ACTION_TYPES) {
+            val indiaResult = indiaHandlers.dispatch(
+                session = session,
+                eventId = eventId,
+                actingPlayerId = actingPlayerId,
+                rule = rule,
+                propertyId = propertyId,
+                targetPlayerId = targetPlayerId,
+                secondPropertyId = secondPropertyId,
+                secondPlayerId = secondPlayerId,
+                timestamp = timestamp,
+            )
+            if (!indiaResult.isSuccess) {
+                return indiaResult
+            }
+            val (sessionAfter, transactions) = appendEventAppliedIfNeeded(
+                session = indiaResult.session!!,
+                eventId = eventId,
+                actingPlayerId = actingPlayerId,
+                propertyId = propertyId,
+                transactions = if (finalizeEvent) {
+                    indiaResult.transactions
+                } else {
+                    indiaResult.transactions.filter { it.transactionType != TransactionType.EVENT_APPLIED }
+                },
+                timestamp = timestamp,
+                finalizeEvent = finalizeEvent,
+            )
+            return indiaResult.copy(session = sessionAfter, transactions = transactions)
+        }
+
         val result = when (rule.actionType) {
             "MOVE_THEN_PROPERTY_CHOICE" -> handleMoveThenPropertyChoice(
                 session, eventId, actingPlayerId, propertyId, timestamp,

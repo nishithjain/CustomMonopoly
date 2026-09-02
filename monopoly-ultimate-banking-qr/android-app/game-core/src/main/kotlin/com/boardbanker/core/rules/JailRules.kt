@@ -10,6 +10,7 @@ import com.boardbanker.core.transaction.TransactionFactory
 class JailRules(
     private val definitions: GameDefinitions,
     private val transactionFactory: TransactionFactory,
+    private val extraTurnRules: ExtraTurnRules = ExtraTurnRules(transactionFactory),
 ) {
     private val jailFee = definitions.bankingValues.jailReleaseFee
 
@@ -27,13 +28,20 @@ class JailRules(
         var updatedSession = session.copy(
             players = session.players + (playerId to updatedPlayer),
         )
+        val extraTurnCancellation = extraTurnRules.cancelPendingExtraTurnOnJail(
+            session = updatedSession,
+            playerId = playerId,
+            timestamp = timestamp,
+        )
+        updatedSession = extraTurnCancellation.session
+        val extraTurnTransactions = extraTurnCancellation.transactions
         val (tx, sessionAfterTx) = transactionFactory.create(
             session = updatedSession,
             type = TransactionType.JAIL_STATUS_CHANGE,
             timestamp = timestamp,
             playerId = playerId,
         )
-        return JailResult.success(sessionAfterTx, listOf(tx))
+        return JailResult.success(sessionAfterTx, extraTurnTransactions + tx)
     }
 
     fun payJailFee(
@@ -77,6 +85,49 @@ class JailRules(
         return JailResult.success(
             sessionAfterJail.copy(undoSnapshot = session.snapshot()),
             listOf(debitTx, jailTx),
+        )
+    }
+
+    fun useGetOutOfJailPass(
+        session: GameSession,
+        playerId: String,
+        timestamp: Long = System.currentTimeMillis(),
+    ): JailResult {
+        val player = session.players[playerId]
+            ?: return JailResult.failure("Unknown player")
+        if (!player.jailStatus) {
+            return JailResult.failure("Player is not in jail")
+        }
+        if (player.jailPassCount <= 0) {
+            return JailResult.failure("Player has no Get Out of Jail pass")
+        }
+
+        val updatedPlayer = player.copy(
+            jailPassCount = player.jailPassCount - 1,
+            jailStatus = false,
+        )
+        var updatedSession = session.copy(
+            players = session.players + (playerId to updatedPlayer),
+        )
+        val (passTx, sessionAfterPass) = transactionFactory.create(
+            session = updatedSession,
+            type = TransactionType.JAIL_PASS_USED,
+            timestamp = timestamp,
+            playerId = playerId,
+            amount = 1,
+            reversible = true,
+        )
+        updatedSession = sessionAfterPass
+        val (jailTx, sessionAfterJail) = transactionFactory.create(
+            session = updatedSession,
+            type = TransactionType.JAIL_STATUS_CHANGE,
+            timestamp = timestamp,
+            playerId = playerId,
+            reversible = true,
+        )
+        return JailResult.success(
+            sessionAfterJail.copy(undoSnapshot = session.snapshot()),
+            listOf(passTx, jailTx),
         )
     }
 

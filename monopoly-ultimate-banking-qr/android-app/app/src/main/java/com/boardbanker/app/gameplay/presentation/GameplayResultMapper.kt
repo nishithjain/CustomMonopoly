@@ -1,9 +1,10 @@
 package com.boardbanker.app.gameplay.presentation
 
+import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.error.GameError
-import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.gameplay.presentation.DiceGambleUiMapper
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
@@ -235,6 +236,14 @@ class GameplayResultMapper(
             null
         }
         val physical = result.physicalActions.map { it.instruction }
+        val extraTurnJailLines = result.transactions
+            .filter { it.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL }
+            .mapNotNull { tx ->
+                tx.playerId?.let { playerId ->
+                    "${resolvePlayerName(playerId, result.session)}'s extra turn was cancelled by Jail"
+                }
+            }
+            .distinct()
         val gridlockMessage = if (eventId == "EVT_21") {
             "TOTAL GRIDLOCK\n\nMove all players who are not in Jail directly to Free Parking.\n\n" +
                 "Do not collect ${formatMoney(definitions.bankingValues.goSalary, definitions)} for passing GO.\n\nPlayers already in Jail remain there."
@@ -247,6 +256,10 @@ class GameplayResultMapper(
             primaryMessage = buildString {
                 append("${event.name}\n\n")
                 append(event.displayText().ifBlank { result.pendingMessage ?: "Event applied." })
+                if (extraTurnJailLines.isNotEmpty()) {
+                    append("\n\n")
+                    append(extraTurnJailLines.joinToString("\n"))
+                }
                 append(swapMessage)
                 if (gridlockMessage != null) append("\n\n$gridlockMessage")
             },
@@ -323,6 +336,70 @@ class GameplayResultMapper(
                 append("ON THE RUN effect ended.")
             }
         }
+    }
+
+    fun mapTurnTransitionResult(result: GameResult, session: GameSession): GameplayResultUiModel {
+        val activePlayerId = session.turnState?.activePlayerId
+        val activePlayerName = activePlayerId?.let { resolvePlayerName(it, session) }
+        val skipLines = result.skippedTurnPlayerIds.map { playerId ->
+            "${resolvePlayerName(playerId, session)} skips this turn"
+        }
+        val extraTurnStartedName = result.extraTurnStartedPlayerId?.let { resolvePlayerName(it, session) }
+        val extraTurnCancelledBySkipName = result.extraTurnCancelledBySkipPlayerId?.let { resolvePlayerName(it, session) }
+        val title = when {
+            extraTurnStartedName != null -> "EXTRA TURN"
+            else -> "NEXT PLAYER"
+        }
+        return GameplayResultUiModel(
+            title = title,
+            primaryPlayerId = activePlayerId,
+            primaryPlayerName = activePlayerName,
+            primaryMessage = buildString {
+                extraTurnCancelledBySkipName?.let { name ->
+                    append("$name's skipped turn cancelled the extra turn")
+                    append('\n')
+                    append('\n')
+                }
+                skipLines.forEach { line ->
+                    append(line)
+                    append('\n')
+                }
+                if (skipLines.isNotEmpty()) append('\n')
+                when {
+                    extraTurnStartedName != null -> append("$extraTurnStartedName's Extra Turn")
+                    activePlayerName != null -> append("$activePlayerName's turn.")
+                }
+            }.trim(),
+        )
+    }
+
+    fun mapDiceGambleResult(result: GameResult, eventId: String): GameplayResultUiModel {
+        val event = definitions.events[eventId]!!
+        val playerId = result.session.players.keys.firstOrNull { id ->
+            result.transactions.any { it.playerId == id }
+        } ?: result.session.turnState?.activePlayerId ?: ""
+        val playerName = resolvePlayerName(playerId, result.session)
+        val creditTx = result.transactions.lastOrNull { it.transactionType == TransactionType.BANK_CREDIT }
+        val debitTx = result.transactions.lastOrNull { it.transactionType == TransactionType.BANK_DEBIT }
+        val primaryMessage = when {
+            creditTx != null -> DiceGambleUiMapper.successMessage(
+                jackpotText = money(creditTx.amount),
+                playerName = playerName,
+            )
+            debitTx != null -> DiceGambleUiMapper.failureMessage(money(debitTx.amount))
+            else -> event.displayText().ifBlank { result.pendingMessage ?: "Lucky Break resolved." }
+        }
+        return GameplayResultUiModel(
+            displayCardId = eventId,
+            title = "LUCKY BREAK",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = buildString {
+                append("${event.name}\n\n")
+                append(primaryMessage)
+            },
+            lastTransactionSummary = summarizeLastTransaction(result),
+        )
     }
 
     private fun summarizeLastTransaction(result: GameResult): String? {

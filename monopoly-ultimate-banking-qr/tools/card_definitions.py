@@ -74,9 +74,7 @@ PROPERTY_CARDS: list[CardSpec] = [
 ]
 
 CATEGORY_DIRS = {
-    "USER": "Cards/UserCards",
-    "EVENT": "Cards/EventCards",
-    "PROPERTY": "Cards/PropertyCards",
+    "USER": "Common/UserCards",
 }
 
-ALL_CARDS = USER_CARDS + EVENT_CARDS + PROPERTY_CARDS
+ALL_CARDS = USER_CARDS

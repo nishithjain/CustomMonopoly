@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -209,6 +210,9 @@ def sync_common_user_cards(
     project_root: Path,
     assets_root: Path,
     problems: list[str],
+    *,
+    dry_run: bool = False,
+    verify: bool = False,
 ) -> dict[str, dict]:
     manifest: dict[str, dict] = {}
     for card in load_registry_cards(project_root):
@@ -230,6 +234,32 @@ def sync_common_user_cards(
             continue
         runtime_rel = runtime_asset_rel("USER", "common", card_id)
         destination_path = assets_root / runtime_rel
+        if verify:
+            if not destination_path.is_file():
+                problems.append(f"common/{card_id}: missing Android runtime asset: {runtime_rel}")
+            else:
+                print(f"  VERIFY OK common/{card_id} -> {runtime_rel}")
+            manifest[card_id] = {
+                "cardId": card_id,
+                "cardType": "USER",
+                "name": card["name"],
+                "sourceFrontPath": front_rel.replace("\\", "/"),
+                "runtimeAssetPath": runtime_rel,
+                "asset": runtime_rel,
+            }
+            continue
+        if dry_run:
+            action = "REFRESH" if should_process_card(source_path, destination_path) else "KEEP"
+            print(f"  DRY-RUN {action} common/{card_id} -> {runtime_rel}")
+            manifest[card_id] = {
+                "cardId": card_id,
+                "cardType": "USER",
+                "name": card["name"],
+                "sourceFrontPath": front_rel.replace("\\", "/"),
+                "runtimeAssetPath": runtime_rel,
+                "asset": runtime_rel,
+            }
+            continue
         try:
             if should_process_card(source_path, destination_path):
                 orientation, rotation_applied, dimensions = process_image(
@@ -268,6 +298,10 @@ def sync_edition_cards(
     assets_root: Path,
     edition_id: str,
     problems: list[str],
+    *,
+    dry_run: bool = False,
+    verify: bool = False,
+    prune: bool = False,
 ) -> dict[str, dict]:
     edition = load_edition_manifest(project_root, edition_id)
     artwork_status = edition.get("artworkStatus", "READY")
@@ -278,7 +312,7 @@ def sync_edition_cards(
         front_rel = card.get("frontAsset")
         if not front_rel:
             msg = f"{edition_id}/{card_type}/{card_id}: missing frontAsset in edition data"
-            if artwork_status == "READY":
+            if artwork_status in {"READY", "FRONTS_READY"}:
                 problems.append(msg)
             else:
                 print(f"  SKIP {msg}")
@@ -291,13 +325,39 @@ def sync_edition_cards(
         source_path = workspace_root / front_rel
         if not source_path.is_file():
             msg = f"{edition_id}/{card_type}/{card_id}: missing source front asset: {front_rel}"
-            if artwork_status == "READY":
+            if artwork_status in {"READY", "FRONTS_READY"}:
                 problems.append(msg)
             else:
                 print(f"  SKIP {msg}")
             continue
         runtime_rel = runtime_asset_rel(card_type, edition_id, card_id)
         destination_path = assets_root / runtime_rel
+        if verify:
+            if not destination_path.is_file():
+                problems.append(f"{edition_id}/{card_type}/{card_id}: missing Android runtime asset: {runtime_rel}")
+            else:
+                print(f"  VERIFY OK {edition_id}/{card_type}/{card_id} -> {runtime_rel}")
+            manifest[card_id] = {
+                "cardId": card_id,
+                "cardType": card_type,
+                "name": card["name"],
+                "sourceFrontPath": front_rel.replace("\\", "/"),
+                "runtimeAssetPath": runtime_rel,
+                "asset": runtime_rel,
+            }
+            continue
+        if dry_run:
+            action = "REFRESH" if should_process_card(source_path, destination_path) else "KEEP"
+            print(f"  DRY-RUN {action} {edition_id}/{card_type}/{card_id} -> {runtime_rel}")
+            manifest[card_id] = {
+                "cardId": card_id,
+                "cardType": card_type,
+                "name": card["name"],
+                "sourceFrontPath": front_rel.replace("\\", "/"),
+                "runtimeAssetPath": runtime_rel,
+                "asset": runtime_rel,
+            }
+            continue
         try:
             if should_process_card(source_path, destination_path):
                 orientation, rotation_applied, dimensions = process_image(
@@ -327,7 +387,49 @@ def sync_edition_cards(
             "height": dimensions[1],
         }
         print(f"  {edition_id}/{card_type}/{card_id} -> {runtime_rel}")
+
+    if prune and edition_id == "india":
+        event_dir = assets_root / "cards" / "editions" / edition_id / "event"
+        expected = {
+            runtime_asset_rel("EVENT", edition_id, card_id).split("/")[-1]
+            for card_id, entry in manifest.items()
+            if entry.get("cardType") == "EVENT"
+        }
+        if event_dir.is_dir():
+            for path in sorted(event_dir.glob("*.png")):
+                if path.name not in expected:
+                    if dry_run:
+                        print(f"  DRY-RUN PRUNE {path}")
+                    elif prune:
+                        print(f"  PRUNE {path}")
+                        path.unlink()
     return manifest
+
+
+def sync_bundled_edition_json(project_root: Path, edition_id: str, *, dry_run: bool = False) -> None:
+    source_dir = project_root / "data" / "editions" / edition_id
+    destination_dir = (
+        project_root
+        / "android-app"
+        / "app"
+        / "src"
+        / "main"
+        / "assets"
+        / "game"
+        / "editions"
+        / edition_id
+    )
+    for filename in ("edition.json", "events.json", "properties.json"):
+        source = source_dir / filename
+        if not source.is_file():
+            continue
+        destination = destination_dir / filename
+        if dry_run:
+            print(f"  DRY-RUN COPY {source.relative_to(project_root)} -> {destination.relative_to(project_root)}")
+            continue
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        print(f"  COPY {filename} -> assets/game/editions/{edition_id}/{filename}")
 
 
 def remove_legacy_assets(project_root: Path, assets_root: Path) -> None:
@@ -351,6 +453,13 @@ def main() -> int:
         "--edition",
         help="Sync only the specified edition id (common user cards are always synced)",
     )
+    parser.add_argument("--dry-run", action="store_true", help="Report actions without writing files.")
+    parser.add_argument("--verify", action="store_true", help="Verify Android runtime assets exist.")
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="Remove stale India event runtime PNGs not in the current manifest.",
+    )
     args = parser.parse_args()
 
     tools_dir = Path(__file__).resolve().parent
@@ -366,11 +475,19 @@ def main() -> int:
     print(f"Project root:   {project_root}")
     print(f"Assets root:    {assets_root}")
     print("Syncing common user cards:")
-    common_manifest = sync_common_user_cards(workspace_root, project_root, assets_root, problems)
-    common_manifest_path = data_cards_root / "common" / COMMON_MANIFEST_NAME
-    android_common_manifest_path = assets_root / "cards" / "common" / COMMON_MANIFEST_NAME
-    write_manifest(common_manifest_path, "common", common_manifest)
-    write_manifest(android_common_manifest_path, "common", common_manifest)
+    common_manifest = sync_common_user_cards(
+        workspace_root,
+        project_root,
+        assets_root,
+        problems,
+        dry_run=args.dry_run,
+        verify=args.verify,
+    )
+    if not args.dry_run and not args.verify:
+        common_manifest_path = data_cards_root / "common" / COMMON_MANIFEST_NAME
+        android_common_manifest_path = assets_root / "cards" / "common" / COMMON_MANIFEST_NAME
+        write_manifest(common_manifest_path, "common", common_manifest)
+        write_manifest(android_common_manifest_path, "common", common_manifest)
 
     for edition_id in edition_ids:
         print(f"Syncing edition '{edition_id}':")
@@ -380,15 +497,23 @@ def main() -> int:
             assets_root,
             edition_id,
             problems,
+            dry_run=args.dry_run,
+            verify=args.verify,
+            prune=args.prune,
         )
-        edition_manifest_path = data_cards_root / "editions" / edition_id / COMMON_MANIFEST_NAME
-        android_edition_manifest_path = (
-            assets_root / "cards" / "editions" / edition_id / COMMON_MANIFEST_NAME
-        )
-        write_manifest(edition_manifest_path, edition_id, edition_manifest)
-        write_manifest(android_edition_manifest_path, edition_id, edition_manifest)
+        if not args.dry_run and not args.verify:
+            edition_manifest_path = data_cards_root / "editions" / edition_id / COMMON_MANIFEST_NAME
+            android_edition_manifest_path = (
+                assets_root / "cards" / "editions" / edition_id / COMMON_MANIFEST_NAME
+            )
+            write_manifest(edition_manifest_path, edition_id, edition_manifest)
+            write_manifest(android_edition_manifest_path, edition_id, edition_manifest)
+            sync_bundled_edition_json(project_root, edition_id, dry_run=False)
+        elif args.dry_run:
+            sync_bundled_edition_json(project_root, edition_id, dry_run=True)
 
-    remove_legacy_assets(project_root, assets_root)
+    if not args.dry_run and not args.verify:
+        remove_legacy_assets(project_root, assets_root)
 
     if problems:
         print("\nFAIL:")

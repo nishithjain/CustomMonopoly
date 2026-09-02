@@ -20,10 +20,13 @@ import com.boardbanker.core.rules.GoRules
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.PropertyRules
 import com.boardbanker.core.rules.RentRules
+import com.boardbanker.core.rules.TurnScheduler
 import com.boardbanker.core.rules.UndoSupport
 import com.boardbanker.core.rules.WinnerCalculator
 import com.boardbanker.core.transaction.TransactionFactory
 import com.boardbanker.core.validation.PlayerNameRules
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 class DefaultGameEngine(
     private val definitions: GameDefinitions,
@@ -37,6 +40,7 @@ class DefaultGameEngine(
     private val rentRules = RentRules(definitions, transactionFactory, debtRules)
     private val goRules = GoRules(definitions, transactionFactory)
     private val jailRules = JailRules(definitions, transactionFactory)
+    private val turnScheduler = TurnScheduler(transactionFactory)
     private val undoSupport = UndoSupport(definitions, transactionFactory)
     private val eventEngine = EventEngine(definitions, transactionFactory, jailRules, debtRules)
 
@@ -60,6 +64,7 @@ class DefaultGameEngine(
             is GameCommand.PayJailFee -> handlePayJailFee(session, command)
             is GameCommand.ReleasePlayerFromJailByPayment -> handlePayJailFee(session, GameCommand.PayJailFee(command.playerId))
             is GameCommand.ReleasePlayerFromJailByDoubles -> handleReleaseByDoubles(session, command)
+            is GameCommand.UseGetOutOfJailPass -> handleUseGetOutOfJailPass(session, command)
             is GameCommand.StartAuction -> handleStartAuction(session, command)
             is GameCommand.PlaceAuctionBid -> handlePlaceBid(session, command)
             is GameCommand.CompleteAuction -> handleCompleteAuction(session)
@@ -68,6 +73,9 @@ class DefaultGameEngine(
             is GameCommand.ResolveDebtWithProperties -> handleResolveDebtWithProperties(session, command)
             is GameCommand.CheckBankruptcy -> handleCheckBankruptcy(session)
             is GameCommand.UndoLastAction -> handleUndo(session)
+            is GameCommand.EndTurn -> handleEndTurn(session, command)
+            is GameCommand.RollEventDice -> handleRollEventDice(session, command)
+            is GameCommand.ResolvePendingEventDraw -> handleResolvePendingEventDraw(session, command)
         }
     }
 
@@ -160,6 +168,7 @@ class DefaultGameEngine(
             players = players,
             properties = properties,
             colorGroups = colorGroups,
+            turnState = TurnScheduler.initialTurnState(players),
         )
         val (tx, sessionAfter) = transactionFactory.create(
             session = updated,
@@ -246,6 +255,12 @@ class DefaultGameEngine(
         session: GameSession,
         command: GameCommand.ApplyEvent,
     ): GameResult {
+        if (session.pendingEventDraw != null) {
+            return reject(
+                session,
+                GameError.InvalidState("Resolve the Lucky Draw before applying another event"),
+            )
+        }
         val result = eventEngine.apply(
             session = session,
             eventId = command.eventId,
@@ -263,11 +278,90 @@ class DefaultGameEngine(
             result.pendingMessage != null -> GameOutcome.PENDING_ACTION
             else -> GameOutcome.SUCCESS
         }
+        var updatedSession = result.session!!
+        return GameResult(
+            session = updatedSession,
+            outcome = outcome,
+            transactions = result.transactions,
+            physicalActions = result.physicalActions,
+            pendingMessage = result.pendingMessage,
+        )
+    }
+
+    private fun handleResolvePendingEventDraw(
+        session: GameSession,
+        command: GameCommand.ResolvePendingEventDraw,
+    ): GameResult {
+        val pending = session.pendingEventDraw
+            ?: return reject(session, GameError.InvalidState("No pending event draw"))
+        if (command.actingPlayerId != pending.actingPlayerId) {
+            return reject(session, GameError.Validation("Acting player mismatch for pending event draw"))
+        }
+        val turnState = session.turnState
+            ?: return reject(session, GameError.InvalidState("Turn order is not initialized"))
+        if (turnState.activePlayerId != command.actingPlayerId) {
+            return reject(session, GameError.Validation("Not this player's turn"))
+        }
+        if (!definitions.events.containsKey(command.eventId)) {
+            return reject(session, GameError.NotFound("Event", command.eventId))
+        }
+        val event = definitions.events[command.eventId]!!
+        val drawAction = event.actions.firstOrNull { it.actionType == "DRAW_ANOTHER_EVENT" }
+        if (drawAction != null) {
+            val maxDepth = drawAction.parameters["maximumChainDepth"]
+                ?.jsonPrimitive?.intOrNull ?: 3
+            if (session.eventChainDepth + 1 > maxDepth) {
+                return reject(session, GameError.EventError("Maximum chained event depth reached"))
+            }
+        }
+        val result = eventEngine.apply(
+            session = session.copy(pendingEventDraw = null),
+            eventId = command.eventId,
+            actingPlayerId = command.actingPlayerId,
+        )
+        if (!result.isSuccess) {
+            return reject(session, GameError.EventError(result.error!!))
+        }
+        val outcome = when {
+            result.needsDebtResolution -> GameOutcome.DEBT_RESOLUTION_REQUIRED
+            result.pendingMessage != null -> GameOutcome.PENDING_ACTION
+            else -> GameOutcome.SUCCESS
+        }
+        var updatedSession = result.session!!
+        if (updatedSession.pendingEventDraw == null) {
+            updatedSession = updatedSession.copy(eventChainDepth = 0)
+        }
+        return GameResult(
+            session = updatedSession,
+            outcome = outcome,
+            transactions = result.transactions,
+            physicalActions = result.physicalActions,
+            pendingMessage = result.pendingMessage,
+        )
+    }
+
+    private fun handleRollEventDice(
+        session: GameSession,
+        command: GameCommand.RollEventDice,
+    ): GameResult {
+        val result = eventEngine.rollEventDice(
+            session = session,
+            eventId = command.eventId,
+            actingPlayerId = command.actingPlayerId,
+            diceResults = command.diceResults,
+        )
+        if (!result.isSuccess) {
+            return reject(session, GameError.EventError(result.error!!))
+        }
+        val outcome = when {
+            result.needsDebtResolution -> GameOutcome.DEBT_RESOLUTION_REQUIRED
+            result.pendingMessage != null -> GameOutcome.PENDING_ACTION
+            else -> GameOutcome.SUCCESS
+        }
         return GameResult(
             session = result.session!!,
             outcome = outcome,
             transactions = result.transactions,
-            physicalActions = result.physicalActions,
             pendingMessage = result.pendingMessage,
         )
     }
@@ -439,7 +533,11 @@ class DefaultGameEngine(
         if (!result.isSuccess) {
             return reject(session, GameError.Validation(result.error!!))
         }
-        return GameResult(result.session!!, transactions = result.transactions)
+        return GameResult(
+            session = result.session!!,
+            transactions = result.transactions,
+            extraTurnCancelledByJailPlayerIds = extraTurnCancelledByJailPlayerIds(result.transactions),
+        )
     }
 
     private fun handlePayJailFee(
@@ -479,6 +577,34 @@ class DefaultGameEngine(
             return reject(session, GameError.Validation(result.error!!))
         }
         return GameResult(result.session!!, transactions = result.transactions)
+    }
+
+    private fun handleUseGetOutOfJailPass(
+        session: GameSession,
+        command: GameCommand.UseGetOutOfJailPass,
+    ): GameResult {
+        val result = jailRules.useGetOutOfJailPass(session, command.playerId)
+        if (!result.isSuccess) {
+            return reject(session, GameError.Validation(result.error!!))
+        }
+        return GameResult(result.session!!, transactions = result.transactions)
+    }
+
+    private fun handleEndTurn(
+        session: GameSession,
+        command: GameCommand.EndTurn,
+    ): GameResult {
+        val result = turnScheduler.endTurn(session, command.playerId)
+        if (!result.isSuccess) {
+            return reject(session, GameError.Validation(result.error!!))
+        }
+        return GameResult(
+            session = result.session!!,
+            transactions = result.transactions,
+            skippedTurnPlayerIds = result.skippedTurnPlayerIds,
+            extraTurnStartedPlayerId = result.extraTurnStartedPlayerId,
+            extraTurnCancelledBySkipPlayerId = result.extraTurnCancelledBySkipPlayerId,
+        )
     }
 
     private fun handleStartAuction(
@@ -652,4 +778,9 @@ class DefaultGameEngine(
 
     private fun reject(session: GameSession, error: GameError): GameResult =
         GameResult(session, outcome = GameOutcome.REJECTED, error = error)
+
+    private fun extraTurnCancelledByJailPlayerIds(transactions: List<com.boardbanker.core.model.Transaction>): List<String> =
+        transactions
+            .filter { it.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL }
+            .mapNotNull { it.playerId }
 }

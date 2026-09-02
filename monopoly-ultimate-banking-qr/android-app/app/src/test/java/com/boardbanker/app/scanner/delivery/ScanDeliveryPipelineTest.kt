@@ -5,6 +5,7 @@ import com.boardbanker.app.audio.GameAudioFeedback
 import com.boardbanker.app.audio.RecordingGameAudioFeedback
 import com.boardbanker.app.audio.ScanAudioFeedback
 import com.boardbanker.app.scanner.CardTypeValidation
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.ScannerCardFilter
 import com.boardbanker.app.scanner.ScannerController
 import com.boardbanker.app.scanner.model.ResolvedCard
@@ -157,6 +158,54 @@ class ScanDeliveryPipelineTest {
         ScanAudioFeedback.onScanProcessed(failingAudio, result, validation, scanAttemptId)
 
         assertEquals("USR_01", consume(scanAttemptId, ScanResultConsumer.PLAYER_SETUP)?.cardId)
+    }
+
+    @Test
+    fun eventOnlyScanRequest_rejectsPropertyAtScannerFilter() {
+        deliverer.prepareConsumer(ScanResultConsumer.GAME, ScanRequest.event())
+        val scanAttemptId = deliverer.nextScanAttemptId()
+        val result = controller.onQrPayload("MUB:P:01") as ScanProcessorResult.CardResolved
+        val validation = ScannerCardFilter.validate(result.resolution, ScanRequest.event())
+        controller.lockAfterResolved()
+        ScanAudioFeedback.onScanProcessed(audio, result, validation, scanAttemptId)
+
+        assertTrue(validation is CardTypeValidation.WrongType)
+        assertNull(deliverer.peekPendingFor(ScanResultConsumer.GAME))
+    }
+
+    @Test
+    fun retryAfterWrongTypeUnlocksScanner() {
+        deliverer.prepareConsumer(ScanResultConsumer.GAME, ScanRequest.event())
+        val wrongAttempt = deliverer.nextScanAttemptId()
+        val wrong = controller.onQrPayload("MUB:P:01") as ScanProcessorResult.CardResolved
+        val wrongValidation = ScannerCardFilter.validate(wrong.resolution, ScanRequest.event())
+        controller.lockAfterResolved()
+        ScanAudioFeedback.onScanProcessed(audio, wrong, wrongValidation, wrongAttempt)
+        assertTrue(wrongValidation is CardTypeValidation.WrongType)
+
+        controller.prepareForNextScan()
+        val retryAttempt = deliverer.nextScanAttemptId()
+        val accepted = controller.onQrPayload("MUB:E:E01") as ScanProcessorResult.CardResolved
+        val acceptedValidation = ScannerCardFilter.validate(accepted.resolution, ScanRequest.event())
+        val resolved = accepted.resolution.toResolvedCard()
+        controller.lockAfterResolved()
+        deliverer.stageResolvedCard(retryAttempt, resolved)
+        ScanAudioFeedback.onScanProcessed(audio, accepted, acceptedValidation, retryAttempt)
+
+        assertEquals("EVT_01", consume(retryAttempt, ScanResultConsumer.GAME)?.cardId)
+    }
+
+    @Test
+    fun staleConsumerCannotConsumeDelivery() {
+        deliverer.prepareConsumer(ScanResultConsumer.GAME)
+        val scanAttemptId = deliverer.nextScanAttemptId()
+        val result = controller.onQrPayload("MUB:PL:CAR") as ScanProcessorResult.CardResolved
+        val resolved = result.resolution.toResolvedCard()
+        controller.lockAfterResolved()
+        deliverer.stageResolvedCard(scanAttemptId, resolved)
+
+        assertNull(deliverer.tryConsume(scanAttemptId, ScanResultConsumer.BANKING))
+        assertEquals("USR_01", deliverer.tryConsume(scanAttemptId, ScanResultConsumer.GAME)?.cardId)
     }
 
     private fun com.boardbanker.core.card.CardResolution.Success.toResolvedCard() = ResolvedCard(

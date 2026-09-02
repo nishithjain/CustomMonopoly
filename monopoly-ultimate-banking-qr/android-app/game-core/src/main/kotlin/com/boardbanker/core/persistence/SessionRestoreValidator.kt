@@ -2,6 +2,7 @@ package com.boardbanker.core.persistence
 
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.GameStatus
 
 class SessionRestoreValidator(
     private val definitions: GameDefinitions,
@@ -80,6 +81,31 @@ class SessionRestoreValidator(
             if (!session.players.containsKey(winnerId)) {
                 problems += "Winner references unknown player $winnerId"
             }
+        }
+
+        session.pendingDiceGamble?.let { gamble ->
+            if (!definitions.events.containsKey(gamble.eventId)) {
+                problems += "Pending dice gamble references unknown event ${gamble.eventId}"
+            }
+            if (!session.players.containsKey(gamble.actingPlayerId)) {
+                problems += "Pending dice gamble references unknown player ${gamble.actingPlayerId}"
+            }
+        }
+
+        session.pendingEventDraw?.let { draw ->
+            if (!definitions.events.containsKey(draw.parentEventId)) {
+                problems += "Pending event draw references unknown parent event ${draw.parentEventId}"
+            }
+            if (!session.players.containsKey(draw.actingPlayerId)) {
+                problems += "Pending event draw references unknown player ${draw.actingPlayerId}"
+            }
+            if (draw.chainDepth < 1 || draw.chainDepth > draw.maximumChainDepth) {
+                problems += "Pending event draw has invalid chain depth ${draw.chainDepth}"
+            }
+        }
+
+        if (session.status == GameStatus.ACTIVE && session.turnState == null) {
+            problems += "Active game is missing turn state"
         }
 
         return problems

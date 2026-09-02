@@ -186,6 +186,28 @@ class PlayerDetailsViewModel(
         }
     }
 
+    fun onUseJailPass() {
+        executeCommand(GameCommand.UseGetOutOfJailPass(playerId)) { outcome ->
+            when (outcome) {
+                is BankingCommitOutcome.Success -> {
+                    val session = sessionManager.currentSession()
+                    resultMapper.mapJailPassResult(playerId, session ?: return@executeCommand null)
+                }
+                is BankingCommitOutcome.Rejected ->
+                    resultMapper.errorResult(outcome.result.error?.let { it.toString() } ?: "Unable to use Jail pass.")
+                is BankingCommitOutcome.PersistenceFailed ->
+                    resultMapper.errorResult("Unable to save the game.\nPlease try again.")
+                else -> null
+            }
+        }
+    }
+
+    fun jailPassActionLabel(): String? {
+        val count = _uiState.value.jailPassCount
+        if (count <= 0) return null
+        return if (count > 1) "Use Jail Pass ($count)" else "Use Jail Pass"
+    }
+
     fun onJailDoubles() {
         _uiState.update { it.copy(step = PlayerDetailsStep.JailDoublesConfirm) }
     }
@@ -246,6 +268,7 @@ class PlayerDetailsViewModel(
                 jailStatusText = if (player.jailStatus) "IN JAIL" else "No",
                 propertyCount = session.properties.values.count { state -> state.ownerPlayerId == playerId },
                 inJail = player.jailStatus,
+                jailPassCount = player.jailPassCount,
                 ownedProperties = ActiveGamePresentation.buildOwnedProperties(session, playerId, definitions),
             )
         }

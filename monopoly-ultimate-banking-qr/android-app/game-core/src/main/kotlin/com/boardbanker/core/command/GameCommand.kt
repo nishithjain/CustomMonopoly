@@ -64,6 +64,8 @@ sealed class GameCommand {
 
     data class ReleasePlayerFromJailByDoubles(val playerId: String) : GameCommand()
 
+    data class UseGetOutOfJailPass(val playerId: String) : GameCommand()
+
     data class StartAuction(
         val propertyId: String,
         val startedByPlayerId: String,
@@ -85,4 +87,17 @@ sealed class GameCommand {
     object CheckBankruptcy : GameCommand()
 
     object UndoLastAction : GameCommand()
+
+    data class EndTurn(val playerId: String) : GameCommand()
+
+    data class RollEventDice(
+        val eventId: String,
+        val actingPlayerId: String,
+        val diceResults: List<Int>,
+    ) : GameCommand()
+
+    data class ResolvePendingEventDraw(
+        val eventId: String,
+        val actingPlayerId: String,
+    ) : GameCommand()
 }

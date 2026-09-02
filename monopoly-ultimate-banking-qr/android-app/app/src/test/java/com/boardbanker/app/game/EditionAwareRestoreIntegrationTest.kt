@@ -38,7 +38,7 @@ class EditionAwareRestoreIntegrationTest {
         )
         val indiaEngine = DefaultGameEngine(AppTestSupport.editionRepository.load(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "INDIA_ONLY", editionId = EditionIds.INDIA, editionDefinitionVersion = 1),
+            GameSession(gameId = "INDIA_ONLY", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
             GameCommand.CreateGame("INDIA_ONLY"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
@@ -145,7 +145,7 @@ class EditionAwareRestoreIntegrationTest {
         )
         val indiaEngine = DefaultGameEngine(AppTestSupport.editionRepository.load(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "BIND_INDIA", editionId = EditionIds.INDIA, editionDefinitionVersion = 1),
+            GameSession(gameId = "BIND_INDIA", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
             GameCommand.CreateGame("BIND_INDIA"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))

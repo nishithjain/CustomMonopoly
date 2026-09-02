@@ -89,6 +89,22 @@ object ActiveGameCardPresentationBuilder {
                 body = event.displayText(),
             )
         }
+        is GameplayWorkflowState.EventDiceGamble -> {
+            val event = definitions.events[state.eventId] ?: return null
+            CardPresentationUi(
+                cardTypeLabel = "EVENT",
+                title = event.name,
+                body = event.eventDescription.ifBlank { event.displayText() },
+            )
+        }
+        is GameplayWorkflowState.EventDrawScanRequired -> {
+            val event = definitions.events[state.parentEventId] ?: return null
+            CardPresentationUi(
+                cardTypeLabel = "EVENT",
+                title = event.name,
+                body = event.eventDescription.ifBlank { event.displayText() },
+            )
+        }
         else -> null
     }
 

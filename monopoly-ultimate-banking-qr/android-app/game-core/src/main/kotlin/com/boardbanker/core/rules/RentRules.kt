@@ -47,6 +47,15 @@ class RentRules(
             chargeLevelOverride,
         )
 
+        if (rentAmount > 0 && visitor.pendingRentWaiver) {
+            val updatedVisitor = visitor.copy(pendingRentWaiver = false)
+            val updatedSession = session.copy(
+                players = session.players + (visitorId to updatedVisitor),
+                undoSnapshot = session.snapshot(),
+            )
+            return RentResult.success(updatedSession, emptyList(), 0)
+        }
+
         if (visitor.balance < rentAmount) {
             val debtResult = debtRules.enterDebtResolution(
                 session = session,

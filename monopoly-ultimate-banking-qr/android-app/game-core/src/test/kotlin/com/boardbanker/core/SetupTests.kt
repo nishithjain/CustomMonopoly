@@ -40,6 +40,7 @@ class SetupTests {
         assertEquals("Aditya", result.session.players["USR_02"]!!.playerName)
         assertTrue(result.session.properties.values.all { it.ownerPlayerId == null })
         assertEquals(1, result.transactions.count { it.transactionType == TransactionType.GAME_START })
+        assertEquals("USR_01", result.session.turnState!!.activePlayerId)
     }
 
     @Test

@@ -1,50 +1,97 @@
-card_id,card_type,sequence,name,qr_payload,front_asset,qr_asset,decode_status
-USR_01,USER,1,Car,MUB:PL:CAR,Resources/UserCards/Car_Front.jpg,Resources/UserCards/01_Car_Back_QR.png,SUCCESS
-USR_02,USER,2,Helicopter,MUB:PL:HELICOPTER,Resources/UserCards/Helicopter_Front.jpg,Resources/UserCards/02_Helicopter_Back_QR.png,SUCCESS
-USR_03,USER,3,Ship,MUB:PL:SHIP,Resources/UserCards/Ship_Front.jpg,Resources/UserCards/03_Ship_Back_QR.png,SUCCESS
-USR_04,USER,4,Aeroplane,MUB:PL:AEROPLANE,Resources/UserCards/Aeroplane_Front.jpg,Resources/UserCards/04_Aeroplane_Back_QR.png,SUCCESS
-EVT_01,EVENT,1,Boom Town,MUB:E:E01,Resources/EventCards/Boom_Town_Front.png,Resources/EventCards/E01_Boom_Town_Back_QR.png,SUCCESS
-EVT_02,EVENT,2,Crime Down,MUB:E:E02,Resources/EventCards/Crime_Down_Front.png,Resources/EventCards/E02_Crime_Down_Back_QR.png,SUCCESS
-EVT_03,EVENT,3,Deal Of The Week,MUB:E:E03,Resources/EventCards/Deal_Of_The_Week_Front.png,Resources/EventCards/E03_Deal_Of_The_Week_Back_QR.png,SUCCESS
-EVT_04,EVENT,4,Demolished,MUB:E:E04,Resources/EventCards/Demolished_Front.png,Resources/EventCards/E04_Demolished_Back_QR.png,SUCCESS
-EVT_05,EVENT,5,Grand Designs,MUB:E:E05,Resources/EventCards/Grand_Designs_Front.png,Resources/EventCards/E05_Grand_Designs_Back_QR.png,SUCCESS
-EVT_06,EVENT,6,Haunted House,MUB:E:E06,Resources/EventCards/Haunted_House_Front.png,Resources/EventCards/E06_Haunted_House_Back_QR.png,SUCCESS
-EVT_07,EVENT,7,Highway Tax,MUB:E:E07,Resources/EventCards/Highway_Tax_Front.png,Resources/EventCards/E07_Highway_Tax_Back_QR.png,SUCCESS
-EVT_08,EVENT,8,House Party,MUB:E:E08,Resources/EventCards/House_Party_Front.png,Resources/EventCards/E08_House_Party_Back_QR.png,SUCCESS
-EVT_09,EVENT,9,In The Money,MUB:E:E09,Resources/EventCards/In_The_Money_Front.png,Resources/EventCards/E09_In_The_Money_Back_QR.png,SUCCESS
-EVT_10,EVENT,10,It's A Boy!,MUB:E:E10,Resources/EventCards/Its_A_Boy_Front.png,Resources/EventCards/E10_Its_A_Boy_Back_QR.png,SUCCESS
-EVT_11,EVENT,11,Love Is In The Air,MUB:E:E11,Resources/EventCards/Love_Is_In_The_Air_Front.png,Resources/EventCards/E11_Love_Is_In_The_Air_Back_QR.png,SUCCESS
-EVT_12,EVENT,12,On The Map,MUB:E:E12,Resources/EventCards/On_The_Map_Front.png,Resources/EventCards/E12_On_The_Map_Back_QR.png,SUCCESS
-EVT_13,EVENT,13,On The Run,MUB:E:E13,Resources/EventCards/On_The_Run_Front.png,Resources/EventCards/E13_On_The_Run_Back_QR.png,SUCCESS
-EVT_14,EVENT,14,Pick Your Own,MUB:E:E14,Resources/EventCards/Pick_Your_Own_Front.png,Resources/EventCards/E14_Pick_Your_Own_Back_QR.png,SUCCESS
-EVT_15,EVENT,15,Pong! What A Stinker,MUB:E:E15,Resources/EventCards/Pong_What_A_Stinker_Front.png,Resources/EventCards/E15_Pong_What_A_Stinker_Back_QR.png,SUCCESS
-EVT_16,EVENT,16,Rover's Revenge,MUB:E:E16,Resources/EventCards/Rovers_Revenge_Front.png,Resources/EventCards/E16_Rovers_Revenge_Back_QR.png,SUCCESS
-EVT_17,EVENT,17,Stargazing,MUB:E:E17,Resources/EventCards/Stargazing_Front.png,Resources/EventCards/E17_Stargazing_Back_QR.png,SUCCESS
-EVT_18,EVENT,18,Stop The Presses,MUB:E:E18,Resources/EventCards/Stop_The_Presses_Front.png,Resources/EventCards/E18_Stop_The_Presses_Back_QR.png,SUCCESS
-EVT_19,EVENT,19,'Tis The Season,MUB:E:E19,Resources/EventCards/Tis_The_Season_Front.png,Resources/EventCards/E19_Tis_The_Season_Back_QR.png,SUCCESS
-EVT_20,EVENT,20,Tornado Alley,MUB:E:E20,Resources/EventCards/Tornado_Alley_Front.png,Resources/EventCards/E20_Tornado_Alley_Back_QR.png,SUCCESS
-EVT_21,EVENT,21,Total Gridlock,MUB:E:E21,Resources/EventCards/Total_Gridlock_Front.png,Resources/EventCards/E21_Total_Gridlock_Back_QR.png,SUCCESS
-EVT_22,EVENT,22,What A Ride!,MUB:E:E22,Resources/EventCards/What_A_Ride_Front.png,Resources/EventCards/E22_What_A_Ride_Back_QR.png,SUCCESS
-EVT_23,EVENT,23,Wibble Wobble,MUB:E:E23,Resources/EventCards/Wibble_Wobble_Front.png,Resources/EventCards/E23_Wibble_Wobble_Back_QR.png,SUCCESS
-PRP_01,PROPERTY,1,Old Kent Road,MUB:P:01,Resources/PropertyCards/01_Property_Front.png,Resources/PropertyCards/01_Property_Back_QR.png,SUCCESS
-PRP_02,PROPERTY,2,Whitechapel Road,MUB:P:02,Resources/PropertyCards/02_Property_Front.png,Resources/PropertyCards/02_Property_Back_QR.png,SUCCESS
-PRP_03,PROPERTY,3,"The Angel, Islington",MUB:P:03,Resources/PropertyCards/03_Property_Front.png,Resources/PropertyCards/03_Property_Back_QR.png,SUCCESS
-PRP_04,PROPERTY,4,Euston Road,MUB:P:04,Resources/PropertyCards/04_Property_Front.png,Resources/PropertyCards/04_Property_Back_QR.png,SUCCESS
-PRP_05,PROPERTY,5,Pentonville Road,MUB:P:05,Resources/PropertyCards/05_Property_Front.png,Resources/PropertyCards/05_Property_Back_QR.png,SUCCESS
-PRP_06,PROPERTY,6,Pall Mall,MUB:P:06,Resources/PropertyCards/06_Property_Front.png,Resources/PropertyCards/06_Property_Back_QR.png,SUCCESS
-PRP_07,PROPERTY,7,Whitehall,MUB:P:07,Resources/PropertyCards/07_Property_Front.png,Resources/PropertyCards/07_Property_Back_QR.png,SUCCESS
-PRP_08,PROPERTY,8,Northumberland Avenue,MUB:P:08,Resources/PropertyCards/08_Property_Front.png,Resources/PropertyCards/08_Property_Back_QR.png,SUCCESS
-PRP_09,PROPERTY,9,Bow Street,MUB:P:09,Resources/PropertyCards/09_Property_Front.png,Resources/PropertyCards/09_Property_Back_QR.png,SUCCESS
-PRP_10,PROPERTY,10,Marlborough Street,MUB:P:10,Resources/PropertyCards/10_Property_Front.png,Resources/PropertyCards/10_Property_Back_QR.png,SUCCESS
-PRP_11,PROPERTY,11,Vine Street,MUB:P:11,Resources/PropertyCards/11_Property_Front.png,Resources/PropertyCards/11_Property_Back_QR.png,SUCCESS
-PRP_12,PROPERTY,12,Strand,MUB:P:12,Resources/PropertyCards/12_Property_Front.png,Resources/PropertyCards/12_Property_Back_QR.png,SUCCESS
-PRP_13,PROPERTY,13,Fleet Street,MUB:P:13,Resources/PropertyCards/13_Property_Front.png,Resources/PropertyCards/13_Property_Back_QR.png,SUCCESS
-PRP_14,PROPERTY,14,Trafalgar Square,MUB:P:14,Resources/PropertyCards/14_Property_Front.png,Resources/PropertyCards/14_Property_Back_QR.png,SUCCESS
-PRP_15,PROPERTY,15,Leicester Square,MUB:P:15,Resources/PropertyCards/15_Property_Front.png,Resources/PropertyCards/15_Property_Back_QR.png,SUCCESS
-PRP_16,PROPERTY,16,Coventry Street,MUB:P:16,Resources/PropertyCards/16_Property_Front.png,Resources/PropertyCards/16_Property_Back_QR.png,SUCCESS
-PRP_17,PROPERTY,17,Piccadilly,MUB:P:17,Resources/PropertyCards/17_Property_Front.png,Resources/PropertyCards/17_Property_Back_QR.png,SUCCESS
-PRP_18,PROPERTY,18,Regent Street,MUB:P:18,Resources/PropertyCards/18_Property_Front.png,Resources/PropertyCards/18_Property_Back_QR.png,SUCCESS
-PRP_19,PROPERTY,19,Oxford Street,MUB:P:19,Resources/PropertyCards/19_Property_Front.png,Resources/PropertyCards/19_Property_Back_QR.png,SUCCESS
-PRP_20,PROPERTY,20,Bond Street,MUB:P:20,Resources/PropertyCards/20_Property_Front.png,Resources/PropertyCards/20_Property_Back_QR.png,SUCCESS
-PRP_21,PROPERTY,21,Park Lane,MUB:P:21,Resources/PropertyCards/21_Property_Front.png,Resources/PropertyCards/21_Property_Back_QR.png,SUCCESS
-PRP_22,PROPERTY,22,Mayfair,MUB:P:22,Resources/PropertyCards/22_Property_Front.png,Resources/PropertyCards/22_Property_Back_QR.png,SUCCESS
+edition_id,card_id,card_type,sequence,name,qr_payload,qr_asset,decode_status,error
+,USR_01,USER,,Car,MUB:PL:CAR,Resources/Common/UserCards/01_Car_Back_QR.png,SUCCESS,
+,USR_02,USER,,Helicopter,MUB:PL:HELICOPTER,Resources/Common/UserCards/02_Helicopter_Back_QR.png,SUCCESS,
+,USR_03,USER,,Ship,MUB:PL:SHIP,Resources/Common/UserCards/03_Ship_Back_QR.png,SUCCESS,
+,USR_04,USER,,Aeroplane,MUB:PL:AEROPLANE,Resources/Common/UserCards/04_Aeroplane_Back_QR.png,SUCCESS,
+india,EVT_01,EVENT,,Advance to GO,MUB:E:E01,Resources/Editions/india/EventCards/E01_Advance_to_GO_Back_QR.png,SUCCESS,
+india,EVT_02,EVENT,,Wrong Turn!,MUB:E:E02,Resources/Editions/india/EventCards/E02_Wrong_Turn_Back_QR.png,SUCCESS,
+india,EVT_03,EVENT,,UPI Cashback,MUB:E:E03,Resources/Editions/india/EventCards/E03_UPI_Cashback_Back_QR.png,SUCCESS,
+india,EVT_04,EVENT,,Income Tax Refund,MUB:E:E04,Resources/Editions/india/EventCards/E04_Income_Tax_Refund_Back_QR.png,SUCCESS,
+india,EVT_05,EVENT,,Hospital Expense,MUB:E:E05,Resources/Editions/india/EventCards/E05_Hospital_Expense_Back_QR.png,SUCCESS,
+india,EVT_06,EVENT,,Festival Contribution,MUB:E:E06,Resources/Editions/india/EventCards/E06_Festival_Contribution_Back_QR.png,SUCCESS,
+india,EVT_07,EVENT,,Birthday Celebration,MUB:E:E07,Resources/Editions/india/EventCards/E07_Birthday_Celebration_Back_QR.png,SUCCESS,
+india,EVT_08,EVENT,,Municipal Maintenance,MUB:E:E08,Resources/Editions/india/EventCards/E08_Municipal_Maintenance_Back_QR.png,SUCCESS,
+india,EVT_09,EVENT,,Green Building Grant,MUB:E:E09,Resources/Editions/india/EventCards/E09_Green_Building_Grant_Back_QR.png,SUCCESS,
+india,EVT_10,EVENT,,Rent Relief,MUB:E:E10,Resources/Editions/india/EventCards/E10_Rent_Relief_Back_QR.png,SUCCESS,
+india,EVT_11,EVENT,,Get Out of Jail Pass,MUB:E:E11,Resources/Editions/india/EventCards/E11_Get_Out_of_Jail_Pass_Back_QR.png,SUCCESS,
+india,EVT_12,EVENT,,Traffic Court,MUB:E:E12,Resources/Editions/india/EventCards/E12_Traffic_Court_Back_QR.png,SUCCESS,
+india,EVT_13,EVENT,,Local Market Boom,MUB:E:E13,Resources/Editions/india/EventCards/E13_Local_Market_Boom_Back_QR.png,SUCCESS,
+india,EVT_14,EVENT,,Market Correction,MUB:E:E14,Resources/Editions/india/EventCards/E14_Market_Correction_Back_QR.png,SUCCESS,
+india,EVT_15,EVENT,,Lucky Draw,MUB:E:E15,Resources/Editions/india/EventCards/E15_Lucky_Draw_Back_QR.png,SUCCESS,
+india,EVT_16,EVENT,,Community Development,MUB:E:E16,Resources/Editions/india/EventCards/E16_Community_Development_Back_QR.png,SUCCESS,
+india,EVT_17,EVENT,,Lucky Break,MUB:E:E17,Resources/Editions/india/EventCards/E17_Lucky_Break_Back_QR.png,SUCCESS,
+india,EVT_18,EVENT,,Metro Delay,MUB:E:E18,Resources/Editions/india/EventCards/E18_Metro_Delay_Back_QR.png,SUCCESS,
+india,EVT_19,EVENT,,Eminent Domain,MUB:E:E19,Resources/Editions/india/EventCards/E19_Eminent_Domain_Back_QR.png,SUCCESS,
+india,EVT_20,EVENT,,Economic Relief Grant,MUB:E:E20,Resources/Editions/india/EventCards/E20_Economic_Relief_Grant_Back_QR.png,SUCCESS,
+india,EVT_21,EVENT,,Wrong Terminal,MUB:E:E21,Resources/Editions/india/EventCards/E21_Wrong_Terminal_Back_QR.png,SUCCESS,
+india,EVT_22,EVENT,,Cloud Storage Subscription Renewal,MUB:E:E22,Resources/Editions/india/EventCards/E22_Cloud_Storage_Subscription_Renewal_Back_QR.png,SUCCESS,
+india,EVT_23,EVENT,,Beauty Contest Winner,MUB:E:E23,Resources/Editions/india/EventCards/E23_Beauty_Contest_Winner_Back_QR.png,SUCCESS,
+india,EVT_24,EVENT,,Second Wind,MUB:E:E24,Resources/Editions/india/EventCards/E24_Second_Wind_Back_QR.png,SUCCESS,
+india,EVT_25,EVENT,,Green Energy Rebate,MUB:E:E25,Resources/Editions/india/EventCards/E25_Green_Energy_Rebate_Back_QR.png,SUCCESS,
+india,PRP_01,PROPERTY,,Cubbon Park,MUB:P:01,Resources/Editions/india/PropertyCards/01_Property_Back_QR.png,SUCCESS,
+india,PRP_02,PROPERTY,,Lodhi Garden,MUB:P:02,Resources/Editions/india/PropertyCards/02_Property_Back_QR.png,SUCCESS,
+india,PRP_03,PROPERTY,,Rock Garden,MUB:P:03,Resources/Editions/india/PropertyCards/03_Property_Back_QR.png,SUCCESS,
+india,PRP_04,PROPERTY,,Marine Drive,MUB:P:04,Resources/Editions/india/PropertyCards/04_Property_Back_QR.png,SUCCESS,
+india,PRP_05,PROPERTY,,Juhu Beach,MUB:P:05,Resources/Editions/india/PropertyCards/05_Property_Back_QR.png,SUCCESS,
+india,PRP_06,PROPERTY,,Hawa Mahal,MUB:P:06,Resources/Editions/india/PropertyCards/06_Property_Back_QR.png,SUCCESS,
+india,PRP_07,PROPERTY,,Victoria Memorial,MUB:P:07,Resources/Editions/india/PropertyCards/07_Property_Back_QR.png,SUCCESS,
+india,PRP_08,PROPERTY,,India Gate,MUB:P:08,Resources/Editions/india/PropertyCards/08_Property_Back_QR.png,SUCCESS,
+india,PRP_09,PROPERTY,,Gateway of India,MUB:P:09,Resources/Editions/india/PropertyCards/09_Property_Back_QR.png,SUCCESS,
+india,PRP_10,PROPERTY,,Mysore Palace,MUB:P:10,Resources/Editions/india/PropertyCards/10_Property_Back_QR.png,SUCCESS,
+india,PRP_11,PROPERTY,,Red Fort,MUB:P:11,Resources/Editions/india/PropertyCards/11_Property_Back_QR.png,SUCCESS,
+india,PRP_12,PROPERTY,,Qutub Minar,MUB:P:12,Resources/Editions/india/PropertyCards/12_Property_Back_QR.png,SUCCESS,
+india,PRP_13,PROPERTY,,Amer Fort,MUB:P:13,Resources/Editions/india/PropertyCards/13_Property_Back_QR.png,SUCCESS,
+india,PRP_14,PROPERTY,,Mehrangarh Fort,MUB:P:14,Resources/Editions/india/PropertyCards/14_Property_Back_QR.png,SUCCESS,
+india,PRP_15,PROPERTY,,Jaisalmer Fort,MUB:P:15,Resources/Editions/india/PropertyCards/15_Property_Back_QR.png,SUCCESS,
+india,PRP_16,PROPERTY,,Lake Pichola,MUB:P:16,Resources/Editions/india/PropertyCards/16_Property_Back_QR.png,SUCCESS,
+india,PRP_17,PROPERTY,,Dal Lake,MUB:P:17,Resources/Editions/india/PropertyCards/17_Property_Back_QR.png,SUCCESS,
+india,PRP_18,PROPERTY,,Kerala Backwaters,MUB:P:18,Resources/Editions/india/PropertyCards/18_Property_Back_QR.png,SUCCESS,
+india,PRP_19,PROPERTY,,Rann of Kutch,MUB:P:19,Resources/Editions/india/PropertyCards/19_Property_Back_QR.png,SUCCESS,
+india,PRP_20,PROPERTY,,Goa Beaches,MUB:P:20,Resources/Editions/india/PropertyCards/20_Property_Back_QR.png,SUCCESS,
+india,PRP_21,PROPERTY,,Unity Road,MUB:P:21,Resources/Editions/india/PropertyCards/21_Property_Back_QR.png,SUCCESS,
+india,PRP_22,PROPERTY,,Taj Mohalla,MUB:P:22,Resources/Editions/india/PropertyCards/22_Property_Back_QR.png,SUCCESS,
+uk,EVT_01,EVENT,,Boom Town,MUB:E:E01,Resources/Editions/uk/EventCards/E01_Boom_Town_Back_QR.png,SUCCESS,
+uk,EVT_02,EVENT,,Crime Down,MUB:E:E02,Resources/Editions/uk/EventCards/E02_Crime_Down_Back_QR.png,SUCCESS,
+uk,EVT_03,EVENT,,Deal Of The Week,MUB:E:E03,Resources/Editions/uk/EventCards/E03_Deal_Of_The_Week_Back_QR.png,SUCCESS,
+uk,EVT_04,EVENT,,Demolished,MUB:E:E04,Resources/Editions/uk/EventCards/E04_Demolished_Back_QR.png,SUCCESS,
+uk,EVT_05,EVENT,,Grand Designs,MUB:E:E05,Resources/Editions/uk/EventCards/E05_Grand_Designs_Back_QR.png,SUCCESS,
+uk,EVT_06,EVENT,,Haunted House,MUB:E:E06,Resources/Editions/uk/EventCards/E06_Haunted_House_Back_QR.png,SUCCESS,
+uk,EVT_07,EVENT,,Highway Tax,MUB:E:E07,Resources/Editions/uk/EventCards/E07_Highway_Tax_Back_QR.png,SUCCESS,
+uk,EVT_08,EVENT,,House Party,MUB:E:E08,Resources/Editions/uk/EventCards/E08_House_Party_Back_QR.png,SUCCESS,
+uk,EVT_09,EVENT,,In The Money,MUB:E:E09,Resources/Editions/uk/EventCards/E09_In_The_Money_Back_QR.png,SUCCESS,
+uk,EVT_10,EVENT,,It's A Boy!,MUB:E:E10,Resources/Editions/uk/EventCards/E10_Its_A_Boy_Back_QR.png,SUCCESS,
+uk,EVT_11,EVENT,,Love Is In The Air,MUB:E:E11,Resources/Editions/uk/EventCards/E11_Love_Is_In_The_Air_Back_QR.png,SUCCESS,
+uk,EVT_12,EVENT,,On The Map,MUB:E:E12,Resources/Editions/uk/EventCards/E12_On_The_Map_Back_QR.png,SUCCESS,
+uk,EVT_13,EVENT,,On The Run,MUB:E:E13,Resources/Editions/uk/EventCards/E13_On_The_Run_Back_QR.png,SUCCESS,
+uk,EVT_14,EVENT,,Pick Your Own,MUB:E:E14,Resources/Editions/uk/EventCards/E14_Pick_Your_Own_Back_QR.png,SUCCESS,
+uk,EVT_15,EVENT,,Pong! What A Stinker,MUB:E:E15,Resources/Editions/uk/EventCards/E15_Pong_What_A_Stinker_Back_QR.png,SUCCESS,
+uk,EVT_16,EVENT,,Rover's Revenge,MUB:E:E16,Resources/Editions/uk/EventCards/E16_Rovers_Revenge_Back_QR.png,SUCCESS,
+uk,EVT_17,EVENT,,Stargazing,MUB:E:E17,Resources/Editions/uk/EventCards/E17_Stargazing_Back_QR.png,SUCCESS,
+uk,EVT_18,EVENT,,Stop The Presses,MUB:E:E18,Resources/Editions/uk/EventCards/E18_Stop_The_Presses_Back_QR.png,SUCCESS,
+uk,EVT_19,EVENT,,'Tis The Season,MUB:E:E19,Resources/Editions/uk/EventCards/E19_Tis_The_Season_Back_QR.png,SUCCESS,
+uk,EVT_20,EVENT,,Tornado Alley,MUB:E:E20,Resources/Editions/uk/EventCards/E20_Tornado_Alley_Back_QR.png,SUCCESS,
+uk,EVT_21,EVENT,,Total Gridlock,MUB:E:E21,Resources/Editions/uk/EventCards/E21_Total_Gridlock_Back_QR.png,SUCCESS,
+uk,EVT_22,EVENT,,What A Ride!,MUB:E:E22,Resources/Editions/uk/EventCards/E22_What_A_Ride_Back_QR.png,SUCCESS,
+uk,EVT_23,EVENT,,Wibble Wobble,MUB:E:E23,Resources/Editions/uk/EventCards/E23_Wibble_Wobble_Back_QR.png,SUCCESS,
+uk,PRP_01,PROPERTY,,Old Kent Road,MUB:P:01,Resources/Editions/uk/PropertyCards/01_Property_Back_QR.png,SUCCESS,
+uk,PRP_02,PROPERTY,,Whitechapel Road,MUB:P:02,Resources/Editions/uk/PropertyCards/02_Property_Back_QR.png,SUCCESS,
+uk,PRP_03,PROPERTY,,"The Angel, Islington",MUB:P:03,Resources/Editions/uk/PropertyCards/03_Property_Back_QR.png,SUCCESS,
+uk,PRP_04,PROPERTY,,Euston Road,MUB:P:04,Resources/Editions/uk/PropertyCards/04_Property_Back_QR.png,SUCCESS,
+uk,PRP_05,PROPERTY,,Pentonville Road,MUB:P:05,Resources/Editions/uk/PropertyCards/05_Property_Back_QR.png,SUCCESS,
+uk,PRP_06,PROPERTY,,Pall Mall,MUB:P:06,Resources/Editions/uk/PropertyCards/06_Property_Back_QR.png,SUCCESS,
+uk,PRP_07,PROPERTY,,Whitehall,MUB:P:07,Resources/Editions/uk/PropertyCards/07_Property_Back_QR.png,SUCCESS,
+uk,PRP_08,PROPERTY,,Northumberland Avenue,MUB:P:08,Resources/Editions/uk/PropertyCards/08_Property_Back_QR.png,SUCCESS,
+uk,PRP_09,PROPERTY,,Bow Street,MUB:P:09,Resources/Editions/uk/PropertyCards/09_Property_Back_QR.png,SUCCESS,
+uk,PRP_10,PROPERTY,,Marlborough Street,MUB:P:10,Resources/Editions/uk/PropertyCards/10_Property_Back_QR.png,SUCCESS,
+uk,PRP_11,PROPERTY,,Vine Street,MUB:P:11,Resources/Editions/uk/PropertyCards/11_Property_Back_QR.png,SUCCESS,
+uk,PRP_12,PROPERTY,,Strand,MUB:P:12,Resources/Editions/uk/PropertyCards/12_Property_Back_QR.png,SUCCESS,
+uk,PRP_13,PROPERTY,,Fleet Street,MUB:P:13,Resources/Editions/uk/PropertyCards/13_Property_Back_QR.png,SUCCESS,
+uk,PRP_14,PROPERTY,,Trafalgar Square,MUB:P:14,Resources/Editions/uk/PropertyCards/14_Property_Back_QR.png,SUCCESS,
+uk,PRP_15,PROPERTY,,Leicester Square,MUB:P:15,Resources/Editions/uk/PropertyCards/15_Property_Back_QR.png,SUCCESS,
+uk,PRP_16,PROPERTY,,Coventry Street,MUB:P:16,Resources/Editions/uk/PropertyCards/16_Property_Back_QR.png,SUCCESS,
+uk,PRP_17,PROPERTY,,Piccadilly,MUB:P:17,Resources/Editions/uk/PropertyCards/17_Property_Back_QR.png,SUCCESS,
+uk,PRP_18,PROPERTY,,Regent Street,MUB:P:18,Resources/Editions/uk/PropertyCards/18_Property_Back_QR.png,SUCCESS,
+uk,PRP_19,PROPERTY,,Oxford Street,MUB:P:19,Resources/Editions/uk/PropertyCards/19_Property_Back_QR.png,SUCCESS,
+uk,PRP_20,PROPERTY,,Bond Street,MUB:P:20,Resources/Editions/uk/PropertyCards/20_Property_Back_QR.png,SUCCESS,
+uk,PRP_21,PROPERTY,,Park Lane,MUB:P:21,Resources/Editions/uk/PropertyCards/21_Property_Back_QR.png,SUCCESS,
+uk,PRP_22,PROPERTY,,Mayfair,MUB:P:22,Resources/Editions/uk/PropertyCards/22_Property_Back_QR.png,SUCCESS,

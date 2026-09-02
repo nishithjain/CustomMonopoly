@@ -130,4 +130,15 @@ class ScanResultDelivererTest {
         assertTrue(!deliverer.stageResolvedCard(attemptId, card))
         assertNull(deliverer.peekPendingFor(ScanResultConsumer.GAME))
     }
+
+    @Test
+    fun staleAttemptIdIsRejectedAfterSuccessfulConsume() {
+        deliverer.prepareConsumer(ScanResultConsumer.GAME)
+        val firstAttempt = deliverer.nextScanAttemptId()
+        assertTrue(deliverer.stageResolvedCard(firstAttempt, carCard()))
+        assertEquals("USR_01", deliverer.tryConsume(firstAttempt, ScanResultConsumer.GAME)?.cardId)
+
+        val staleAttempt = deliverer.nextScanAttemptId()
+        assertNull(deliverer.tryConsume(staleAttempt, ScanResultConsumer.GAME))
+    }
 }

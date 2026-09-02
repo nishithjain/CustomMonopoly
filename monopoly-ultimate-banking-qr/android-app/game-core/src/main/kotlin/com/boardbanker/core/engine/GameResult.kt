@@ -11,6 +11,10 @@ data class GameResult(
     val physicalActions: List<PhysicalAction> = emptyList(),
     val pendingMessage: String? = null,
     val error: GameError? = null,
+    val skippedTurnPlayerIds: List<String> = emptyList(),
+    val extraTurnStartedPlayerId: String? = null,
+    val extraTurnCancelledBySkipPlayerId: String? = null,
+    val extraTurnCancelledByJailPlayerIds: List<String> = emptyList(),
 ) {
     val isSuccess: Boolean get() = error == null && outcome != GameOutcome.REJECTED
 }

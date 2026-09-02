@@ -30,6 +30,7 @@ data class PlayerDetailsUiState(
     val jailStatusText: String = "",
     val propertyCount: Int = 0,
     val inJail: Boolean = false,
+    val jailPassCount: Int = 0,
     val ownedProperties: List<OwnedPropertyUi> = emptyList(),
     val step: PlayerDetailsStep = PlayerDetailsStep.Hub,
     val commandInFlight: Boolean = false,

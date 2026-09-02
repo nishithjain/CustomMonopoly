@@ -29,6 +29,9 @@
       "BANK_CREDIT",
       "BANK_DEBIT",
       "JAIL_STATUS_CHANGE",
+      "JAIL_PASS_USED",
+      "TURN_SKIPPED",
+      "TURN_ADVANCED",
       "LOCATION_FEE"
     ],
     "ineligibleTransactionTypes": [

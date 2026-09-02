@@ -11,7 +11,7 @@ Event fronts:    23 / 23
 
 EDITION india (READY)
 Property fronts: 22 / 22
-Event fronts:    23 / 23
+Event fronts:    25 / 25
 
 RESULT: PASS
 - Edition-aware manifests and runtime assets validated

@@ -17,8 +17,8 @@ INDIA
 edition.json: PASS
 properties: 22 / 22
 events: 25 / 25
-property artwork: INCOMPLETE (22/22)
-event artwork: INCOMPLETE (23/25)
-exposed in New Game: NO
+property artwork: READY (22/22)
+event artwork: READY (25/25)
+exposed in New Game: YES
 
 RESULT: PASS

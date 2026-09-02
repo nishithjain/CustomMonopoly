@@ -18,6 +18,10 @@ data class GameSession(
     val auction: AuctionState? = null,
     val pendingEventChoice: PendingEventChoice? = null,
     val pendingEventExecution: PendingEventExecution? = null,
+    val pendingEventDraw: PendingEventDraw? = null,
+    val pendingDiceGamble: PendingDiceGamble? = null,
+    val eventChainDepth: Int = 0,
+    val turnState: TurnState? = null,
     val winnerPlayerId: String? = null,
     val transactionCounter: Long = 0,
 ) {
@@ -30,6 +34,10 @@ data class GameSession(
         auction = auction,
         pendingEventChoice = pendingEventChoice,
         pendingEventExecution = pendingEventExecution,
+        pendingEventDraw = pendingEventDraw,
+        pendingDiceGamble = pendingDiceGamble,
+        eventChainDepth = eventChainDepth,
+        turnState = turnState,
         status = status,
     )
 
@@ -42,6 +50,10 @@ data class GameSession(
         auction = snapshot.auction,
         pendingEventChoice = snapshot.pendingEventChoice,
         pendingEventExecution = snapshot.pendingEventExecution,
+        pendingEventDraw = snapshot.pendingEventDraw,
+        pendingDiceGamble = snapshot.pendingDiceGamble,
+        eventChainDepth = snapshot.eventChainDepth,
+        turnState = snapshot.turnState,
         status = snapshot.status,
         undoSnapshot = null,
     )

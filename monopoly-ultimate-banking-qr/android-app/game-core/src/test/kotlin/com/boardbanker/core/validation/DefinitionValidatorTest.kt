@@ -43,8 +43,9 @@ class DefinitionValidatorTest {
 
         assertEquals(4, config.playerCardCount)
         assertEquals(22, config.propertyCardCount)
-        assertEquals(23, config.eventCardCount)
+        assertEquals(25, config.eventCardCount)
         assertEquals(5, config.rentLevelsPerProperty)
+        assertEquals(25, definitions.events.size)
         assertTrue(validator.isValid(definitions))
     }
 

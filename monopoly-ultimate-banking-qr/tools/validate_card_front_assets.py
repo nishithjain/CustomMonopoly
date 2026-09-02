@@ -249,7 +249,7 @@ def main() -> int:
         edition = load_json(project_root / "data" / "editions" / edition_id / "edition.json")
         artwork_status = edition.get("artworkStatus", "READY")
         enabled = edition_index.get(edition_id, {}).get("enabled", True)
-        if enabled and artwork_status != "READY":
+        if enabled and artwork_status == "INCOMPLETE":
             problems.append(
                 f"{edition_id}: enabled production edition has artworkStatus={artwork_status}; required artwork is incomplete",
             )

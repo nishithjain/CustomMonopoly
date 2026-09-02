@@ -29,6 +29,8 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.EventIntro -> workflow.eventId
             is GameplayWorkflowState.EventCollectingTargets -> workflow.eventId
             is GameplayWorkflowState.EventConfirm -> workflow.eventId
+            is GameplayWorkflowState.EventDiceGamble -> workflow.eventId
+            is GameplayWorkflowState.EventDrawScanRequired -> workflow.parentEventId
             is GameplayWorkflowState.EventPropertyChoice -> workflow.propertyId
             is GameplayWorkflowState.PlayerInfo -> workflow.playerId
             else -> null
@@ -60,6 +62,8 @@ object ActiveGameCardUiPolicy {
                 showContinue = true,
                 showCancel = true,
             )
+            is GameplayWorkflowState.EventDiceGamble -> ActiveGameActionVisibility()
+            is GameplayWorkflowState.EventDrawScanRequired -> ActiveGameActionVisibility()
             is GameplayWorkflowState.EventCollectingTargets,
             is GameplayWorkflowState.EventConfirm,
             is GameplayWorkflowState.WaitingForPurchasingPlayer,
@@ -94,6 +98,8 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.EventIntro -> CardType.EVENT
             is GameplayWorkflowState.EventCollectingTargets -> CardType.EVENT
             is GameplayWorkflowState.EventConfirm -> CardType.EVENT
+            is GameplayWorkflowState.EventDiceGamble -> CardType.EVENT
+            is GameplayWorkflowState.EventDrawScanRequired -> CardType.EVENT
             is GameplayWorkflowState.EventPropertyChoice -> CardType.PROPERTY
             is GameplayWorkflowState.PlayerInfo -> CardType.USER
             is GameplayWorkflowState.LocationWaitingForDestinationProperty -> CardType.PROPERTY

@@ -4,695 +4,812 @@
     {
       "eventId": "EVT_01",
       "sequence": 1,
-      "name": "Boom Town",
+      "name": "Advance to GO",
       "qrPayload": "MUB:E:E01",
-      "frontAsset": "Resources/Editions/india/EventCards/Boom_Town_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E01_Boom_Town_Back_QR.png",
-      "eventSubtitle": "Property prices bounce back!",
-      "eventDescription": "Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.",
+      "frontAsset": "Resources/Editions/india/EventCards/Advance_to_GO_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E01_Advance_to_GO_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_01_Advance_to_GO.png",
+      "eventSubtitle": "Travel & Transport",
+      "eventDescription": "Move directly to GO and collect {goSalary} once.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
         "MOVE_PLAYER",
-        "SELECT_PROPERTY",
+        "MONEY_GAIN",
         "SPECIAL_RULE"
       ],
       "parsedEffect": {
-        "action": "MOVE_THEN_PROPERTY_CHOICE",
-        "amount": 1,
-        "target": "SELECTED_PROPERTY",
+        "action": "MOVE_TO_SPACE",
+        "amount": null,
+        "target": "CURRENT_PLAYER",
         "parameters": {
-          "choices": [
-            "BUY",
-            "AUCTION",
-            "RAISE_RENT_LEVEL"
-          ]
+          "targetSpaceSemanticType": "GO",
+          "collectGoAmount": true,
+          "goAmountSource": "banking_values.goSalary",
+          "collectAmountExactlyOnce": true
         }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for MOVE_TO_SPACE."
     },
     {
       "eventId": "EVT_02",
       "sequence": 2,
-      "name": "Crime Down",
+      "name": "Wrong Turn!",
       "qrPayload": "MUB:E:E02",
-      "frontAsset": "Resources/Editions/india/EventCards/Crime_Down_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E02_Crime_Down_Back_QR.png",
-      "eventSubtitle": "Police arrest local newspaper thief!",
-      "eventDescription": "Tap this card then one of your property cards. (Colour set rent level jumps +1)",
+      "frontAsset": "Resources/Editions/india/EventCards/Wrong_Turn_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E02_Wrong_Turn_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_02_Wrong_Turn.png",
+      "eventSubtitle": "Travel & Transport",
+      "eventDescription": "Move backward three spaces and resolve the new landing. Do not collect the GO amount when moving backward.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
+        "MOVE_PLAYER"
       ],
       "parsedEffect": {
-        "action": "INCREASE_COLOR_SET_RENT_LEVEL",
-        "amount": 1,
-        "target": "OWNED_PROPERTY",
+        "action": "MOVE_BACKWARD",
+        "amount": 3,
+        "target": "CURRENT_PLAYER",
         "parameters": {
-          "scope": "COLOR_SET"
+          "spaceCount": 3,
+          "collectGoWhenCrossed": false,
+          "resolveLanding": true
         }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for MOVE_BACKWARD."
     },
     {
       "eventId": "EVT_03",
       "sequence": 3,
-      "name": "Deal Of The Week",
+      "name": "UPI Cashback",
       "qrPayload": "MUB:E:E03",
-      "frontAsset": "Resources/Editions/india/EventCards/Deal_Of_The_Week_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E03_Deal_Of_The_Week_Back_QR.png",
-      "eventSubtitle": "Word on the street says the market is booming!",
-      "eventDescription": "Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.",
+      "frontAsset": "Resources/Editions/india/EventCards/UPI_Cashback_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E03_UPI_Cashback_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_03_UPI_Cashback.png",
+      "eventSubtitle": "Bank & Rewards",
+      "eventDescription": "Collect {amount} from the bank.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "MOVE_PLAYER",
-        "SELECT_PROPERTY",
-        "SPECIAL_RULE"
+        "MONEY_GAIN"
       ],
       "parsedEffect": {
-        "action": "MOVE_THEN_PROPERTY_CHOICE",
-        "amount": 1,
-        "target": "SELECTED_PROPERTY",
+        "action": "BANK_CREDIT",
+        "amount": 5000,
+        "target": "CURRENT_PLAYER",
         "parameters": {
-          "choices": [
-            "BUY",
-            "AUCTION",
-            "RAISE_RENT_LEVEL"
-          ]
+          "amount": 5000
         }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for BANK_CREDIT."
     },
     {
       "eventId": "EVT_04",
       "sequence": 4,
-      "name": "Demolished",
+      "name": "Income Tax Refund",
       "qrPayload": "MUB:E:E04",
-      "frontAsset": "Resources/Editions/india/EventCards/Demolished_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E04_Demolished_Back_QR.png",
-      "eventSubtitle": "Your builders get the wrong address!",
-      "eventDescription": "Tap this card then any property card. (Rent level resets to 1)",
+      "frontAsset": "Resources/Editions/india/EventCards/Income_Tax_Refund_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E04_Income_Tax_Refund_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_04_Income_Tax_Refund.png",
+      "eventSubtitle": "Bank & Rewards",
+      "eventDescription": "Collect {amount} from the bank.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
+        "MONEY_GAIN"
       ],
       "parsedEffect": {
-        "action": "RESET_PROPERTY_RENT_LEVEL",
-        "amount": 1,
-        "target": "ANY_PROPERTY",
-        "parameters": {}
+        "action": "BANK_CREDIT",
+        "amount": 10000,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "amount": 10000
+        }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for BANK_CREDIT."
     },
     {
       "eventId": "EVT_05",
       "sequence": 5,
-      "name": "Grand Designs",
+      "name": "Hospital Expense",
       "qrPayload": "MUB:E:E05",
-      "frontAsset": "Resources/Editions/india/EventCards/Grand_Designs_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E05_Grand_Designs_Back_QR.png",
-      "eventSubtitle": "One of your properties gets a TV makeover!",
-      "eventDescription": "Tap this card then one of your property cards. (Rent level jumps to 5)",
+      "frontAsset": "Resources/Editions/india/EventCards/Hospital_Expense_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E05_Hospital_Expense_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_05_Hospital_Expense.png",
+      "eventSubtitle": "Bills & Expenses",
+      "eventDescription": "Pay {amount} to the bank.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
+        "MONEY_LOSS"
       ],
       "parsedEffect": {
-        "action": "SET_PROPERTY_RENT_LEVEL",
-        "amount": 5,
-        "target": "OWNED_PROPERTY",
-        "parameters": {}
+        "action": "BANK_DEBIT",
+        "amount": 10000,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "amount": 10000,
+          "invokeDebtFlowIfNeeded": true
+        }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for BANK_DEBIT."
     },
     {
       "eventId": "EVT_06",
       "sequence": 6,
-      "name": "Haunted House",
+      "name": "Festival Contribution",
       "qrPayload": "MUB:E:E06",
-      "frontAsset": "Resources/Editions/india/EventCards/Haunted_House_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E06_Haunted_House_Back_QR.png",
-      "eventSubtitle": "Something strange is going on! Swap another player's property with one of yours.",
-      "eventDescription": "Pick another player. Tap this card then you each tap one of your property cards to swap. Exchange cards too!",
+      "frontAsset": "Resources/Editions/india/EventCards/Festival_Contribution_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E06_Festival_Contribution_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_06_Festival_Contribution.png",
+      "eventSubtitle": "Community & Players",
+      "eventDescription": "Pay {amountPerOtherPlayer} to each other player.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "SELECT_PLAYER",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY",
-        "SPECIAL_RULE"
+        "MONEY_LOSS",
+        "AFFECT_ALL_PLAYERS"
       ],
       "parsedEffect": {
-        "action": "SWAP_PROPERTIES_BETWEEN_PLAYERS",
-        "amount": null,
-        "target": "TWO_PLAYERS_AND_PROPERTIES",
+        "action": "PAY_EACH_PLAYER",
+        "amount": 5000,
+        "target": "ALL_OTHER_PLAYERS",
         "parameters": {
-          "exchangePhysicalCards": true
+          "amountPerOtherPlayer": 5000,
+          "recipientOrder": "NORMAL_TURN_ORDER",
+          "invokeDebtFlowIfNeeded": true
         }
       },
-      "requiresPlayerScan": true,
-      "requiresPropertyScan": true,
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": "Requires two property scans (one per player) after player selection."
+      "notes": "India edition event deck v1. Engine handler pending for PAY_EACH_PLAYER."
     },
     {
       "eventId": "EVT_07",
       "sequence": 7,
-      "name": "Highway Tax",
+      "name": "Birthday Celebration",
       "qrPayload": "MUB:E:E07",
-      "frontAsset": "Resources/Editions/india/EventCards/Highway_Tax_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E07_Highway_Tax_Back_QR.png",
-      "eventSubtitle": "Your roads need repairs!",
-      "eventDescription": "Tap this card then your Bank card to pay M50 per property you own.",
+      "frontAsset": "Resources/Editions/india/EventCards/Birthday_Celebration_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E07_Birthday_Celebration_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_07_Birthday_Celebration.png",
+      "eventSubtitle": "Community & Players",
+      "eventDescription": "Collect {amountPerOtherPlayer} from each other player.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "MONEY_LOSS",
-        "SELECT_PLAYER"
+        "MONEY_GAIN",
+        "AFFECT_ALL_PLAYERS"
       ],
       "parsedEffect": {
-        "action": "PAY_PER_OWNED_PROPERTY",
-        "amount": 50,
-        "target": "CURRENT_PLAYER",
+        "action": "COLLECT_FROM_EACH_PLAYER",
+        "amount": 5000,
+        "target": "ALL_OTHER_PLAYERS",
         "parameters": {
-          "perProperty": true
+          "amountPerOtherPlayer": 5000,
+          "payerOrder": "NORMAL_TURN_ORDER",
+          "invokeDebtFlowIfNeeded": true
         }
       },
-      "requiresPlayerScan": true,
+      "requiresPlayerScan": false,
       "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": "Card uses Monopoly currency symbol before 50."
+      "notes": "India edition event deck v1. Engine handler pending for COLLECT_FROM_EACH_PLAYER."
     },
     {
       "eventId": "EVT_08",
       "sequence": 8,
-      "name": "House Party",
+      "name": "Municipal Maintenance",
       "qrPayload": "MUB:E:E08",
-      "frontAsset": "Resources/Editions/india/EventCards/House_Party_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E08_House_Party_Back_QR.png",
-      "eventSubtitle": "The good times go on till late!",
-      "eventDescription": "Tap this card then one of your property cards. (Rent level jumps to +1 for you; drops -1 for your neighbours)",
+      "frontAsset": "Resources/Editions/india/EventCards/Municipal_Maintenance_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E08_Municipal_Maintenance_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_08_Municipal_Maintenance.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "Pay {amountPerProperty} to the bank for each Property you own.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "MONEY_LOSS",
+        "AFFECT_PROPERTY"
+      ],
+      "parsedEffect": {
+        "action": "DEBIT_PER_OWNED_PROPERTY",
+        "amount": 2000,
+        "target": "OWNED_PROPERTY",
+        "parameters": {
+          "amountPerProperty": 2000,
+          "invokeDebtFlowIfNeeded": true
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for DEBIT_PER_OWNED_PROPERTY."
+    },
+    {
+      "eventId": "EVT_09",
+      "sequence": 9,
+      "name": "Green Building Grant",
+      "qrPayload": "MUB:E:E09",
+      "frontAsset": "Resources/Editions/india/EventCards/Green_Building_Grant_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E09_Green_Building_Grant_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_09_Green_Building_Grant.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "Collect {amountPerProperty} from the bank for each Property you own.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "MONEY_GAIN",
+        "AFFECT_PROPERTY"
+      ],
+      "parsedEffect": {
+        "action": "CREDIT_PER_OWNED_PROPERTY",
+        "amount": 2000,
+        "target": "OWNED_PROPERTY",
+        "parameters": {
+          "amountPerProperty": 2000
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for CREDIT_PER_OWNED_PROPERTY."
+    },
+    {
+      "eventId": "EVT_10",
+      "sequence": 10,
+      "name": "Rent Relief",
+      "qrPayload": "MUB:E:E10",
+      "frontAsset": "Resources/Editions/india/EventCards/Rent_Relief_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E10_Rent_Relief_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_10_Rent_Relief.png",
+      "eventSubtitle": "Rent & Opportunity",
+      "eventDescription": "Your next rent payment is waived.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "NEXT_RENT_WAIVER",
+        "amount": 1,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "waivedPaymentCount": 1,
+          "consumeOnlyForPositiveRent": true,
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for NEXT_RENT_WAIVER."
+    },
+    {
+      "eventId": "EVT_11",
+      "sequence": 11,
+      "name": "Get Out of Jail Pass",
+      "qrPayload": "MUB:E:E11",
+      "frontAsset": "Resources/Editions/india/EventCards/Get_Out_of_Jail_Pass_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E11_Get_Out_of_Jail_Pass_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_11_Get_Out_of_Jail_Pass.png",
+      "eventSubtitle": "Jail & Penalties",
+      "eventDescription": "Keep this pass. Use it once to leave Jail without paying {jailReleaseFee}.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "GET_OUT_OF_JAIL_PASS",
+        "amount": 1,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "passCount": 1,
+          "jailFeeSource": "banking_values.jailReleaseFee",
+          "useMode": "PLAYER_CHOICE",
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for GET_OUT_OF_JAIL_PASS."
+    },
+    {
+      "eventId": "EVT_12",
+      "sequence": 12,
+      "name": "Traffic Court",
+      "qrPayload": "MUB:E:E12",
+      "frontAsset": "Resources/Editions/india/EventCards/Traffic_Court_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E12_Traffic_Court_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_12_Traffic_Court.png",
+      "eventSubtitle": "Jail & Penalties",
+      "eventDescription": "Move directly to Jail without collecting the GO amount. End your current turn.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "GO_TO_JAIL",
+        "MOVE_PLAYER"
+      ],
+      "parsedEffect": {
+        "action": "MOVE_TO_JAIL",
+        "amount": null,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "collectGoAmount": false,
+          "endCurrentTurn": true,
+          "cancelPendingExtraTurn": true
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for MOVE_TO_JAIL."
+    },
+    {
+      "eventId": "EVT_13",
+      "sequence": 13,
+      "name": "Local Market Boom",
+      "qrPayload": "MUB:E:E13",
+      "frontAsset": "Resources/Editions/india/EventCards/Local_Market_Boom_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E13_Local_Market_Boom_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_13_Local_Market_Boom.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "Select any Property you own and increase its rent level by one level.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
       "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
         "PROPERTY_RENT_INCREASE",
+        "SELECT_PROPERTY",
+        "AFFECT_PROPERTY"
+      ],
+      "parsedEffect": {
+        "action": "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
+        "amount": 1,
+        "target": "OWNED_PROPERTY",
+        "parameters": {
+          "levelChange": 1,
+          "ownedPropertiesOnly": true,
+          "requireBelowMaximumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": true,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for INCREASE_SELECTED_PROPERTY_RENT_LEVEL."
+    },
+    {
+      "eventId": "EVT_14",
+      "sequence": 14,
+      "name": "Market Correction",
+      "qrPayload": "MUB:E:E14",
+      "frontAsset": "Resources/Editions/india/EventCards/Market_Correction_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E14_Market_Correction_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_14_Market_Correction.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "Select any Property you own that is above the minimum rent level. Decrease its rent level by one.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
         "PROPERTY_RENT_DECREASE",
         "SELECT_PROPERTY",
         "AFFECT_PROPERTY"
       ],
       "parsedEffect": {
-        "action": "TO_BE_CONFIRMED",
+        "action": "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
         "amount": 1,
-        "target": "OWNED_PROPERTY_AND_NEIGHBOURS",
+        "target": "OWNED_PROPERTY",
         "parameters": {
-          "selectedPropertyRentChange": 1,
-          "neighbourRentChange": -1
+          "levelChange": 1,
+          "ownedPropertiesOnly": true,
+          "requireAboveMinimumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
         }
       },
       "requiresPlayerScan": false,
       "requiresPropertyScan": true,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Engine semantics for 'neighbours' not yet defined."
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for DECREASE_SELECTED_PROPERTY_RENT_LEVEL."
     },
     {
-      "eventId": "EVT_09",
-      "sequence": 9,
-      "name": "In The Money",
-      "qrPayload": "MUB:E:E09",
-      "frontAsset": "Resources/Editions/india/EventCards/In_The_Money_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E09_In_The_Money_Back_QR.png",
-      "eventSubtitle": "Spend your lottery millions! Swap another player's property with one of yours.",
-      "eventDescription": "Pick another player. Tap this card then you each tap one of your property cards to swap. Exchange cards too!",
+      "eventId": "EVT_15",
+      "sequence": 15,
+      "name": "Lucky Draw",
+      "qrPayload": "MUB:E:E15",
+      "frontAsset": "Resources/Editions/india/EventCards/Lucky_Draw_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E15_Lucky_Draw_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_15_Lucky_Draw.png",
+      "eventSubtitle": "Special",
+      "eventDescription": "Draw and resolve one additional Event Card.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "DRAW_ANOTHER_EVENT",
+        "amount": 1,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "additionalEventCount": 1,
+          "maximumChainDepth": 3,
+          "inputMode": "PHYSICAL_CARD_SCAN"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for DRAW_ANOTHER_EVENT."
+    },
+    {
+      "eventId": "EVT_16",
+      "sequence": 16,
+      "name": "Community Development",
+      "qrPayload": "MUB:E:E16",
+      "frontAsset": "Resources/Editions/india/EventCards/Community_Development_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E16_Community_Development_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_16_Community_Development.png",
+      "eventSubtitle": "Community & Players",
+      "eventDescription": "Select one eligible Property you own and one eligible Property owned by another player. Increase both Properties by one rent level.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "PROPERTY_RENT_INCREASE",
         "SELECT_PLAYER",
+        "SELECT_PROPERTY",
+        "AFFECT_PROPERTY"
+      ],
+      "parsedEffect": {
+        "action": "COOPERATIVE_PROPERTY_UPGRADE",
+        "amount": 1,
+        "target": "TWO_PLAYERS_AND_PROPERTIES",
+        "parameters": {
+          "actingPlayerPropertyCount": 1,
+          "otherPlayerPropertyCount": 1,
+          "levelIncreasePerProperty": 1,
+          "requireBelowMaximumRentLevel": true,
+          "noEligibleTargetBehaviour": "DO_NOTHING"
+        }
+      },
+      "requiresPlayerScan": true,
+      "requiresPropertyScan": true,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for COOPERATIVE_PROPERTY_UPGRADE."
+    },
+    {
+      "eventId": "EVT_17",
+      "sequence": 17,
+      "name": "Lucky Break",
+      "qrPayload": "MUB:E:E17",
+      "frontAsset": "Resources/Editions/india/EventCards/Lucky_Break_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E17_Lucky_Break_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_17_Lucky_Break.png",
+      "eventSubtitle": "Risk & Reward",
+      "eventDescription": "Roll both dice up to three times. Roll doubles to collect {jackpotAmount}; otherwise pay {penaltyAmount}.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "MONEY_GAIN",
+        "MONEY_LOSS",
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "GAMBLE_ON_DICE_ROLL",
+        "amount": 15000,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "diceCount": 2,
+          "maximumAttempts": 3,
+          "successCondition": "DOUBLES_AT_LEAST_ONCE",
+          "jackpotAmount": 15000,
+          "penaltyAmount": 5000,
+          "stopAfterSuccess": true,
+          "moveToken": false,
+          "grantExtraTurnForDoubles": false,
+          "invokeDebtFlowIfNeeded": true
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for GAMBLE_ON_DICE_ROLL."
+    },
+    {
+      "eventId": "EVT_18",
+      "sequence": 18,
+      "name": "Metro Delay",
+      "qrPayload": "MUB:E:E18",
+      "frontAsset": "Resources/Editions/india/EventCards/Metro_Delay_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E18_Metro_Delay_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_18_Metro_Delay.png",
+      "eventSubtitle": "Travel & Transport",
+      "eventDescription": "Skip your next scheduled turn.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "SKIP_NEXT_TURN",
+        "amount": 1,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "skipTurnCount": 1,
+          "stackBehaviour": "DO_NOT_STACK"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for SKIP_NEXT_TURN."
+    },
+    {
+      "eventId": "EVT_19",
+      "sequence": 19,
+      "name": "Eminent Domain",
+      "qrPayload": "MUB:E:E19",
+      "frontAsset": "Resources/Editions/india/EventCards/Eminent_Domain_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E19_Eminent_Domain_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_19_Eminent_Domain.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "The city claims one of your least valuable Properties. The bank buys it for twice its purchase price.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "MONEY_GAIN",
         "SELECT_PROPERTY",
         "AFFECT_PROPERTY",
         "SPECIAL_RULE"
       ],
       "parsedEffect": {
-        "action": "SWAP_PROPERTIES_BETWEEN_PLAYERS",
-        "amount": null,
-        "target": "TWO_PLAYERS_AND_PROPERTIES",
-        "parameters": {
-          "exchangePhysicalCards": true
-        }
-      },
-      "requiresPlayerScan": true,
-      "requiresPropertyScan": true,
-      "extractionStatus": "COMPLETE",
-      "notes": "Requires two property scans (one per player) after player selection."
-    },
-    {
-      "eventId": "EVT_10",
-      "sequence": 10,
-      "name": "It's A Boy!",
-      "qrPayload": "MUB:E:E10",
-      "frontAsset": "Resources/Editions/india/EventCards/Its_A_Boy_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E10_Its_A_Boy_Back_QR.png",
-      "eventSubtitle": "Your new arrival wakes up the whole street!",
-      "eventDescription": "Tap this card then one of your property cards. (Rent level jumps to +1 for you; drops -1 for your neighbours)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "NEEDS_REVIEW",
-      "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
-      ],
-      "parsedEffect": {
-        "action": "TO_BE_CONFIRMED",
-        "amount": 1,
-        "target": "OWNED_PROPERTY_AND_NEIGHBOURS",
-        "parameters": {
-          "selectedPropertyRentChange": 1,
-          "neighbourRentChange": -1
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Engine semantics for 'neighbours' not yet defined."
-    },
-    {
-      "eventId": "EVT_11",
-      "sequence": 11,
-      "name": "Love Is In The Air",
-      "qrPayload": "MUB:E:E11",
-      "frontAsset": "Resources/Editions/india/EventCards/Love_Is_In_The_Air_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E11_Love_Is_In_The_Air_Back_QR.png",
-      "eventSubtitle": "Meet someone special right up your street!",
-      "eventDescription": "Pick another player. Tap this card then both your Bank cards to collect M200.",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "MONEY_GAIN",
-        "SELECT_PLAYER",
-        "AFFECT_ALL_PLAYERS"
-      ],
-      "parsedEffect": {
-        "action": "CREDIT_BOTH_PLAYERS",
-        "amount": 200,
-        "target": "CURRENT_PLAYER_AND_CHOSEN_PLAYER",
-        "parameters": {}
-      },
-      "requiresPlayerScan": true,
-      "requiresPropertyScan": false,
-      "extractionStatus": "COMPLETE",
-      "notes": "Both players receive 200. Requires two player card scans."
-    },
-    {
-      "eventId": "EVT_12",
-      "sequence": 12,
-      "name": "On The Map",
-      "qrPayload": "MUB:E:E12",
-      "frontAsset": "Resources/Editions/india/EventCards/On_The_Map_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E12_On_The_Map_Back_QR.png",
-      "eventSubtitle": "The new railway station gets the go-ahead!",
-      "eventDescription": "Tap this card then one of your property cards. (Colour set rent level jumps +1)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
-      ],
-      "parsedEffect": {
-        "action": "INCREASE_COLOR_SET_RENT_LEVEL",
-        "amount": 1,
+        "action": "FORCED_PROPERTY_SELLBACK",
+        "amount": 2.0,
         "target": "OWNED_PROPERTY",
         "parameters": {
-          "scope": "COLOR_SET"
+          "propertySelection": "LOWEST_PURCHASE_PRICE",
+          "tieBehaviour": "ACTING_PLAYER_SELECTS",
+          "payoutBasis": "PURCHASE_PRICE",
+          "payoutMultiplier": 2.0,
+          "returnToBankAsUnowned": true,
+          "resetToEditionInitialRentLevel": true,
+          "removeTemporaryPropertyEffects": true,
+          "noOwnedPropertyBehaviour": "DO_NOTHING"
         }
       },
       "requiresPlayerScan": false,
       "requiresPropertyScan": true,
       "extractionStatus": "COMPLETE",
-      "notes": ""
-    },
-    {
-      "eventId": "EVT_13",
-      "sequence": 13,
-      "name": "On The Run",
-      "qrPayload": "MUB:E:E13",
-      "frontAsset": "Resources/Editions/india/EventCards/On_The_Run_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E13_On_The_Run_Back_QR.png",
-      "eventSubtitle": "The summer marathon shuts down the roads!",
-      "eventDescription": "Tap this card. (Players pay level 1 rent only for the next two rent payments)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "NEEDS_REVIEW",
-      "effectClassification": [
-        "SPECIAL_RULE",
-        "AFFECT_ALL_PLAYERS"
-      ],
-      "parsedEffect": {
-        "action": "TEMPORARY_RENT_CAP",
-        "amount": 1,
-        "target": "ALL_PLAYERS",
-        "parameters": {
-          "durationRentPayments": 2,
-          "maxRentLevel": 1
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": false,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Engine tracking for 'next two rent payments' not yet defined."
-    },
-    {
-      "eventId": "EVT_14",
-      "sequence": 14,
-      "name": "Pick Your Own",
-      "qrPayload": "MUB:E:E14",
-      "frontAsset": "Resources/Editions/india/EventCards/Pick_Your_Own_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E14_Pick_Your_Own_Back_QR.png",
-      "eventSubtitle": "Catch someone stealing your prize tomatoes!",
-      "eventDescription": "Tap this card and send another player to Jail.",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "GO_TO_JAIL",
-        "SELECT_PLAYER"
-      ],
-      "parsedEffect": {
-        "action": "SEND_PLAYER_TO_JAIL",
-        "amount": null,
-        "target": "OTHER_PLAYER",
-        "parameters": {}
-      },
-      "requiresPlayerScan": true,
-      "requiresPropertyScan": false,
-      "extractionStatus": "COMPLETE",
-      "notes": ""
-    },
-    {
-      "eventId": "EVT_15",
-      "sequence": 15,
-      "name": "Pong! What A Stinker",
-      "qrPayload": "MUB:E:E15",
-      "frontAsset": "Resources/Editions/india/EventCards/Pong_What_A_Stinker_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E15_Pong_What_A_Stinker_Back_QR.png",
-      "eventSubtitle": "The local sewer springs a leak!",
-      "eventDescription": "Tap this card then one of your property cards. (Rent level drops -1 for that side of the board)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "NEEDS_REVIEW",
-      "effectClassification": [
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_MULTIPLE_PROPERTIES"
-      ],
-      "parsedEffect": {
-        "action": "TO_BE_CONFIRMED",
-        "amount": -1,
-        "target": "BOARD_SIDE",
-        "parameters": {
-          "determinedByScannedProperty": true
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Engine semantics for 'that side of the board' not yet defined."
-    },
-    {
-      "eventId": "EVT_16",
-      "sequence": 16,
-      "name": "Rover's Revenge",
-      "qrPayload": "MUB:E:E16",
-      "frontAsset": "Resources/Editions/india/EventCards/Rovers_Revenge_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E16_Rovers_Revenge_Back_QR.png",
-      "eventSubtitle": "Your pet pooch poops on someone's patio!",
-      "eventDescription": "Tap this card then any property card. (Rent level resets to 1)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
-      ],
-      "parsedEffect": {
-        "action": "RESET_PROPERTY_RENT_LEVEL",
-        "amount": 1,
-        "target": "ANY_PROPERTY",
-        "parameters": {}
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "COMPLETE",
-      "notes": ""
-    },
-    {
-      "eventId": "EVT_17",
-      "sequence": 17,
-      "name": "Stargazing",
-      "qrPayload": "MUB:E:E17",
-      "frontAsset": "Resources/Editions/india/EventCards/Stargazing_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E17_Stargazing_Back_QR.png",
-      "eventSubtitle": "The hottest A-list celebrity moves in next door!",
-      "eventDescription": "Tap this card then one of your property cards. (Colour set rent level jumps +1)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
-      ],
-      "parsedEffect": {
-        "action": "INCREASE_COLOR_SET_RENT_LEVEL",
-        "amount": 1,
-        "target": "OWNED_PROPERTY",
-        "parameters": {
-          "scope": "COLOR_SET"
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "COMPLETE",
-      "notes": ""
-    },
-    {
-      "eventId": "EVT_18",
-      "sequence": 18,
-      "name": "Stop The Presses",
-      "qrPayload": "MUB:E:E18",
-      "frontAsset": "Resources/Editions/india/EventCards/Stop_The_Presses_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E18_Stop_The_Presses_Back_QR.png",
-      "eventSubtitle": "Get the lowdown on a hot property!",
-      "eventDescription": "Move to any property space. Tap this card then the property card to buy it, auction it or raise rent level +1.",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "MOVE_PLAYER",
-        "SELECT_PROPERTY",
-        "SPECIAL_RULE"
-      ],
-      "parsedEffect": {
-        "action": "MOVE_THEN_PROPERTY_CHOICE",
-        "amount": 1,
-        "target": "SELECTED_PROPERTY",
-        "parameters": {
-          "choices": [
-            "BUY",
-            "AUCTION",
-            "RAISE_RENT_LEVEL"
-          ]
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "COMPLETE",
-      "notes": ""
-    },
-    {
-      "eventId": "EVT_19",
-      "sequence": 19,
-      "name": "'Tis The Season",
-      "qrPayload": "MUB:E:E19",
-      "frontAsset": "Resources/Editions/india/EventCards/Tis_The_Season_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E19_Tis_The_Season_Back_QR.png",
-      "eventSubtitle": "You've caught that nasty cough going around!",
-      "eventDescription": "Tap this card then one of your property cards. (Colour set rent level drops -1)",
-      "printedTextValidated": true,
-      "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
-      "effectClassification": [
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
-      ],
-      "parsedEffect": {
-        "action": "DECREASE_COLOR_SET_RENT_LEVEL",
-        "amount": 1,
-        "target": "OWNED_PROPERTY",
-        "parameters": {
-          "scope": "COLOR_SET"
-        }
-      },
-      "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for FORCED_PROPERTY_SELLBACK."
     },
     {
       "eventId": "EVT_20",
       "sequence": 20,
-      "name": "Tornado Alley",
+      "name": "Economic Relief Grant",
       "qrPayload": "MUB:E:E20",
-      "frontAsset": "Resources/Editions/india/EventCards/Tornado_Alley_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E20_Tornado_Alley_Back_QR.png",
-      "eventSubtitle": "Hey, where did the roof go?",
-      "eventDescription": "Tap this card then any property card. (Rent level resets to 1)",
+      "frontAsset": "Resources/Editions/india/EventCards/Economic_Relief_Grant_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E20_Economic_Relief_Grant_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_20_Economic_Relief_Grant.png",
+      "eventSubtitle": "Bank & Rewards",
+      "eventDescription": "If your balance is below {thresholdAmount}, the bank increases it to {thresholdAmount}.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "PROPERTY_RENT_DECREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_PROPERTY"
+        "MONEY_GAIN",
+        "SPECIAL_RULE"
       ],
       "parsedEffect": {
-        "action": "RESET_PROPERTY_RENT_LEVEL",
-        "amount": 1,
-        "target": "ANY_PROPERTY",
-        "parameters": {}
+        "action": "TOP_UP_BALANCE_TO_THRESHOLD",
+        "amount": 30000,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "thresholdAmount": 30000,
+          "topUpMode": "CREDIT_DIFFERENCE_TO_THRESHOLD",
+          "atOrAboveThresholdBehaviour": "DO_NOTHING"
+        }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
+      "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": ""
+      "notes": "India edition event deck v1. Engine handler pending for TOP_UP_BALANCE_TO_THRESHOLD."
     },
     {
       "eventId": "EVT_21",
       "sequence": 21,
-      "name": "Total Gridlock",
+      "name": "Wrong Terminal",
       "qrPayload": "MUB:E:E21",
-      "frontAsset": "Resources/Editions/india/EventCards/Total_Gridlock_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E21_Total_Gridlock_Back_QR.png",
-      "eventSubtitle": "Faulty traffic lights get the street in a jam!",
-      "eventDescription": "Tap this card and all players move directly to Free Parking. Do not pass GO! If you are in Jail, stay there!",
+      "frontAsset": "Resources/Editions/india/EventCards/Wrong_Terminal_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E21_Wrong_Terminal_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_21_Wrong_Terminal.png",
+      "eventSubtitle": "Travel & Transport",
+      "eventDescription": "Move forward to the next Energy Station. Collect {goSalary} if you pass GO, then resolve the Energy Station normally.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
       "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
         "MOVE_PLAYER",
-        "AFFECT_ALL_PLAYERS",
+        "MONEY_GAIN",
         "SPECIAL_RULE"
       ],
       "parsedEffect": {
-        "action": "MOVE_ALL_TO_FREE_PARKING",
+        "action": "MOVE_TO_NEAREST_STATION",
         "amount": null,
-        "target": "ALL_PLAYERS",
+        "target": "CURRENT_PLAYER",
         "parameters": {
-          "passGo": false,
-          "jailPlayersRemain": true
+          "stationSemanticType": "ENERGY_STATION",
+          "searchDirection": "FORWARD",
+          "collectGoIfPassed": true,
+          "goAmountSource": "banking_values.goSalary",
+          "resolveLanding": true
         }
       },
       "requiresPlayerScan": false,
       "requiresPropertyScan": false,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Version 1: physical board/tokens remain authoritative for position; app displays instruction, blocks GO payment, preserves Jail state, and players manually move eligible tokens to Free Parking. No digital board movement."
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for MOVE_TO_NEAREST_STATION."
     },
     {
       "eventId": "EVT_22",
       "sequence": 22,
-      "name": "What A Ride!",
+      "name": "Cloud Storage Subscription Renewal",
       "qrPayload": "MUB:E:E22",
-      "frontAsset": "Resources/Editions/india/EventCards/What_A_Ride_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E22_What_A_Ride_Back_QR.png",
-      "eventSubtitle": "Your local theme park builds the world's craziest roller-coaster!",
-      "eventDescription": "Tap this card then one of your property cards. (Rent level jumps +1 for that side of the board)",
+      "frontAsset": "Resources/Editions/india/EventCards/Cloud_Storage_Subscription_Renewal_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E22_Cloud_Storage_Subscription_Renewal_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_22_Cloud_Storage_Subscription_Renewal.png",
+      "eventSubtitle": "Bills & Expenses",
+      "eventDescription": "Pay {amount} to the bank.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
       "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "PROPERTY_RENT_INCREASE",
-        "SELECT_PROPERTY",
-        "AFFECT_MULTIPLE_PROPERTIES"
+        "MONEY_LOSS"
       ],
       "parsedEffect": {
-        "action": "TO_BE_CONFIRMED",
-        "amount": 1,
-        "target": "BOARD_SIDE",
+        "action": "BANK_DEBIT",
+        "amount": 5000,
+        "target": "CURRENT_PLAYER",
         "parameters": {
-          "determinedByScannedProperty": true
+          "amount": 5000,
+          "invokeDebtFlowIfNeeded": true
         }
       },
       "requiresPlayerScan": false,
-      "requiresPropertyScan": true,
-      "extractionStatus": "NEEDS_REVIEW",
-      "notes": "Printed rule confirmed. Engine semantics for 'that side of the board' not yet defined."
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for BANK_DEBIT."
     },
     {
       "eventId": "EVT_23",
       "sequence": 23,
-      "name": "Wibble Wobble",
+      "name": "Beauty Contest Winner",
       "qrPayload": "MUB:E:E23",
-      "frontAsset": "Resources/Editions/india/EventCards/Wibble_Wobble_Front.png",
-      "qrAsset": "Resources/Editions/india/EventCards/E23_Wibble_Wobble_Back_QR.png",
-      "eventSubtitle": "Sit in a bath of jelly with a friend for charity!",
-      "eventDescription": "Pick another player. Tap this card then both your Bank cards to collect M200.",
+      "frontAsset": "Resources/Editions/india/EventCards/Beauty_Contest_Winner_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E23_Beauty_Contest_Winner_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_23_Beauty_Contest_Winner.png",
+      "eventSubtitle": "Bank & Rewards",
+      "eventDescription": "Collect {amount} from the bank.",
       "printedTextValidated": true,
       "printedRuleStatus": "RESOLVED",
-      "engineImplementationStatus": "COMPLETE",
+      "engineImplementationStatus": "NEEDS_REVIEW",
       "effectClassification": [
-        "MONEY_GAIN",
-        "SELECT_PLAYER",
-        "AFFECT_ALL_PLAYERS"
+        "MONEY_GAIN"
       ],
       "parsedEffect": {
-        "action": "CREDIT_BOTH_PLAYERS",
-        "amount": 200,
-        "target": "CURRENT_PLAYER_AND_CHOSEN_PLAYER",
-        "parameters": {}
+        "action": "BANK_CREDIT",
+        "amount": 5000,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "amount": 5000
+        }
       },
-      "requiresPlayerScan": true,
+      "requiresPlayerScan": false,
       "requiresPropertyScan": false,
       "extractionStatus": "COMPLETE",
-      "notes": "Both players receive 200. Requires two player card scans."
+      "notes": "India edition event deck v1. Engine handler pending for BANK_CREDIT."
+    },
+    {
+      "eventId": "EVT_24",
+      "sequence": 24,
+      "name": "Second Wind",
+      "qrPayload": "MUB:E:E24",
+      "frontAsset": "Resources/Editions/india/EventCards/Second_Wind_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E24_Second_Wind_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_24_Second_Wind.png",
+      "eventSubtitle": "Special",
+      "eventDescription": "After your current turn ends, immediately take one additional turn.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "EXTRA_TURN",
+        "amount": 1,
+        "target": "CURRENT_PLAYER",
+        "parameters": {
+          "extraTurnCount": 1,
+          "stackBehaviour": "DO_NOT_STACK",
+          "cancelIfSentToJail": true,
+          "pendingSkipTurnBehaviour": "CONSUME_SKIP_AND_CANCEL_EXTRA_TURN"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for EXTRA_TURN."
+    },
+    {
+      "eventId": "EVT_25",
+      "sequence": 25,
+      "name": "Green Energy Rebate",
+      "qrPayload": "MUB:E:E25",
+      "frontAsset": "Resources/Editions/india/EventCards/Green_Energy_Rebate_Front.png",
+      "qrAsset": "Resources/Editions/india/EventCards/E25_Green_Energy_Rebate_Back_QR.png",
+      "artworkAsset": "assets/cards/editions/india/event-artwork/EVT_25_Green_Energy_Rebate.png",
+      "eventSubtitle": "Property & Maintenance",
+      "eventDescription": "If you own at least one complete colour group, collect {rewardAmount} from the bank.",
+      "printedTextValidated": true,
+      "printedRuleStatus": "RESOLVED",
+      "engineImplementationStatus": "NEEDS_REVIEW",
+      "effectClassification": [
+        "MONEY_GAIN",
+        "AFFECT_PROPERTY",
+        "SPECIAL_RULE"
+      ],
+      "parsedEffect": {
+        "action": "COMPLETE_COLOR_SET_BONUS_CREDIT",
+        "amount": 5000,
+        "target": "OWNED_PROPERTY",
+        "parameters": {
+          "minimumCompleteColorSets": 1,
+          "baseRebateAmount": 5000,
+          "rewardMultiplier": 2.0,
+          "maximumRewardCount": 1,
+          "maximumCreditAmount": 10000,
+          "noCompleteColorSetBehaviour": "DO_NOTHING"
+        }
+      },
+      "requiresPlayerScan": false,
+      "requiresPropertyScan": false,
+      "extractionStatus": "COMPLETE",
+      "notes": "India edition event deck v1. Engine handler pending for COMPLETE_COLOR_SET_BONUS_CREDIT."
     }
   ]
 }
