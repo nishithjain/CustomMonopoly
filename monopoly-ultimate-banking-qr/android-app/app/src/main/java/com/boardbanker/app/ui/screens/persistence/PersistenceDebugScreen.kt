@@ -26,7 +26,7 @@ fun PersistenceDebugScreen(
     onBack: () -> Unit,
     viewModel: PersistenceDebugViewModel = viewModel(
         factory = PersistenceDebugViewModelFactory(
-            definitions = app.gameDefinitions,
+            definitions = app.defaultGameDefinitions,
             repository = app.gameSessionRepository,
             committedStore = app.committedGameSessionStore,
         ),

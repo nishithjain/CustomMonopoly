@@ -23,6 +23,18 @@ class CardResolverEditionIsolationTest {
     private val indiaResolver = DefaultCardResolver(indiaDefinitions)
 
     @Test
+    fun sharedPayload_resolvesEditionSpecificPropertyNames() {
+        val payload = "MUB:P:14"
+        val uk = ukResolver.resolve(payload) as CardResolution.Success
+        val india = indiaResolver.resolve(payload) as CardResolution.Success
+
+        assertEquals("PRP_14", uk.cardId)
+        assertEquals("PRP_14", india.cardId)
+        assertEquals("[14] Trafalgar Square", uk.displayName)
+        assertEquals("[14] Mehrangarh Fort", india.displayName)
+    }
+
+    @Test
     fun sharedPayload_resolvesEditionSpecificEventNames() {
         val payload = "MUB:E:E01"
         val uk = ukResolver.resolve(payload) as CardResolution.Success

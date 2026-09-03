@@ -29,6 +29,8 @@ class ActiveGameSessionManager(
     fun currentDefinitions(): GameDefinitions =
         definitions ?: error("No edition is bound to the active game session")
 
+    fun boundDefinitionsOrNull(): GameDefinitions? = definitions
+
     fun currentSession(): GameSession? = committedStore.currentSession()
 
     val committedSession: StateFlow<GameSession?> = committedStore.committedSession

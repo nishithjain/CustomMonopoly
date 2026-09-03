@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
 import androidx.core.app.ActivityCompat
@@ -53,6 +56,7 @@ import com.boardbanker.app.scanner.model.CameraPermissionStatus
 import com.boardbanker.app.scanner.model.ResolvedCard
 import com.boardbanker.app.scanner.model.ScannerUiState
 import com.boardbanker.core.card.CardType
+import com.boardbanker.core.model.GameDefinitions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,10 +64,14 @@ fun ScannerScreen(
     onBack: () -> Unit,
     scanRequest: ScanRequest = ScanRequest.gameCard(),
     onCardAccepted: ((ResolvedCard) -> Unit)? = null,
+    definitions: GameDefinitions? = null,
+    viewModelKey: String? = null,
     viewModel: ScannerViewModel = viewModel(
+        key = viewModelKey,
         factory = ScannerViewModelFactory(
             application = LocalContext.current.applicationContext as android.app.Application,
             scanRequest = scanRequest,
+            definitions = definitions,
         ),
     ),
 ) {
@@ -105,16 +113,9 @@ fun ScannerScreen(
         }
     }
 
-    LaunchedEffect(uiModel.state, uiModel.resolvedCard, cardAccepted) {
-        val card = uiModel.resolvedCard
-        if (!cardAccepted &&
-            uiModel.state == ScannerUiState.CARD_RESOLVED &&
-            card != null &&
-            onCardAccepted != null
-        ) {
-            cardAccepted = true
+    LaunchedEffect(uiModel.state) {
+        if (uiModel.state == ScannerUiState.CARD_RESOLVED) {
             viewModel.stopCamera()
-            onCardAccepted(card)
         }
     }
 
@@ -162,14 +163,27 @@ fun ScannerScreen(
                 )
 
                 ScannerUiState.CARD_RESOLVED -> {
-                    if (onCardAccepted == null) {
-                        ResolvedContent(
-                            card = uiModel.resolvedCard!!,
-                            onScanAnother = { viewModel.scanAnotherCard() },
-                        )
-                    } else {
-                        Text("Player card accepted.", textAlign = TextAlign.Center)
-                    }
+                    val resolvedCard = uiModel.resolvedCard!!
+                    ResolvedContent(
+                        card = resolvedCard,
+                        editionId = definitions?.editionId,
+                        editionName = definitions?.edition?.name,
+                        onScanAnother = onCardAccepted?.let { null } ?: viewModel::scanAnotherCard,
+                        onAccept = onCardAccepted?.let { accept ->
+                            {
+                                if (!cardAccepted) {
+                                    cardAccepted = true
+                                    accept(resolvedCard)
+                                }
+                            }
+                        },
+                        acceptLabel = onCardAccepted?.let {
+                            when (resolvedCard.cardType) {
+                                CardType.USER -> "ADD PLAYER"
+                                else -> "ACCEPT CARD"
+                            }
+                        },
+                    )
                 }
 
                 ScannerUiState.UNKNOWN_CARD -> UnknownContent(
@@ -193,6 +207,7 @@ fun ScannerScreen(
                         else -> scanRequest.overlayInstruction
                     },
                     expectedCardType = scanRequest.singleExpectedType?.let { expectedTypeLabel(it) },
+                    editionName = definitions?.edition?.name,
                 )
             }
 
@@ -216,6 +231,7 @@ private fun ScanningContent(
     onCameraError: (String) -> Unit,
     statusText: String,
     expectedCardType: String? = null,
+    editionName: String? = null,
 ) {
     Box(
         modifier = Modifier
@@ -255,6 +271,14 @@ private fun ScanningContent(
             style = MaterialTheme.typography.titleMedium,
         )
     }
+    if (editionName != null) {
+        Text(
+            text = "Edition: $editionName",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
     Text(
         text = "Hold card steady",
         modifier = Modifier.fillMaxWidth(),
@@ -284,28 +308,58 @@ private fun PermissionContent(
 @Composable
 private fun ResolvedContent(
     card: ResolvedCard,
-    onScanAnother: () -> Unit,
+    editionId: String?,
+    editionName: String? = null,
+    acceptLabel: String? = null,
+    onScanAnother: (() -> Unit)?,
+    onAccept: (() -> Unit)? = null,
 ) {
-    Text("CARD RECOGNIZED", style = MaterialTheme.typography.headlineSmall)
-    Text("Type:\n${card.cardType.name}")
-    Text("ID:\n${card.cardId}")
-    if (card.cardType == CardType.USER) {
-        PlayerIdentity(
-            playerId = card.cardId,
-            playerName = card.displayName,
-            iconSize = PlayerIconSize.Large,
-            vertical = true,
-        )
-    } else {
-        Text(
-            text = "Name:\n${card.displayName}",
-            modifier = Modifier.semantics {
-                contentDescription = "Property ${card.displayName}"
-            },
-        )
-    }
-    Button(onClick = onScanAnother, modifier = Modifier.fillMaxWidth()) {
-        Text("SCAN ANOTHER CARD")
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (editionId != null) {
+            CardFrontImage(
+                editionId = editionId,
+                cardType = card.cardType,
+                cardId = card.cardId,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Text("CARD RECOGNIZED", style = MaterialTheme.typography.headlineSmall)
+        if (editionName != null) {
+            Text("Edition: $editionName")
+        }
+        Text("Type:\n${card.cardType.name}")
+        Text("ID:\n${card.cardId}")
+        if (card.cardType == CardType.USER) {
+            PlayerIdentity(
+                playerId = card.cardId,
+                playerName = card.displayName,
+                iconSize = PlayerIconSize.Large,
+                vertical = true,
+            )
+        } else {
+            Text(
+                text = "Name:\n${card.displayName}",
+                modifier = Modifier.semantics {
+                    contentDescription = "${card.cardType.name} ${card.displayName}"
+                },
+            )
+        }
+        onAccept?.let { accept ->
+            Button(onClick = accept, modifier = Modifier.fillMaxWidth()) {
+                Text(acceptLabel ?: "ACCEPT")
+            }
+        }
+        onScanAnother?.let { scanAnother ->
+            Button(onClick = scanAnother, modifier = Modifier.fillMaxWidth()) {
+                Text("SCAN ANOTHER CARD")
+            }
+        }
     }
 }
 

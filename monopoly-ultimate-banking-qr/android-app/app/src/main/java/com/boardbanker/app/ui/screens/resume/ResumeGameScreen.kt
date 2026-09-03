@@ -34,7 +34,7 @@ fun ResumeGameScreen(
         factory = ResumeGameViewModelFactory(
             repository = app.gameSessionRepository,
             committedStore = app.committedGameSessionStore,
-            definitions = app.gameDefinitions,
+            definitions = app.defaultGameDefinitions,
         ),
     ),
 ) {

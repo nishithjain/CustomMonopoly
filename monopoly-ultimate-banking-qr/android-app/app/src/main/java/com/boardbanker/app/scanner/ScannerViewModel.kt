@@ -14,6 +14,7 @@ import com.boardbanker.app.scanner.model.ResolvedCard
 import com.boardbanker.app.scanner.model.ScannerUiModel
 import com.boardbanker.app.scanner.model.ScannerUiState
 import com.boardbanker.core.card.CardResolution
+import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.scanner.ScanProcessorResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +28,13 @@ class ScannerViewModel(
     private val scanRequest: ScanRequest = ScanRequest.gameCard(),
     private val gameAudioFeedback: GameAudioFeedback? = null,
     private val scanResultDeliverer: ScanResultDeliverer? = null,
+    definitions: GameDefinitions? = null,
 ) : AndroidViewModel(application) {
     private val app = application as BankingQrApplication
     private val audio: GameAudioFeedback = gameAudioFeedback ?: app.gameAudioFeedback
     private val deliverer: ScanResultDeliverer = scanResultDeliverer ?: app.scanResultDeliverer
-    private val controller by lazy {
-        ScannerController(app.gameDefinitions)
-    }
+    private val gameDefinitions = definitions ?: app.definitionsForActiveSessionOrDefault()
+    private val controller = ScannerController(gameDefinitions)
 
     private val _uiModel = MutableStateFlow(ScannerUiModel(state = ScannerUiState.CAMERA_PERMISSION_REQUIRED))
     val uiModel: StateFlow<ScannerUiModel> = _uiModel.asStateFlow()

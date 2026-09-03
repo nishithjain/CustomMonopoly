@@ -46,10 +46,31 @@ class BankingQrApplication : Application() {
 
     val gameEndAudioCoordinator: GameEndAudioCoordinator = GameEndAudioCoordinator()
 
+    private var defaultDefinitionsCache: GameDefinitions? = null
+
+    val defaultGameDefinitions: GameDefinitions
+        get() {
+            defaultDefinitionsCache?.let { return it }
+            ensureEditionServicesReady()
+            val catalog = editionRepository.loadEditionCatalog()
+            return editionRepository.load(catalog.defaultEditionId).also {
+                defaultDefinitionsCache = it
+            }
+        }
+
     val gameDefinitions: GameDefinitions
         get() = activeGameSessionManager.currentSession()?.let { session ->
             editionRepository.load(session.editionId)
         } ?: error(startupError ?: "No active game session is bound to an edition")
+
+    fun definitionsForActiveSessionOrDefault(): GameDefinitions {
+        ensureEditionServicesReady()
+        activeGameSessionManager.currentSession()?.let { session ->
+            return editionRepository.load(session.editionId)
+        }
+        activeGameSessionManager.boundDefinitionsOrNull()?.let { return it }
+        return defaultGameDefinitions
+    }
 
     val definitionsLoadError: String?
         get() = startupError
@@ -91,6 +112,15 @@ class BankingQrApplication : Application() {
             committedStore = committedGameSessionStore,
             repository = gameSessionRepository,
         )
+    }
+
+    private fun ensureEditionServicesReady() {
+        if (startupError != null) {
+            error(startupError ?: "Edition data is unavailable")
+        }
+        if (!::editionRepository.isInitialized) {
+            error("Edition repository is not initialized")
+        }
     }
 
     companion object {

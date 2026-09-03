@@ -42,6 +42,7 @@ import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.scanner.delivery.CollectScanResults
 import com.boardbanker.app.scanner.delivery.ScanResultConsumer
 import com.boardbanker.app.scanner.ui.ScannerScreen
+import com.boardbanker.app.scanner.ui.TestQrScannerScreen
 import com.boardbanker.app.audio.ScanPromptAudio
 
 @Composable
@@ -93,7 +94,7 @@ fun AppNavigation(
             val setupViewModel: GameSetupViewModel = viewModel(
                 factory = GameSetupViewModelFactory(
                     sessionManager = app.activeGameSessionManager,
-                    definitions = app.gameDefinitions,
+                    definitions = app.defaultGameDefinitions,
                     createNewGame = createNewGame,
                     gameAudioFeedback = app.gameAudioFeedback,
                     gameEndAudioCoordinator = app.gameEndAudioCoordinator,
@@ -135,6 +136,7 @@ fun AppNavigation(
         composable(AppDestination.PlayerScanner.route) {
             ScannerScreen(
                 scanRequest = ScanRequest.player(),
+                definitions = app.definitionsForActiveSessionOrDefault(),
                 onCardAccepted = { navController.popBackStack() },
                 onBack = {
                     app.scanResultDeliverer.clearPendingScanRequest()
@@ -285,6 +287,7 @@ fun AppNavigation(
             val request = app.scanResultDeliverer.peekScanRequest() ?: ScanRequest.player()
             ScannerScreen(
                 scanRequest = request,
+                definitions = app.definitionsForActiveSessionOrDefault(),
                 onCardAccepted = { navController.popBackStack() },
                 onBack = {
                     app.scanResultDeliverer.clearPendingScanRequest()
@@ -414,6 +417,7 @@ fun AppNavigation(
             val request = app.scanResultDeliverer.peekScanRequest() ?: ScanRequest.gameCard()
             ScannerScreen(
                 scanRequest = request,
+                definitions = app.definitionsForActiveSessionOrDefault(),
                 onCardAccepted = { navController.popBackStack() },
                 onBack = {
                     app.scanResultDeliverer.clearPendingScanRequest()
@@ -423,8 +427,8 @@ fun AppNavigation(
         }
 
         composable(AppDestination.QrScanner.route) {
-            ScannerScreen(
-                scanRequest = ScanRequest.gameCard(),
+            TestQrScannerScreen(
+                app = app,
                 onBack = { navController.popBackStack() },
             )
         }
