@@ -27,19 +27,16 @@ class MultiActionEventWorkflowTest {
             ),
         )
         val controller = GameplayWorkflowController(definitions)
-        controller.onEventScanned("EVT_UI_MULTI")
-        controller.onEventContinue()
-        val first = controller.currentState() as GameplayWorkflowState.EventCollectingTargets
-        assertEquals(0, first.actionIndex)
-        assertEquals(0, first.plan.actionIndex)
-
         val session = AppTestSupport.newGame()
-        controller.onUserScanned("USR_01", session)
+        controller.onEventScanned("EVT_UI_MULTI", session)
+        val continueActions = controller.onEventContinue(session)
+        assertTrue(continueActions.any { it is WorkflowAction.ExecuteCommand })
         val engine = DefaultGameEngine(definitions)
         val afterFirst = engine.process(
             session,
             GameCommand.ApplyEvent(eventId = "EVT_UI_MULTI", actingPlayerId = "USR_01"),
         ).session
+        controller.onCommandSucceeded(WorkflowCommandContext.ApplyEvent("EVT_UI_MULTI"), afterFirst)
         val resume = controller.resumePendingEventExecution(afterFirst)
         assertTrue(resume.any { it is WorkflowAction.RequestScan })
         val second = controller.currentState() as GameplayWorkflowState.EventCollectingTargets
@@ -63,9 +60,8 @@ class MultiActionEventWorkflowTest {
         val engine = DefaultGameEngine(definitions)
         var session = AppTestSupport.sessionWithProperty("PRP_01", "USR_01", 1)
 
-        controller.onEventScanned("EVT_UI_SCAN")
-        controller.onEventContinue()
-        controller.onUserScanned("USR_01", session)
+        controller.onEventScanned("EVT_UI_SCAN", session)
+        controller.onEventContinue(session)
         session = engine.process(session, GameCommand.ApplyEvent("EVT_UI_SCAN", "USR_01")).session
         assertNotNull(session.pendingEventExecution)
         controller.onCommandSucceeded(WorkflowCommandContext.ApplyEvent("EVT_UI_SCAN"), session)
@@ -103,26 +99,23 @@ class MultiActionEventWorkflowTest {
 
     @Test
     fun duplicateScanDoesNotAdvanceStep() {
-        val definitions = definitionsWithEvent(
-            "EVT_UI_DUP",
-            listOf(action("CREDIT_BOTH_PLAYERS", requiresPlayerScan = true, targetType = EventTargetType.TWO_PLAYERS.name)),
-        )
+        val definitions = AppTestSupport.definitions
         val controller = GameplayWorkflowController(definitions)
         val session = AppTestSupport.newGame()
-        controller.onEventScanned("EVT_UI_DUP")
-        controller.onEventContinue()
-        controller.onUserScanned("USR_01", session)
-        val wrong = controller.onEventPropertyScanned("PRP_01")
+        controller.onEventScanned("EVT_05", session)
+        controller.onEventContinue(session)
+        val wrong = controller.onUserScanned("USR_01", session)
         assertTrue(wrong.any { it is WorkflowAction.WrongCardType })
         val collecting = controller.currentState() as GameplayWorkflowState.EventCollectingTargets
-        assertEquals(EventScanStep.TARGET_PLAYER, collecting.plan.steps[collecting.stepIndex])
+        assertEquals(EventScanStep.PROPERTY, collecting.plan.steps[collecting.stepIndex])
     }
 
     @Test
     fun mandatoryEventBlocksUnrelatedWorkflowReset() {
         val controller = GameplayWorkflowController(AppTestSupport.definitions)
-        controller.onEventScanned("EVT_05")
-        controller.onEventContinue()
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05", session)
+        controller.onEventContinue(session)
         assertTrue(controller.hasMandatoryEventActionPending())
     }
 

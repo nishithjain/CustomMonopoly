@@ -81,6 +81,18 @@ class ActiveGameCardUiPolicyTest {
     }
 
     @Test
+    fun jailedActivePlayer_hidesBuyAndAuctionActions() {
+        val visibility = ActiveGameCardUiPolicy.actionVisibility(
+            workflowState = GameplayWorkflowState.UnownedPropertyDecision("PRP_01"),
+            result = null,
+            gameplayLocked = false,
+            activePlayerInJail = true,
+        )
+        assertFalse(visibility.showBuy)
+        assertFalse(visibility.showAuction)
+    }
+
+    @Test
     fun userCardShowsDoneOnly() {
         val visibility = ActiveGameCardUiPolicy.actionVisibility(
             workflowState = GameplayWorkflowState.PlayerInfo("USR_01"),

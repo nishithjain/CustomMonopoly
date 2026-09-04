@@ -25,6 +25,16 @@ sealed class GameCommand {
         val propertyId: String,
     ) : GameCommand()
 
+    data class ProcessEnergyGridLanding(
+        val playerId: String,
+        val energyGridId: String,
+    ) : GameCommand()
+
+    data class PurchaseEnergyGrid(
+        val playerId: String,
+        val energyGridId: String,
+    ) : GameCommand()
+
     data class ApplyEvent(
         val eventId: String,
         val actingPlayerId: String,
@@ -32,6 +42,7 @@ sealed class GameCommand {
         val targetPlayerId: String? = null,
         val secondPropertyId: String? = null,
         val secondPlayerId: String? = null,
+        val fromBoardPosition: Int? = null,
     ) : GameCommand()
 
     data class EventPropertyChoice(
@@ -67,9 +78,19 @@ sealed class GameCommand {
     data class UseGetOutOfJailPass(val playerId: String) : GameCommand()
 
     data class StartAuction(
-        val propertyId: String,
+        val propertyId: String? = null,
+        val energyGridId: String? = null,
         val startedByPlayerId: String,
-    ) : GameCommand()
+    ) : GameCommand() {
+        init {
+            require(propertyId != null || energyGridId != null) {
+                "StartAuction requires propertyId or energyGridId"
+            }
+            require(propertyId == null || energyGridId == null) {
+                "StartAuction cannot target both property and energy grid"
+            }
+        }
+    }
 
     data class PlaceAuctionBid(
         val playerId: String,
@@ -82,7 +103,10 @@ sealed class GameCommand {
 
     data class ResolveDebt(val propertyId: String) : GameCommand()
 
-    data class ResolveDebtWithProperties(val propertyIds: List<String>) : GameCommand()
+    data class ResolveDebtWithProperties(
+        val propertyIds: List<String> = emptyList(),
+        val energyGridIds: List<String> = emptyList(),
+    ) : GameCommand()
 
     object CheckBankruptcy : GameCommand()
 

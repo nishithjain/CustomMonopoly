@@ -95,7 +95,7 @@ class AdvancedBankingWorkflowTest {
     @Test
     fun auctionBid_incrementsByTwenty() = runTest {
         startActiveGame()
-        executor.execute(GameCommand.StartAuction("PRP_03", "USR_01"))
+        executor.execute(GameCommand.StartAuction(propertyId = "PRP_03", startedByPlayerId = "USR_01"))
         executor.execute(GameCommand.PlaceAuctionBid("USR_01", 20))
         assertEquals(20, sessionManager.currentSession()!!.auction!!.currentBid)
         executor.execute(GameCommand.PlaceAuctionBid("USR_02", 40))
@@ -119,7 +119,7 @@ class AdvancedBankingWorkflowTest {
     @Test
     fun auctionComplete_assignsOwner() = runTest {
         startActiveGame()
-        executor.execute(GameCommand.StartAuction("PRP_03", "USR_01"))
+        executor.execute(GameCommand.StartAuction(propertyId = "PRP_03", startedByPlayerId = "USR_01"))
         executor.execute(GameCommand.PlaceAuctionBid("USR_01", 20))
         val outcome = executor.execute(GameCommand.CompleteAuction) as BankingCommitOutcome.Success
         assertEquals("USR_01", outcome.session.properties["PRP_03"]!!.ownerPlayerId)

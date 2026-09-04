@@ -80,7 +80,7 @@ class BankingValuesTests {
 
         val auctionSession = engine.process(
             afterJail,
-            GameCommand.StartAuction("PRP_12", "USR_01"),
+            GameCommand.StartAuction(propertyId = "PRP_12", startedByPlayerId = "USR_01"),
         ).session
         val firstBid = engine.process(auctionSession, GameCommand.PlaceAuctionBid("USR_02", 25))
         assertTrue(firstBid.isSuccess)

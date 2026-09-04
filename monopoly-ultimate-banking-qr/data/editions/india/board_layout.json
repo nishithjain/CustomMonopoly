@@ -26,8 +26,9 @@
     },
     {
       "position": 4,
-      "spaceId": "LOCATION_01_SPACE",
-      "spaceType": "LOCATION"
+      "spaceId": "ENERGY_GRID_ENG_04_SPACE",
+      "spaceType": "ENERGY_GRID",
+      "targetId": "ENG_04"
     },
     {
       "position": 5,
@@ -89,8 +90,9 @@
     },
     {
       "position": 15,
-      "spaceId": "LOCATION_03_SPACE",
-      "spaceType": "LOCATION"
+      "spaceId": "ENERGY_GRID_ENG_01_SPACE",
+      "spaceType": "ENERGY_GRID",
+      "targetId": "ENG_01"
     },
     {
       "position": 16,
@@ -134,9 +136,9 @@
     },
     {
       "position": 23,
-      "spaceId": "PROPERTY_PRP_13_SPACE",
-      "spaceType": "PROPERTY",
-      "targetId": "PRP_13"
+      "spaceId": "ENERGY_GRID_ENG_03_SPACE",
+      "spaceType": "ENERGY_GRID",
+      "targetId": "ENG_03"
     },
     {
       "position": 24,
@@ -168,9 +170,9 @@
     },
     {
       "position": 29,
-      "spaceId": "PROPERTY_PRP_17_SPACE",
-      "spaceType": "PROPERTY",
-      "targetId": "PRP_17"
+      "spaceId": "ENERGY_GRID_ENG_02_SPACE",
+      "spaceType": "ENERGY_GRID",
+      "targetId": "ENG_02"
     },
     {
       "position": 30,

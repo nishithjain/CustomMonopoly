@@ -38,6 +38,15 @@ class PropertyRules(
         if (!buyer.active || buyer.bankrupt) {
             return PropertyPurchaseResult.failure("Buyer is not active")
         }
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, buyerId)?.let {
+            return PropertyPurchaseResult.failure(it)
+        }
+        session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }?.let { activePlayerId ->
+            if (activePlayerId != buyerId) {
+                val name = definitions.players[buyerId]?.displayName ?: buyerId
+                return PropertyPurchaseResult.failure("It is not $name's turn.")
+            }
+        }
         if (buyer.balance < propertyDef.purchasePrice) {
             return PropertyPurchaseResult.failure("Insufficient funds")
         }

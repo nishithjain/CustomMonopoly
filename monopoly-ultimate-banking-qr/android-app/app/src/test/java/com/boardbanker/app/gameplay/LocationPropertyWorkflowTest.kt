@@ -49,8 +49,7 @@ class LocationPropertyWorkflowTest {
 
     @Test
     fun locationDestination_opponentPropertyExecutesRentLandingImmediately() {
-        var session = AppTestSupport.newGame()
-        session = engine.process(session, GameCommand.PurchaseProperty("USR_02", "PRP_01")).session
+        val session = AppTestSupport.sessionWithProperty("PRP_01", "USR_02", 1)
         val actions = controller.beginLocationDestinationProperty("USR_01", "PRP_01", session)
         assertEquals(1, actions.size)
         assertTrue(actions[0] is WorkflowAction.ExecuteCommand)

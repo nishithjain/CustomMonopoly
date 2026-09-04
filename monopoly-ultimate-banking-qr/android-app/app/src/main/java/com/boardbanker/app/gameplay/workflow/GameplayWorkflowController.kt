@@ -7,7 +7,11 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PendingEventExecution
+import com.boardbanker.core.event.EventInstructionFormatter
 import com.boardbanker.core.model.displayNameWithNumber
+import com.boardbanker.core.model.EnergyGridDisplayNames
+import com.boardbanker.core.rules.EnergyGridRentCalculator
+import com.boardbanker.core.rules.JailGameplayGuard
 
 sealed class GameplayWorkflowState {
     data object Ready : GameplayWorkflowState()
@@ -92,6 +96,42 @@ sealed class GameplayWorkflowState {
         val landingPlayerId: String? = null,
     ) : GameplayWorkflowState()
 
+    data class EnergyGridSummary(
+        val energyGridId: String,
+        val energyGridName: String,
+        val ownerName: String?,
+        val isUnowned: Boolean,
+        val purchasePrice: Int?,
+        val rentTable: List<Pair<Int, Int>>,
+        val currentRent: Int?,
+    ) : GameplayWorkflowState()
+
+    data class UnownedEnergyGridDecision(
+        val energyGridId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
+
+    data class WaitingForPurchasingPlayerEnergyGrid(
+        val energyGridId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
+
+    data class WaitingForRentPayerEnergyGrid(
+        val energyGridId: String,
+        val ownerPlayerId: String?,
+        val ownerName: String?,
+    ) : GameplayWorkflowState()
+
+    data class WaitingForAuctionStarterEnergyGrid(
+        val energyGridId: String,
+        val landingPlayerId: String? = null,
+    ) : GameplayWorkflowState()
+
+    data class WaitingForExpectedEnergyGridScan(
+        val energyGridId: String,
+        val actingPlayerId: String,
+    ) : GameplayWorkflowState()
+
     data class PlayerInfo(val playerId: String) : GameplayWorkflowState()
 
     data class Error(val message: String) : GameplayWorkflowState()
@@ -115,7 +155,12 @@ sealed class WorkflowCommandContext {
     data class Purchase(val playerId: String, val propertyId: String, val balanceBefore: Int) :
         WorkflowCommandContext()
 
+    data class EnergyGridPurchase(val playerId: String, val energyGridId: String, val balanceBefore: Int) :
+        WorkflowCommandContext()
+
     data class PropertyLanding(val playerId: String, val propertyId: String) : WorkflowCommandContext()
+
+    data class EnergyGridLanding(val playerId: String, val energyGridId: String) : WorkflowCommandContext()
 
     data class ApplyEvent(val eventId: String) : WorkflowCommandContext()
 
@@ -135,7 +180,11 @@ sealed class WorkflowAction {
     data class StateChanged(val state: GameplayWorkflowState) : WorkflowAction()
     data class RequestScan(val request: WorkflowScanRequest) : WorkflowAction()
     data class ExecuteCommand(val request: WorkflowCommandRequest) : WorkflowAction()
-    data class NavigateToAuction(val propertyId: String, val startedByPlayerId: String) : WorkflowAction()
+    data class NavigateToAuction(
+        val propertyId: String? = null,
+        val energyGridId: String? = null,
+        val startedByPlayerId: String,
+    ) : WorkflowAction()
     data object Cancelled : WorkflowAction()
     data class WrongCardType(val expected: CardType, val message: String) : WorkflowAction()
 }
@@ -145,19 +194,226 @@ class GameplayWorkflowController(
 ) {
     private var state: GameplayWorkflowState = GameplayWorkflowState.Ready
     private var buyLocked = false
+    private var eventContinueLocked = false
 
     fun currentState(): GameplayWorkflowState = state
 
     fun reset() {
         state = GameplayWorkflowState.Ready
         buyLocked = false
+        eventContinueLocked = false
     }
 
     fun onPropertyScanned(propertyId: String, session: GameSession): List<WorkflowAction> {
+        propertyPurchaseBlockedForActivePlayer(session)?.let { message ->
+            state = GameplayWorkflowState.Error(message)
+            return listOf(WorkflowAction.StateChanged(state))
+        }
         val propertyDef = definitions.properties[propertyId] ?: return listOf(
             WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown property.")),
         )
         return beginPropertyWorkflow(propertyId, session, landingPlayerId = null)
+    }
+
+    fun onEnergyGridScanned(energyGridId: String, session: GameSession): List<WorkflowAction> {
+        val pending = session.pendingEnergyGridLanding
+        if (pending != null && pending.energyGridId != energyGridId) {
+            return listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.ENERGY_GRID,
+                    message = "ENERGY GRID CARD EXPECTED\n\nPlease scan ${EnergyGridDisplayNames.displayNameWithNumber(pending.energyGridId, definitions)}.",
+                ),
+            )
+        }
+        val landingPlayerId = pending?.actingPlayerId
+        propertyPurchaseBlockedForActivePlayer(session)?.let { message ->
+            if (landingPlayerId == null || landingPlayerId == session.turnState?.activePlayerId) {
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+        }
+        if (definitions.energyGrids[energyGridId] == null) {
+            return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown energy grid.")))
+        }
+        return beginEnergyGridWorkflow(energyGridId, session, landingPlayerId)
+    }
+
+    fun beginPendingEnergyGridLanding(session: GameSession): List<WorkflowAction> {
+        val pending = session.pendingEnergyGridLanding ?: return emptyList()
+        val gridName = EnergyGridDisplayNames.displayNameWithNumber(pending.energyGridId, definitions)
+        state = GameplayWorkflowState.WaitingForExpectedEnergyGridScan(
+            energyGridId = pending.energyGridId,
+            actingPlayerId = pending.actingPlayerId,
+        )
+        return listOf(
+            WorkflowAction.StateChanged(state),
+            WorkflowAction.RequestScan(
+                WorkflowScanRequest(ScanRequest.energyGrid(pending.energyGridId, gridName)),
+            ),
+        )
+    }
+
+    private fun beginEnergyGridWorkflow(
+        energyGridId: String,
+        session: GameSession,
+        landingPlayerId: String?,
+    ): List<WorkflowAction> {
+        val gridDef = definitions.energyGrids[energyGridId]!!
+        val gridState = session.energyGrids[energyGridId]
+        val ownerId = gridState?.ownerPlayerId
+        val ownerName = ownerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
+        val rentTable = gridDef.rentLevels.sortedBy { it.ownedCount }.map { it.ownedCount to it.amount }
+        val currentRent = ownerId?.let {
+            EnergyGridRentCalculator.rentForOwner(definitions, session, it)
+        }
+
+        if (landingPlayerId != null) {
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, landingPlayerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+            return when (ownerId) {
+                null -> {
+                    state = GameplayWorkflowState.UnownedEnergyGridDecision(energyGridId, landingPlayerId)
+                    listOf(
+                        WorkflowAction.StateChanged(showUnownedEnergyGrid(energyGridId)),
+                        WorkflowAction.StateChanged(state),
+                    )
+                }
+                landingPlayerId -> listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.ProcessEnergyGridLanding(landingPlayerId, energyGridId),
+                            context = WorkflowCommandContext.EnergyGridLanding(
+                                playerId = landingPlayerId,
+                                energyGridId = energyGridId,
+                            ),
+                        ),
+                    ),
+                )
+                else -> listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.ProcessEnergyGridLanding(landingPlayerId, energyGridId),
+                            context = WorkflowCommandContext.EnergyGridLanding(
+                                playerId = landingPlayerId,
+                                energyGridId = energyGridId,
+                            ),
+                        ),
+                    ),
+                )
+            }
+        }
+
+        return if (ownerId == null) {
+            session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }?.let { activePlayerId ->
+                JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, activePlayerId)?.let { message ->
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
+            }
+            state = GameplayWorkflowState.UnownedEnergyGridDecision(energyGridId)
+            listOf(
+                WorkflowAction.StateChanged(showUnownedEnergyGrid(energyGridId)),
+                WorkflowAction.StateChanged(state),
+            )
+        } else {
+            state = GameplayWorkflowState.WaitingForRentPayerEnergyGrid(
+                energyGridId = energyGridId,
+                ownerPlayerId = ownerId,
+                ownerName = ownerName,
+            )
+            listOf(
+                WorkflowAction.StateChanged(
+                    GameplayWorkflowState.EnergyGridSummary(
+                        energyGridId = energyGridId,
+                        energyGridName = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions),
+                        ownerName = ownerName,
+                        isUnowned = false,
+                        purchasePrice = gridDef.purchasePrice,
+                        rentTable = rentTable,
+                        currentRent = currentRent,
+                    ),
+                ),
+                WorkflowAction.StateChanged(state),
+            )
+        }
+    }
+
+    fun onBuyEnergyGridSelected(session: GameSession): List<WorkflowAction> {
+        if (buyLocked) return emptyList()
+        val current = state
+        if (current !is GameplayWorkflowState.UnownedEnergyGridDecision) return emptyList()
+        val landingPlayerId = current.landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        landingPlayerId?.let { playerId ->
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+        }
+        if (landingPlayerId != null) {
+            buyLocked = true
+            val balanceBefore = session.players[landingPlayerId]?.balance ?: 0
+            return listOf(
+                WorkflowAction.ExecuteCommand(
+                    WorkflowCommandRequest(
+                        command = GameCommand.PurchaseEnergyGrid(landingPlayerId, current.energyGridId),
+                        context = WorkflowCommandContext.EnergyGridPurchase(
+                            playerId = landingPlayerId,
+                            energyGridId = current.energyGridId,
+                            balanceBefore = balanceBefore,
+                        ),
+                    ),
+                ),
+            )
+        }
+        buyLocked = true
+        state = GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid(current.energyGridId)
+        return listOf(
+            WorkflowAction.StateChanged(state),
+            WorkflowAction.RequestScan(WorkflowScanRequest(ScanRequest.player())),
+        )
+    }
+
+    fun onAuctionEnergyGridSelected(session: GameSession): List<WorkflowAction> {
+        val current = state
+        if (current !is GameplayWorkflowState.UnownedEnergyGridDecision) return emptyList()
+        val landingPlayerId = current.landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        landingPlayerId?.let { playerId ->
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+        }
+        if (landingPlayerId != null) {
+            return listOf(
+                WorkflowAction.NavigateToAuction(
+                    energyGridId = current.energyGridId,
+                    startedByPlayerId = landingPlayerId,
+                ),
+            )
+        }
+        state = GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid(current.energyGridId)
+        return listOf(
+            WorkflowAction.StateChanged(state),
+            WorkflowAction.RequestScan(WorkflowScanRequest(ScanRequest.player())),
+        )
+    }
+
+    fun showUnownedEnergyGrid(energyGridId: String): GameplayWorkflowState {
+        val gridDef = definitions.energyGrids[energyGridId]!!
+        val rentTable = gridDef.rentLevels.sortedBy { it.ownedCount }.map { it.ownedCount to it.amount }
+        return GameplayWorkflowState.EnergyGridSummary(
+            energyGridId = energyGridId,
+            energyGridName = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions),
+            ownerName = null,
+            isUnowned = true,
+            purchasePrice = gridDef.purchasePrice,
+            rentTable = rentTable,
+            currentRent = rentTable.firstOrNull()?.second,
+        )
     }
 
     fun beginLocationDestinationProperty(
@@ -165,6 +421,10 @@ class GameplayWorkflowController(
         propertyId: String,
         session: GameSession,
     ): List<WorkflowAction> {
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+            state = GameplayWorkflowState.Error(message)
+            return listOf(WorkflowAction.StateChanged(state))
+        }
         if (definitions.properties[propertyId] == null) {
             return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown property.")))
         }
@@ -184,6 +444,10 @@ class GameplayWorkflowController(
         val currentRent = propertyDef.rentLevels.firstOrNull { it.level == rentLevel }?.amount
 
         if (landingPlayerId != null) {
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, landingPlayerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
             return when (ownerId) {
                 null -> {
                     state = GameplayWorkflowState.UnownedPropertyDecision(propertyId, landingPlayerId)
@@ -218,6 +482,12 @@ class GameplayWorkflowController(
         }
 
         return if (ownerId == null) {
+            session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }?.let { activePlayerId ->
+                JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, activePlayerId)?.let { message ->
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
+            }
             state = GameplayWorkflowState.UnownedPropertyDecision(propertyId)
             listOf(
                 WorkflowAction.StateChanged(showUnownedProperty(propertyId)),
@@ -247,7 +517,11 @@ class GameplayWorkflowController(
         }
     }
 
-    fun onEventScanned(eventId: String): List<WorkflowAction> {
+    fun onEventScanned(eventId: String, session: GameSession): List<WorkflowAction> {
+        activeJailedPlayerBoardActionMessage(session)?.let { message ->
+            state = GameplayWorkflowState.Error(message)
+            return listOf(WorkflowAction.StateChanged(state))
+        }
         val event = definitions.events[eventId] ?: return listOf(
             WorkflowAction.StateChanged(GameplayWorkflowState.Error("Unknown event.")),
         )
@@ -255,17 +529,21 @@ class GameplayWorkflowController(
             eventId = eventId,
             eventName = event.name,
             eventSubtitle = event.eventSubtitle,
-            eventDescription = event.eventDescription,
+            eventDescription = EventInstructionFormatter.formatDescription(event, definitions),
         )
         return listOf(
             WorkflowAction.StateChanged(state),
         )
     }
 
-    fun onEventContinue(): List<WorkflowAction> {
+    fun onEventContinue(session: GameSession): List<WorkflowAction> {
         val current = state
-        if (current !is GameplayWorkflowState.EventIntro) return emptyList()
-        return beginEventActionCollection(current.eventId, actionIndex = 0)
+        if (current !is GameplayWorkflowState.EventIntro || eventContinueLocked) return emptyList()
+        return beginEventActionCollection(
+            eventId = current.eventId,
+            actionIndex = 0,
+            actingPlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() },
+        )
     }
 
     fun resumePendingEventExecution(session: GameSession): List<WorkflowAction> {
@@ -281,6 +559,14 @@ class GameplayWorkflowController(
     }
 
     fun restoreWorkflowFromSession(session: GameSession): List<WorkflowAction> {
+        if (isIncompatiblePropertyWorkflowForJailedPlayer(state, session)) {
+            reset()
+            return emptyList()
+        }
+        if (activeJailedPlayerBoardActionMessage(session) != null) {
+            reset()
+            return emptyList()
+        }
         session.pendingDiceGamble?.let { pending ->
             state = GameplayWorkflowState.EventDiceGamble(
                 eventId = pending.eventId,
@@ -301,6 +587,9 @@ class GameplayWorkflowController(
         }
         session.pendingEventExecution?.let { pending ->
             return resumePendingEventExecution(session)
+        }
+        session.pendingEnergyGridLanding?.let {
+            return beginPendingEnergyGridLanding(session)
         }
         return emptyList()
     }
@@ -388,6 +677,7 @@ class GameplayWorkflowController(
             secondPropertyId = secondPropertyId,
         )
         if (startStep >= plan.steps.size) {
+            eventContinueLocked = true
             return executeApplyEvent(collecting)
         }
         state = collecting
@@ -406,7 +696,57 @@ class GameplayWorkflowController(
                 state = GameplayWorkflowState.PlayerInfo(playerId)
                 listOf(WorkflowAction.StateChanged(state))
             }
+            is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid -> {
+                JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
+                val balanceBefore = session.players[playerId]?.balance ?: 0
+                listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.PurchaseEnergyGrid(playerId, current.energyGridId),
+                            context = WorkflowCommandContext.EnergyGridPurchase(
+                                playerId = playerId,
+                                energyGridId = current.energyGridId,
+                                balanceBefore = balanceBefore,
+                            ),
+                        ),
+                    ),
+                )
+            }
+            is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> {
+                listOf(
+                    WorkflowAction.ExecuteCommand(
+                        WorkflowCommandRequest(
+                            command = GameCommand.ProcessEnergyGridLanding(playerId, current.energyGridId),
+                            context = WorkflowCommandContext.EnergyGridLanding(
+                                playerId = playerId,
+                                energyGridId = current.energyGridId,
+                            ),
+                        ),
+                    ),
+                )
+            }
+            is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid -> {
+                listOf(
+                    WorkflowAction.NavigateToAuction(
+                        energyGridId = current.energyGridId,
+                        startedByPlayerId = playerId,
+                    ),
+                )
+            }
+            is GameplayWorkflowState.WaitingForExpectedEnergyGridScan -> listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.ENERGY_GRID,
+                    message = "ENERGY GRID CARD EXPECTED\n\nPlease scan ${EnergyGridDisplayNames.displayNameWithNumber(current.energyGridId, definitions)}.",
+                ),
+            )
             is GameplayWorkflowState.WaitingForPurchasingPlayer -> {
+                JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
                 val balanceBefore = session.players[playerId]?.balance ?: 0
                 listOf(
                     WorkflowAction.ExecuteCommand(
@@ -463,6 +803,13 @@ class GameplayWorkflowController(
         val current = state
         if (current !is GameplayWorkflowState.UnownedPropertyDecision) return emptyList()
         val landingPlayerId = current.landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        landingPlayerId?.let { playerId ->
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+        }
         if (landingPlayerId != null) {
             buyLocked = true
             val balanceBefore = session.players[landingPlayerId]?.balance ?: 0
@@ -493,6 +840,13 @@ class GameplayWorkflowController(
         val current = state
         if (current !is GameplayWorkflowState.UnownedPropertyDecision) return emptyList()
         val landingPlayerId = current.landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        landingPlayerId?.let { playerId ->
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, playerId)?.let { message ->
+                state = GameplayWorkflowState.Error(message)
+                return listOf(WorkflowAction.StateChanged(state))
+            }
+        }
         if (landingPlayerId != null) {
             return listOf(
                 WorkflowAction.NavigateToAuction(
@@ -604,6 +958,7 @@ class GameplayWorkflowController(
 
     fun onCommandSucceeded(resultContext: WorkflowCommandContext, session: GameSession) {
         buyLocked = false
+        eventContinueLocked = false
         when (resultContext) {
             is WorkflowCommandContext.ApplyEvent -> {
                 when {
@@ -635,6 +990,7 @@ class GameplayWorkflowController(
 
     fun onCommandFailed() {
         buyLocked = false
+        eventContinueLocked = false
     }
 
     fun showUnownedProperty(propertyId: String): GameplayWorkflowState {
@@ -723,4 +1079,61 @@ class GameplayWorkflowController(
 
     private fun error(message: String): List<WorkflowAction> =
         listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error(message)))
+
+    private fun activeJailedPlayerBoardActionMessage(session: GameSession): String? {
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return null
+        return JailGameplayGuard.boardActionBlockedMessage(definitions, session, activePlayerId)
+    }
+
+    private fun propertyPurchaseBlockedForActivePlayer(session: GameSession): String? {
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return null
+        return JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, activePlayerId)
+    }
+
+    fun purchaseTargetPlayerId(
+        workflow: GameplayWorkflowState,
+        session: GameSession,
+    ): String? = when (workflow) {
+        is GameplayWorkflowState.UnownedPropertyDecision ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        is GameplayWorkflowState.WaitingForPurchasingPlayer ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        is GameplayWorkflowState.WaitingForAuctionStarter ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        is GameplayWorkflowState.UnownedEnergyGridDecision ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid ->
+            workflow.landingPlayerId ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        else -> null
+    }
+
+    fun isIncompatiblePropertyWorkflowForJailedPlayer(
+        workflow: GameplayWorkflowState,
+        session: GameSession,
+    ): Boolean {
+        if (workflow !is GameplayWorkflowState.UnownedPropertyDecision &&
+            workflow !is GameplayWorkflowState.WaitingForPurchasingPlayer &&
+            workflow !is GameplayWorkflowState.WaitingForAuctionStarter &&
+            workflow !is GameplayWorkflowState.WaitingForRentPayer &&
+            workflow !is GameplayWorkflowState.PropertySummary &&
+            workflow !is GameplayWorkflowState.UnownedEnergyGridDecision &&
+            workflow !is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid &&
+            workflow !is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid &&
+            workflow !is GameplayWorkflowState.WaitingForRentPayerEnergyGrid &&
+            workflow !is GameplayWorkflowState.EnergyGridSummary
+        ) {
+            return false
+        }
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        if (activePlayerId != null && session.players[activePlayerId]?.jailStatus == true) {
+            return true
+        }
+        val purchaseTarget = purchaseTargetPlayerId(workflow, session)
+        return purchaseTarget != null && session.players[purchaseTarget]?.jailStatus == true
+    }
+
+    fun jailResolutionGuidance(session: GameSession): String? =
+        JailGameplayGuard.activePlayerJailGuidance(definitions, session)
 }

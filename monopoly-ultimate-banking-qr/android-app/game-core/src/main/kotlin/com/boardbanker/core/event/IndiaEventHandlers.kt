@@ -6,7 +6,9 @@ import com.boardbanker.core.model.EventActionDefinition
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PendingDiceGamble
+import com.boardbanker.core.model.PendingEnergyGridLanding
 import com.boardbanker.core.model.PendingEventDraw
+import com.boardbanker.core.rules.BoardTraversal
 import com.boardbanker.core.model.PropertyState
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
@@ -41,6 +43,7 @@ class IndiaEventHandlers(
         targetPlayerId: String?,
         secondPropertyId: String?,
         secondPlayerId: String?,
+        fromBoardPosition: Int? = null,
         timestamp: Long,
     ): EventEngine.EventResult = when (rule.actionType) {
         "MOVE_TO_SPACE" -> handleMoveToSpace(session, eventId, actingPlayerId, rule, timestamp)
@@ -74,7 +77,9 @@ class IndiaEventHandlers(
             session, eventId, actingPlayerId, propertyId, rule, timestamp,
         )
         "TOP_UP_BALANCE_TO_THRESHOLD" -> handleTopUpBalance(session, eventId, actingPlayerId, rule, timestamp)
-        "MOVE_TO_NEAREST_STATION" -> handleMoveToNearestStation(session, eventId, actingPlayerId, rule, timestamp)
+        "MOVE_TO_NEAREST_STATION" -> handleMoveToNearestStation(
+            session, eventId, actingPlayerId, rule, fromBoardPosition, timestamp,
+        )
         "EXTRA_TURN" -> handleExtraTurn(session, eventId, actingPlayerId, rule, timestamp)
         "COMPLETE_COLOR_SET_BONUS_CREDIT" -> handleColorSetBonusCredit(session, eventId, actingPlayerId, rule, timestamp)
         else -> EventEngine.EventResult.failure(
@@ -634,13 +639,71 @@ class IndiaEventHandlers(
         eventId: String,
         actingPlayerId: String,
         rule: EventActionDefinition,
+        fromBoardPosition: Int?,
         timestamp: Long,
     ): EventEngine.EventResult {
-        val physical = PhysicalAction(
-            instruction = "Move forward to the next Energy Station, then scan the landed card.",
-            affectedPlayerIds = listOf(actingPlayerId),
+        val rawSemantic = rule.parameters["stationSemanticType"]?.jsonPrimitive?.content
+        val semanticType = when (rawSemantic) {
+            "ENERGY_STATION", "ENERGY_GRID", null -> "ENERGY_GRID"
+            else -> rawSemantic
+        }
+        if (semanticType != "ENERGY_GRID") {
+            return EventEngine.EventResult.failure("Unsupported station semantic type: $semanticType")
+        }
+        if (definitions.energyGrids.isEmpty()) {
+            val physical = PhysicalAction(
+                instruction = "Move forward to the next Energy Grid, then scan the landed card.",
+                affectedPlayerIds = listOf(actingPlayerId),
+            )
+            return EventEngine.EventResult.success(session, emptyList(), listOf(physical))
+        }
+        if (fromBoardPosition == null) {
+            val physical = PhysicalAction(
+                instruction = "Move forward to the next Energy Grid, then scan the landed card.",
+                affectedPlayerIds = listOf(actingPlayerId),
+            )
+            return EventEngine.EventResult.success(session, emptyList(), listOf(physical))
+        }
+        val layout = definitions.boardLayout
+        if (fromBoardPosition !in 0 until layout.size) {
+            return EventEngine.EventResult.failure("Invalid board position: $fromBoardPosition")
+        }
+        val targetSpace = BoardTraversal.nextEnergyGridSpace(definitions, fromBoardPosition)
+            ?: return EventEngine.EventResult.failure("No energy grid space found on board")
+        val targetGridId = targetSpace.targetId
+            ?: return EventEngine.EventResult.failure("Energy grid space is missing targetId")
+        if (!definitions.energyGrids.containsKey(targetGridId)) {
+            return EventEngine.EventResult.failure("Unknown energy grid on board: $targetGridId")
+        }
+
+        var updatedSession = session
+        val transactions = mutableListOf<Transaction>()
+        val collectGo = rule.booleanParam("collectGoIfPassed") ?: true
+        if (collectGo && BoardTraversal.passedGoOnForwardMove(fromBoardPosition, targetSpace.position)) {
+            val goSalary = definitions.bankingValues.goSalary
+            val creditResult = handleBankCredit(updatedSession, eventId, actingPlayerId, goSalary, timestamp)
+            if (!creditResult.isSuccess) return creditResult
+            updatedSession = creditResult.session!!
+            transactions += creditResult.transactions
+        }
+
+        val grid = definitions.energyGrids[targetGridId]!!
+        val boardNumber = layout.boardNumberForEnergyGrid(targetGridId)
+        val displayName = if (boardNumber != null) "[$boardNumber] ${grid.name}" else grid.name
+        updatedSession = updatedSession.copy(
+            undoSnapshot = session.snapshot(),
+            pendingEnergyGridLanding = PendingEnergyGridLanding(
+                actingPlayerId = actingPlayerId,
+                energyGridId = targetGridId,
+                sourceEventId = eventId,
+            ),
         )
-        return EventEngine.EventResult.success(session, emptyList(), listOf(physical))
+        val physical = PhysicalAction(
+            instruction = "Move forward to $displayName, then scan the Energy Grid card.",
+            affectedPlayerIds = listOf(actingPlayerId),
+            targetSpace = targetSpace.spaceId,
+        )
+        return EventEngine.EventResult.success(updatedSession, transactions, listOf(physical))
     }
 
     private fun handleExtraTurn(

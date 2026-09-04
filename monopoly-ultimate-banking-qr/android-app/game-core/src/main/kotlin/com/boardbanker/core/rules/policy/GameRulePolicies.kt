@@ -51,6 +51,7 @@ class JailPolicy(private val rules: JailRulesConfig) {
     fun whileInJailCannotCollectRent(): Boolean = rules.whileInJailCannotCollectRent
     fun whileInJailCannotGainLandingRentIncreases(): Boolean = rules.whileInJailCannotGainLandingRentIncreases
     fun whileInJailCannotBidInAuction(): Boolean = rules.whileInJailCannotBidInAuction
+    fun whileInJailCannotResolveBoardActions(): Boolean = rules.whileInJailCannotResolveBoardActions
     fun totalGridlockJailPlayersRemain(): Boolean = rules.totalGridlockJailPlayersRemain
 }
 

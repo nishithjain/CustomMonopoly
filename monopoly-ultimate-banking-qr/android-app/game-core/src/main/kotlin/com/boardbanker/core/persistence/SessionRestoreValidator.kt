@@ -22,6 +22,20 @@ class SessionRestoreValidator(
             }
         }
 
+        for (energyGridId in session.energyGrids.keys) {
+            if (!definitions.energyGrids.containsKey(energyGridId)) {
+                problems += "Unknown energy grid reference: $energyGridId"
+            }
+        }
+
+        for (gridState in session.energyGrids.values) {
+            gridState.ownerPlayerId?.let { ownerId ->
+                if (!session.players.containsKey(ownerId)) {
+                    problems += "${gridState.energyGridId}: unknown owner $ownerId"
+                }
+            }
+        }
+
         for (propertyState in session.properties.values) {
             val definition = definitions.properties[propertyState.propertyId]
             if (definition != null) {
@@ -53,8 +67,24 @@ class SessionRestoreValidator(
         }
 
         session.auction?.let { auction ->
-            if (!definitions.properties.containsKey(auction.propertyId)) {
-                problems += "Auction references unknown property ${auction.propertyId}"
+            auction.propertyId?.let { propertyId ->
+                if (!definitions.properties.containsKey(propertyId)) {
+                    problems += "Auction references unknown property $propertyId"
+                }
+            }
+            auction.energyGridId?.let { energyGridId ->
+                if (!definitions.energyGrids.containsKey(energyGridId)) {
+                    problems += "Auction references unknown energy grid $energyGridId"
+                }
+            }
+        }
+
+        session.pendingEnergyGridLanding?.let { landing ->
+            if (!definitions.energyGrids.containsKey(landing.energyGridId)) {
+                problems += "Pending energy grid landing references unknown grid ${landing.energyGridId}"
+            }
+            if (!session.players.containsKey(landing.actingPlayerId)) {
+                problems += "Pending energy grid landing references unknown visitor ${landing.actingPlayerId}"
             }
         }
 

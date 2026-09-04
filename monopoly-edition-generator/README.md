@@ -270,6 +270,44 @@ assets/board-spaces/energy-grids/
     eng_04_biomass.png
 ```
 
+## Energy Grid property cards
+
+Authoritative card design data (artwork filenames, prices, rent tiers) lives at `../EnergyGrid_Card/energy_grids.json`.
+
+QR generation metadata (`qrPayload`, `qrAsset`, `frontAsset`) for the India edition lives at:
+
+```text
+../monopoly-ultimate-banking-qr/data/editions/india/energy_grids.json
+```
+
+Render full-size property card fronts (108 mm × 172 mm, 300 DPI):
+
+```bash
+python scripts/render_energy_grid_property_cards.py
+```
+
+Output (default):
+
+```text
+assets/cards/editions/india/energy-grid/
+    eng_01_solar.png
+    eng_02_wind.png
+    eng_03_hydroelectric.png
+    eng_04_biomass.png
+```
+
+Publish rendered fronts to the paths declared in `energy_grids.json`, for example:
+
+```text
+Resources/Editions/india/EnergyGridCards/
+    ENG_01_Solar_Front.png
+    ENG_02_Wind_Front.png
+    ENG_03_Hydroelectric_Front.png
+    ENG_04_Biomass_Front.png
+```
+
+Generate QR card backs from `qrPayload` / `qrAsset` in the edition `energy_grids.json` using the separate QRCode workspace (same workflow as `properties.json`).
+
 ## PNG rendering
 
 Board PNGs are 50 cm × 50 cm. At 300 DPI that is 5906 × 5906. Property and event cards are 108 mm × 172 mm.

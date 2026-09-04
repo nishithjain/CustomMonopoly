@@ -88,6 +88,7 @@ data class JailRulesConfig(
     val whileInJailCannotCollectRent: Boolean = true,
     val whileInJailCannotGainLandingRentIncreases: Boolean = true,
     val whileInJailCannotBidInAuction: Boolean = true,
+    val whileInJailCannotResolveBoardActions: Boolean = true,
     val totalGridlockJailPlayersRemain: Boolean = true,
 )
 

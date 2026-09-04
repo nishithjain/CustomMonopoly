@@ -12,7 +12,7 @@ class BankingResultMapperPlayerIconTest {
     @Test
     fun auctionWinIncludesWinnerPlayerId() {
         var session = AppTestSupport.newGame()
-        session = AppTestSupport.engine.process(session, GameCommand.StartAuction("PRP_01", "USR_01")).session
+        session = AppTestSupport.engine.process(session, GameCommand.StartAuction(propertyId = "PRP_01", startedByPlayerId = "USR_01")).session
         session = AppTestSupport.engine.process(session, GameCommand.PlaceAuctionBid("USR_02", 20)).session
         val result = AppTestSupport.engine.process(session, GameCommand.CompleteAuction)
         val winnerId = result.session.properties["PRP_01"]!!.ownerPlayerId!!

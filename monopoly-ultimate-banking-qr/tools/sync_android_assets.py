@@ -23,6 +23,7 @@ EDITION_FILES = [
     "card_registry.json",
     "game_rules.json",
     "event_engine_rules.json",
+    "energy_grids.json",
 ]
 
 
@@ -96,6 +97,14 @@ def main() -> int:
             source = data_dir / "editions" / edition / filename
             if not source.is_file():
                 if filename == "event_engine_rules.json":
+                    continue
+                if filename == "energy_grids.json":
+                    manifest_path = data_dir / "editions" / edition / "edition.json"
+                    if manifest_path.is_file():
+                        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                        if manifest.get("data", {}).get("energyGrids"):
+                            print(f"Missing {source}", file=sys.stderr)
+                            return 1
                     continue
                 print(f"Missing {source}", file=sys.stderr)
                 return 1

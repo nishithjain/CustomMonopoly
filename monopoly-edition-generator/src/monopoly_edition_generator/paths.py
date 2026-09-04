@@ -53,6 +53,19 @@ LEGACY_COMMON_INNERBOX = PROJECT_ROOT / "assets" / "common" / "InnerBox.png"
 
 ENERGY_GRIDS_JSON = discover_workspace_root() / "EnergyGrid_Board" / "energy_grids.json"
 ENERGY_GRID_BOARD_DIR = discover_workspace_root() / "EnergyGrid_Board"
+ENERGY_GRID_CARD_DIR = discover_workspace_root() / "EnergyGrid_Card"
+ENERGY_GRID_CARD_JSON = ENERGY_GRID_CARD_DIR / "energy_grids.json"
+ENERGY_GRID_CARD_GENERATED_HTML_DIR = ENERGY_GRID_CARD_DIR / "generated_energy_grid_cards"
+ENERGY_GRID_CARD_ASSETS_DIR = PROJECT_ROOT / "assets" / "cards" / "editions" / "india" / "energy-grid"
+ENERGY_GRID_CARD_OUTPUT_DIR = OUTPUT_ROOT / "india" / "energy_grid_cards" / "png"
+INDIA_ENERGY_GRIDS_DATA_JSON = (
+    discover_workspace_root()
+    / "monopoly-ultimate-banking-qr"
+    / "data"
+    / "editions"
+    / "india"
+    / "energy_grids.json"
+)
 
 ENERGY_GRID_WIDTH_CM = 4.625
 ENERGY_GRID_HEIGHT_CM = 6.5
@@ -69,6 +82,20 @@ ENERGY_GRID_HTML_SOURCES = {
     "ENG_02": "ENG_02_Wind_Energy.html",
     "ENG_03": "ENG_03_Hydroelectric_Energy.html",
     "ENG_04": "ENG_04_Biomass_Energy.html",
+}
+
+ENERGY_GRID_CARD_HTML_SOURCES = {
+    "ENG_01": "Solar_Energy.html",
+    "ENG_02": "Wind_Energy.html",
+    "ENG_03": "Hydroelectric_Energy.html",
+    "ENG_04": "Biomass_Energy.html",
+}
+
+ENERGY_GRID_CARD_PNG_FILES = {
+    "ENG_01": "eng_01_solar.png",
+    "ENG_02": "eng_02_wind.png",
+    "ENG_03": "eng_03_hydroelectric.png",
+    "ENG_04": "eng_04_biomass.png",
 }
 
 BOARD_TEMPLATE = TEMPLATES_DIR / "board" / "board.html"
@@ -119,12 +146,30 @@ def resources_root() -> Path:
     return discover_workspace_root() / "Resources"
 
 
+INNER_BOX_BASENAME = "InnerBox"
+INNER_BOX_EXTENSIONS = (".png", ".jpg", ".jpeg")
+
+
+def inner_box_dir(edition_id: str) -> Path:
+    return resources_root() / "Editions" / edition_id / "Board"
+
+
 def inner_box_path(edition_id: str) -> Path:
-    return resources_root() / "Editions" / edition_id / "Board" / "InnerBox.png"
+    """Return the edition InnerBox file, preferring the first supported extension that exists."""
+    board_dir = inner_box_dir(edition_id)
+    for extension in INNER_BOX_EXTENSIONS:
+        candidate = board_dir / f"{INNER_BOX_BASENAME}{extension}"
+        if candidate.is_file():
+            return candidate
+    return board_dir / f"{INNER_BOX_BASENAME}.png"
 
 
 def inner_box_display_path(edition_id: str) -> str:
-    return f"Resources/Editions/{edition_id}/Board/InnerBox.png"
+    path = inner_box_path(edition_id)
+    if path.is_file():
+        return f"Resources/Editions/{edition_id}/Board/{path.name}"
+    supported = ", ".join(f"InnerBox{extension}" for extension in INNER_BOX_EXTENSIONS)
+    return f"Resources/Editions/{edition_id}/Board/({supported})"
 
 
 def inner_box_status(edition_id: str) -> dict[str, Any]:

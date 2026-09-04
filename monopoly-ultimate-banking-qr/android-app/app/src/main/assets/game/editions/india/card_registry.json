@@ -329,6 +329,34 @@
       "sequence": 22,
       "name": "Mayfair",
       "qrPayload": "MUB:P:22"
+    },
+    {
+      "cardId": "ENG_01",
+      "cardType": "ENERGY_GRID",
+      "sequence": 1,
+      "name": "Solar Energy",
+      "qrPayload": "MUB:G:01"
+    },
+    {
+      "cardId": "ENG_02",
+      "cardType": "ENERGY_GRID",
+      "sequence": 2,
+      "name": "Wind Energy",
+      "qrPayload": "MUB:G:02"
+    },
+    {
+      "cardId": "ENG_03",
+      "cardType": "ENERGY_GRID",
+      "sequence": 3,
+      "name": "Hydroelectric Energy",
+      "qrPayload": "MUB:G:03"
+    },
+    {
+      "cardId": "ENG_04",
+      "cardType": "ENERGY_GRID",
+      "sequence": 4,
+      "name": "Biomass Energy",
+      "qrPayload": "MUB:G:04"
     }
   ]
 }

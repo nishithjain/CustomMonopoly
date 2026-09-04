@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "groupId": "RENEWABLE_ENERGY_GRID",
+  "groupName": "Renewable Energy Grid",
+  "energyGrids": [
+    {
+      "energyGridId": "ENG_01",
+      "name": "Solar Energy",
+      "sequence": 1,
+      "qrPayload": "MUB:G:01",
+      "frontAsset": "Resources/Editions/india/EnergyGridCards/ENG_01_Solar_Front.png",
+      "qrAsset": "Resources/Editions/india/EnergyGridCards/ENG_01_Solar_Back_QR.png",
+      "purchasePrice": 20000,
+      "rentLevels": [
+        {
+          "ownedCount": 1,
+          "amount": 5000
+        },
+        {
+          "ownedCount": 2,
+          "amount": 12000
+        },
+        {
+          "ownedCount": 3,
+          "amount": 25000
+        },
+        {
+          "ownedCount": 4,
+          "amount": 40000
+        }
+      ]
+    },
+    {
+      "energyGridId": "ENG_02",
+      "name": "Wind Energy",
+      "sequence": 2,
+      "qrPayload": "MUB:G:02",
+      "frontAsset": "Resources/Editions/india/EnergyGridCards/ENG_02_Wind_Front.png",
+      "qrAsset": "Resources/Editions/india/EnergyGridCards/ENG_02_Wind_Back_QR.png",
+      "purchasePrice": 20000,
+      "rentLevels": [
+        {
+          "ownedCount": 1,
+          "amount": 5000
+        },
+        {
+          "ownedCount": 2,
+          "amount": 12000
+        },
+        {
+          "ownedCount": 3,
+          "amount": 25000
+        },
+        {
+          "ownedCount": 4,
+          "amount": 40000
+        }
+      ]
+    },
+    {
+      "energyGridId": "ENG_03",
+      "name": "Hydroelectric Energy",
+      "sequence": 3,
+      "qrPayload": "MUB:G:03",
+      "frontAsset": "Resources/Editions/india/EnergyGridCards/ENG_03_Hydroelectric_Front.png",
+      "qrAsset": "Resources/Editions/india/EnergyGridCards/ENG_03_Hydroelectric_Back_QR.png",
+      "purchasePrice": 20000,
+      "rentLevels": [
+        {
+          "ownedCount": 1,
+          "amount": 5000
+        },
+        {
+          "ownedCount": 2,
+          "amount": 12000
+        },
+        {
+          "ownedCount": 3,
+          "amount": 25000
+        },
+        {
+          "ownedCount": 4,
+          "amount": 40000
+        }
+      ]
+    },
+    {
+      "energyGridId": "ENG_04",
+      "name": "Biomass Energy",
+      "sequence": 4,
+      "qrPayload": "MUB:G:04",
+      "frontAsset": "Resources/Editions/india/EnergyGridCards/ENG_04_Biomass_Front.png",
+      "qrAsset": "Resources/Editions/india/EnergyGridCards/ENG_04_Biomass_Back_QR.png",
+      "purchasePrice": 20000,
+      "rentLevels": [
+        {
+          "ownedCount": 1,
+          "amount": 5000
+        },
+        {
+          "ownedCount": 2,
+          "amount": 12000
+        },
+        {
+          "ownedCount": 3,
+          "amount": 25000
+        },
+        {
+          "ownedCount": 4,
+          "amount": 40000
+        }
+      ]
+    }
+  ]
+}

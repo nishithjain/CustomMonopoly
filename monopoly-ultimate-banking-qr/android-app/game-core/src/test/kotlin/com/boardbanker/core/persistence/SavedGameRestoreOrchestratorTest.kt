@@ -209,7 +209,7 @@ class SavedGameRestoreOrchestratorTest {
     private fun indiaSession(): GameSession {
         val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(TestFixtures.loadEdition(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "INDIA_RESTORE", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
+            GameSession(gameId = "INDIA_RESTORE", editionId = EditionIds.INDIA, editionDefinitionVersion = 3),
             GameCommand.CreateGame("INDIA_RESTORE"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))

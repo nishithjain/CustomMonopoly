@@ -1,9 +1,11 @@
 package com.boardbanker.app.ui.screens.game
 
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+import com.boardbanker.core.event.EventInstructionFormatter
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.displayNameWithNumber
 
 object ActiveGameCardPresentationBuilder {
@@ -56,6 +58,59 @@ object ActiveGameCardPresentationBuilder {
                 ownerName = state.ownerName,
             )
         }
+        is GameplayWorkflowState.EnergyGridSummary -> {
+            val ownerPlayerId = session?.energyGrids?.get(state.energyGridId)?.ownerPlayerId
+            CardPresentationUi(
+                cardTypeLabel = "ENERGY GRID",
+                title = state.energyGridName,
+                body = if (state.isUnowned) {
+                    buildString {
+                        append("Purchase Price:\n${formatMoney(state.purchasePrice ?: 0, definitions)}\n\n")
+                        append("Rent by owned grids:\n")
+                        state.rentTable.forEach { (count, amount) ->
+                            append("$count: ${formatMoney(amount, definitions)}\n")
+                        }
+                        append("\nStatus:\nUNOWNED")
+                    }
+                } else {
+                    buildString {
+                        append("Current Rent: ${formatMoney(state.currentRent ?: 0, definitions)}\n\n")
+                        append("Rent by owned grids:\n")
+                        state.rentTable.forEach { (count, amount) ->
+                            append("$count: ${formatMoney(amount, definitions)}\n")
+                        }
+                    }
+                },
+                buyAmount = state.purchasePrice,
+                ownerPlayerId = ownerPlayerId,
+                ownerName = state.ownerName,
+            )
+        }
+        is GameplayWorkflowState.UnownedEnergyGridDecision -> {
+            val grid = definitions.energyGrids[state.energyGridId] ?: return null
+            val rentTable = grid.rentLevels.sortedBy { it.ownedCount }
+            CardPresentationUi(
+                cardTypeLabel = "ENERGY GRID",
+                title = EnergyGridDisplayNames.displayNameWithNumber(state.energyGridId, definitions),
+                body = buildString {
+                    append("Purchase Price:\n${formatMoney(grid.purchasePrice, definitions)}\n\n")
+                    append("Rent by owned grids:\n")
+                    rentTable.forEach { append("${it.ownedCount}: ${formatMoney(it.amount, definitions)}\n") }
+                    append("\nStatus:\nUNOWNED")
+                },
+                buyAmount = grid.purchasePrice,
+            )
+        }
+        is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> {
+            val grid = definitions.energyGrids[state.energyGridId] ?: return null
+            CardPresentationUi(
+                cardTypeLabel = "ENERGY GRID",
+                title = EnergyGridDisplayNames.displayNameWithNumber(state.energyGridId, definitions),
+                body = "Scan the Player who landed here.",
+                ownerPlayerId = state.ownerPlayerId,
+                ownerName = state.ownerName,
+            )
+        }
         is GameplayWorkflowState.EventIntro -> CardPresentationUi(
             cardTypeLabel = "EVENT",
             title = state.eventName,
@@ -86,7 +141,7 @@ object ActiveGameCardPresentationBuilder {
             CardPresentationUi(
                 cardTypeLabel = "EVENT",
                 title = event.name,
-                body = event.displayText(),
+                body = EventInstructionFormatter.formatDisplayText(event, definitions),
             )
         }
         is GameplayWorkflowState.EventDiceGamble -> {
@@ -94,7 +149,8 @@ object ActiveGameCardPresentationBuilder {
             CardPresentationUi(
                 cardTypeLabel = "EVENT",
                 title = event.name,
-                body = event.eventDescription.ifBlank { event.displayText() },
+                body = EventInstructionFormatter.formatDescription(event, definitions)
+                    .ifBlank { EventInstructionFormatter.formatDisplayText(event, definitions) },
             )
         }
         is GameplayWorkflowState.EventDrawScanRequired -> {
@@ -102,7 +158,8 @@ object ActiveGameCardPresentationBuilder {
             CardPresentationUi(
                 cardTypeLabel = "EVENT",
                 title = event.name,
-                body = event.eventDescription.ifBlank { event.displayText() },
+                body = EventInstructionFormatter.formatDescription(event, definitions)
+                    .ifBlank { EventInstructionFormatter.formatDisplayText(event, definitions) },
             )
         }
         else -> null

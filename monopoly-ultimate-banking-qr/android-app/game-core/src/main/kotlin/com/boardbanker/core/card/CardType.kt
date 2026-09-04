@@ -7,4 +7,5 @@ enum class CardType {
     USER,
     PROPERTY,
     EVENT,
+    ENERGY_GRID,
 }

@@ -176,9 +176,10 @@ fun AppNavigation(
                 onNavigateToBanking = {
                     navController.navigate(AppDestination.AdvancedBanking.route)
                 },
-                onNavigateToAuction = { propertyId, startedByPlayerId ->
+                onNavigateToAuction = { propertyId, energyGridId, startedByPlayerId ->
+                    val assetId = propertyId ?: energyGridId ?: return@GameScreen
                     navController.navigate(
-                        AppDestination.auctionRoute(propertyId, startedByPlayerId),
+                        AppDestination.auctionRoute(assetId, startedByPlayerId),
                     )
                 },
                 onNavigateToDebt = {

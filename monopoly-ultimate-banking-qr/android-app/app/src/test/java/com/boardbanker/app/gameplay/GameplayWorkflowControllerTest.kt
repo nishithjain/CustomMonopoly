@@ -29,16 +29,15 @@ class EventWorkflowPlannerTest {
     }
 
     @Test
-    fun boomTownScanStepsArePlayerThenProperty() {
+    fun boomTownScanStepsArePropertyOnlyWhenActingPlayerKnown() {
         val rule = definitions.events["EVT_01"]!!.engineRule
         val plan = EventWorkflowPlanner.plan("EVT_01", rule)
         assertEquals(EventWorkflowPattern.MOVE_THEN_PROPERTY_CHOICE, plan.pattern)
         assertEquals(
-            listOf(EventScanStep.ACTING_PLAYER, EventScanStep.PROPERTY),
+            listOf(EventScanStep.PROPERTY),
             plan.steps,
         )
-        assertEquals("Scan a Player Card", EventWorkflowPlanner.scanRequest(plan.steps[0]).instruction)
-        assertEquals("Scan a Property Card", EventWorkflowPlanner.scanRequest(plan.steps[1]).instruction)
+        assertEquals("Scan a Property Card", EventWorkflowPlanner.scanRequest(plan.steps[0]).instruction)
     }
 }
 
@@ -55,10 +54,19 @@ class GameplayWorkflowControllerTest {
     }
 
     @Test
-    fun buyRequiresPlayerScan() {
+    fun buyUsesActivePlayerWithoutScan() {
         val session = AppTestSupport.newGame()
         controller.onPropertyScanned("PRP_01", session)
         val actions = controller.onBuySelected(session)
+        assertTrue(actions.any { it is WorkflowAction.ExecuteCommand })
+        assertTrue(actions.none { it is WorkflowAction.RequestScan })
+    }
+
+    @Test
+    fun buyRequiresPlayerScanWhenActivePlayerUnknown() {
+        val session = AppTestSupport.newGame()
+        controller.onPropertyScanned("PRP_01", session)
+        val actions = controller.onBuySelected(session.copy(turnState = session.turnState?.copy(activePlayerId = "")))
         assertTrue(actions.any { it is WorkflowAction.RequestScan })
         assertTrue(controller.currentState() is GameplayWorkflowState.WaitingForPurchasingPlayer)
     }
@@ -104,57 +112,59 @@ class GameplayWorkflowControllerTest {
 
     @Test
     fun eventScanShowsIntroBeforeTargetCollection() {
-        controller.onEventScanned("EVT_05")
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05", session)
         assertTrue(controller.currentState() is GameplayWorkflowState.EventIntro)
     }
 
     @Test
     fun eventContinueStartsTargetCollection() {
-        controller.onEventScanned("EVT_05")
-        val actions = controller.onEventContinue()
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05", session)
+        val actions = controller.onEventContinue(session)
         assertTrue(actions.any { it is WorkflowAction.RequestScan })
         assertTrue(controller.currentState() is GameplayWorkflowState.EventCollectingTargets)
     }
 
     @Test
     fun eventScanStartsTargetCollection() {
-        controller.onEventScanned("EVT_05")
-        controller.onEventContinue()
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05", session)
+        controller.onEventContinue(session)
         assertTrue(controller.currentState() is GameplayWorkflowState.EventCollectingTargets)
     }
 
     @Test
-    fun boomTownFirstScanIsPlayerCard() {
-        controller.onEventScanned("EVT_01")
-        val actions = controller.onEventContinue()
-        assertEquals("Scan a Player Card", actions.scanInstruction())
-        assertEquals(setOf(com.boardbanker.core.card.CardType.USER), actions.scanRequest().acceptedCardTypes)
-    }
-
-    @Test
-    fun boomTownAfterPlayerScanRequestsPropertyCard() {
+    fun boomTownFirstScanIsPropertyCard() {
         val session = AppTestSupport.newGame()
-        controller.onEventScanned("EVT_01")
-        controller.onEventContinue()
-        val actions = controller.onUserScanned("USR_01", session)
+        controller.onEventScanned("EVT_01", session)
+        val actions = controller.onEventContinue(session)
         assertEquals("Scan a Property Card", actions.scanInstruction())
         assertEquals(setOf(com.boardbanker.core.card.CardType.PROPERTY), actions.scanRequest().acceptedCardTypes)
     }
 
     @Test
-    fun grandDesignsUpdatesInstructionAfterPlayerScan() {
+    fun boomTownAfterPropertyScanRequestsApply() {
         val session = AppTestSupport.newGame()
-        controller.onEventScanned("EVT_05")
-        assertEquals("Scan a Player Card", controller.onEventContinue().scanInstruction())
-        assertEquals("Scan a Property Card", controller.onUserScanned("USR_01", session).scanInstruction())
+        controller.onEventScanned("EVT_01", session)
+        controller.onEventContinue(session)
+        val actions = controller.onEventPropertyScanned("PRP_01")
+        assertTrue(actions.any { it is WorkflowAction.ExecuteCommand })
+        assertTrue(actions.none { it is WorkflowAction.RequestScan })
+    }
+
+    @Test
+    fun grandDesignsRequestsPropertyScanOnContinue() {
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_05", session)
+        assertEquals("Scan a Property Card", controller.onEventContinue(session).scanInstruction())
     }
 
     @Test
     fun hauntedHouseUpdatesInstructionAfterEachScan() {
         val session = AppTestSupport.newGame()
-        controller.onEventScanned("EVT_06")
-        assertEquals("Scan a Player Card", controller.onEventContinue().scanInstruction())
-        assertEquals("Scan a Player Card", controller.onUserScanned("USR_01", session).scanInstruction())
+        controller.onEventScanned("EVT_06", session)
+        assertEquals("Scan a Player Card", controller.onEventContinue(session).scanInstruction())
         assertEquals("Scan a Property Card", controller.onUserScanned("USR_02", session).scanInstruction())
         assertEquals("Scan a Property Card", controller.onEventPropertyScanned("PRP_01").scanInstruction())
         val afterSecondProperty = controller.onEventPropertyScanned("PRP_02")
@@ -163,14 +173,15 @@ class GameplayWorkflowControllerTest {
     }
 
     @Test
-    fun wrongCardDuringBoomTownKeepsPlayerInstruction() {
-        controller.onEventScanned("EVT_01")
-        controller.onEventContinue()
-        val wrong = controller.onEventPropertyScanned("PRP_01")
+    fun wrongCardDuringBoomTownKeepsPropertyInstruction() {
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_01", session)
+        controller.onEventContinue(session)
+        val wrong = controller.onUserScanned("USR_01", session)
         assertTrue(wrong.any { it is WorkflowAction.WrongCardType })
         val collecting = controller.currentState() as GameplayWorkflowState.EventCollectingTargets
         assertEquals(
-            "Scan a Player Card",
+            "Scan a Property Card",
             EventWorkflowPlanner.scanRequest(collecting.plan.steps[collecting.stepIndex]).instruction,
         )
     }

@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Wind Energy - Renewable Energy Grid</title>
+
+    <style>
+
+        /* =========================================================
+           RESET
+           ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        /* =========================================================
+           VARIABLES
+           ========================================================= */
+
+        :root {
+
+            /* Fixed physical card size: 108mm × 172mm, Portrait */
+            --card-width: 108mm;
+            --card-height: 172mm;
+
+            --green-dark: #1a3a30;
+            --green: #1e6b55;
+            --green-mid: #2a8a70;
+            --green-light: #4db892;
+
+            --gold: #d4a843;
+            --gold-light: #f0dfa0;
+
+            --paper: #fefcf7;
+            --ink: #1e2b26;
+
+            /* Active lightning bolt */
+            --bolt-active: #d4a843;
+
+            /* Greyed-out lightning bolt */
+            --bolt-inactive: #bfc7c3;
+        }
+
+
+        /* =========================================================
+           PAGE
+           ========================================================= */
+
+        html,
+        body {
+            min-height: 100vh;
+        }
+
+        body {
+
+            display: grid;
+            place-items: center;
+
+            padding: 10mm;
+
+            font-family:
+                "Cambria",
+                "Georgia",
+                "Times New Roman",
+                serif;
+
+            color: var(--ink);
+
+            background:
+                radial-gradient(
+                    circle at 30% 20%,
+                    #f0ede7,
+                    #dad7cf
+                );
+        }
+
+
+        /* =========================================================
+           CARD WRAPPER
+           ========================================================= */
+
+        .card-wrapper {
+
+            width: var(--card-width);
+            height: var(--card-height);
+
+            flex: 0 0 auto;
+        }
+
+
+        /* =========================================================
+           CARD
+           ========================================================= */
+
+        .energy-card {
+
+            position: relative;
+
+            width: var(--card-width);
+            height: var(--card-height);
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+
+            padding:
+                5mm
+                5mm
+                4.5mm;
+
+            border:
+                0.3mm solid
+                rgba(30, 60, 45, 0.10);
+
+            border-radius: 8mm;
+
+            background:
+                linear-gradient(
+                    165deg,
+                    #fefcf7 0%,
+                    #f8f6f0 100%
+                );
+
+            box-shadow:
+                0 3mm 12mm
+                rgba(20, 30, 25, 0.15),
+
+                inset 0 0.2mm 0
+                rgba(255, 255, 255, 0.8);
+        }
+
+
+        .energy-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 2mm;
+
+            border-radius: 6.5mm;
+
+            border:
+                0.2mm solid
+                rgba(30, 80, 60, 0.07);
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================================
+           HEADER
+           ========================================================= */
+
+        .top-frame {
+
+            position: relative;
+            z-index: 1;
+
+            padding:
+                2mm
+                2.5mm
+                2.5mm;
+
+            border-radius:
+                4.5mm
+                4.5mm
+                3mm
+                3mm;
+
+            background:
+                linear-gradient(
+                    175deg,
+                    var(--green-mid),
+                    var(--green) 60%,
+                    var(--green-dark)
+                );
+
+            box-shadow:
+                inset 0 0.2mm 0
+                rgba(255, 255, 255, 0.15),
+
+                inset 0 -0.8mm 1.5mm
+                rgba(0, 0, 0, 0.12),
+
+                0 1.5mm 4mm
+                rgba(18, 55, 45, 0.16);
+        }
+
+
+        /* =========================================================
+           TITLE BANNER
+           ========================================================= */
+
+        .title-banner {
+
+            position: relative;
+
+            min-height: 17mm;
+
+            display: grid;
+            place-items: center;
+
+            text-align: center;
+
+            padding:
+                2.5mm
+                4mm;
+
+            border-radius: 2.5mm;
+
+            border:
+                0.2mm solid
+                rgba(160, 130, 40, 0.20);
+
+            background:
+
+                linear-gradient(
+                    105deg,
+                    rgba(255, 255, 255, 0.25),
+                    rgba(255, 255, 255, 0.05) 30%,
+                    rgba(255, 255, 255, 0.30) 55%,
+                    rgba(255, 255, 255, 0.05) 78%,
+                    rgba(255, 255, 255, 0.18)
+                ),
+
+                linear-gradient(
+                    175deg,
+                    #fff7c0,
+                    var(--gold-light) 40%,
+                    var(--gold) 100%
+                );
+
+            box-shadow:
+
+                0 0.8mm 0
+                var(--gold),
+
+                0 2mm 4mm
+                rgba(0, 0, 0, 0.12),
+
+                inset 0 0.3mm 0
+                rgba(255, 255, 255, 0.7);
+        }
+
+
+        .energy-title {
+
+            font-family:
+                "Cambria",
+                "Georgia",
+                serif;
+
+            font-size: 6.0mm;
+
+            font-weight: 700;
+
+            line-height: 1;
+
+            letter-spacing: 0.03em;
+
+            text-transform: uppercase;
+
+            color: #1f2a24;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* =========================================================
+           CATEGORY
+           ========================================================= */
+
+        .grid-type {
+
+            position: relative;
+            z-index: 1;
+
+            width: fit-content;
+
+            margin:
+                3.5mm
+                auto
+                2.5mm;
+
+            padding:
+                1.2mm
+                5mm;
+
+            border-radius: 999px;
+
+            font-family:
+                "Cambria",
+                "Georgia",
+                serif;
+
+            font-size: 3mm;
+
+            font-weight: 700;
+
+            letter-spacing: 0.08em;
+
+            text-transform: uppercase;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    170deg,
+                    var(--green-mid),
+                    var(--green)
+                );
+
+            box-shadow:
+                0 0.8mm 2.5mm
+                rgba(20, 70, 55, 0.14);
+        }
+
+
+        /* =========================================================
+           ARTWORK
+           ========================================================= */
+
+        .energy-image {
+
+            position: relative;
+            z-index: 1;
+
+            width: 100%;
+
+            flex: 1 1 auto;
+
+            min-height: 0;
+
+            overflow: hidden;
+
+            border-radius: 4mm;
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(255, 255, 255, 0.95),
+                    rgba(225, 243, 234, 0.70)
+                );
+
+            box-shadow:
+                inset 0 0 0 0.2mm
+                rgba(30, 90, 65, 0.06),
+
+                0 1mm 3.5mm
+                rgba(40, 60, 50, 0.06);
+        }
+
+
+        .energy-image img {
+
+            width: 100%;
+            height: 100%;
+
+            display: block;
+
+            object-fit: cover;
+            object-position: center;
+        }
+
+
+        /* =========================================================
+           PURCHASE PRICE
+           ========================================================= */
+
+        .purchase-panel {
+
+            position: relative;
+            z-index: 1;
+
+            margin:
+                2.8mm
+                6mm
+                0;
+
+            padding:
+                2mm
+                4mm
+                2.2mm;
+
+            text-align: center;
+
+            border-radius: 3.5mm;
+
+            border:
+                0.2mm solid
+                rgba(180, 140, 30, 0.18);
+
+            background:
+                linear-gradient(
+                    170deg,
+                    #fdf7d8,
+                    #f5e28a
+                );
+
+            box-shadow:
+                inset 0 0.2mm 0
+                rgba(255, 255, 255, 0.70),
+
+                0 0.8mm 2.5mm
+                rgba(120, 90, 20, 0.08);
+        }
+
+
+        .purchase-label {
+
+            font-size: 2.8mm;
+
+            font-weight: 700;
+
+            letter-spacing: 0.10em;
+
+            text-transform: uppercase;
+
+            color: #6b5a24;
+        }
+
+
+        .purchase-value {
+
+            margin-top: 0.5mm;
+
+            font-size: 5.5mm;
+
+            font-weight: 700;
+
+            color: #1f2a24;
+        }
+
+
+        /* =========================================================
+           ENERGY GRID FEE PANEL
+           ========================================================= */
+
+        .fee-panel {
+
+            position: relative;
+            z-index: 1;
+
+            margin-top: 2.8mm;
+
+            overflow: hidden;
+
+            border-radius: 4mm;
+
+            border:
+                0.2mm solid
+                rgba(30, 80, 60, 0.12);
+
+            background: #f7faf8;
+
+            box-shadow:
+                inset 0 0.2mm 0
+                rgba(255, 255, 255, 0.80),
+
+                0 1mm 3mm
+                rgba(30, 60, 45, 0.05);
+        }
+
+
+        .fee-title {
+
+            padding:
+                1.8mm
+                3mm;
+
+            text-align: center;
+
+            font-size: 3.2mm;
+
+            font-weight: 700;
+
+            letter-spacing: 0.06em;
+
+            text-transform: uppercase;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    170deg,
+                    var(--green-mid),
+                    var(--green)
+                );
+        }
+
+
+        /* =========================================================
+           FEE ROW
+           ========================================================= */
+
+        .fee-row {
+
+            display: grid;
+
+            grid-template-columns:
+                28mm
+                1fr
+                auto;
+
+            align-items: center;
+
+            column-gap: 2.5mm;
+
+            min-height: 9mm;
+
+            padding:
+                1.4mm
+                4mm;
+
+            border-bottom:
+                0.2mm solid
+                #e0eae5;
+        }
+
+
+        .fee-row:last-child {
+            border-bottom: none;
+        }
+
+
+        /* =========================================================
+           LIGHTNING INDICATORS
+           ========================================================= */
+
+        .grid-bolts {
+
+            width: 26mm;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            align-items: center;
+
+            gap: 0.5mm;
+        }
+
+
+        /*
+           IMPORTANT
+
+           These are SVG bolts.
+
+           Therefore:
+           - No emoji rendering
+           - CSS colors always work
+           - Greyed-out bolts really become grey
+           - Works in browser/PDF/print
+        */
+
+        .bolt-icon {
+
+            width: 4.2mm;
+            height: 5.5mm;
+
+            display: block;
+
+            justify-self: center;
+        }
+
+
+        .bolt-icon.active {
+
+            color: var(--bolt-active);
+
+            opacity: 1;
+
+            filter:
+                drop-shadow(
+                    0 0.2mm 0.15mm
+                    rgba(95, 65, 5, 0.18)
+                );
+        }
+
+
+        .bolt-icon.inactive {
+
+            color: var(--bolt-inactive);
+
+            opacity: 0.55;
+        }
+
+
+        /* =========================================================
+           FEE LABEL
+           ========================================================= */
+
+        .fee-owned {
+
+            font-size: 3.2mm;
+
+            font-weight: 600;
+
+            color: #2a3f36;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           FEE VALUE
+           ========================================================= */
+
+        .fee-value {
+
+            min-width: 20mm;
+
+            text-align: right;
+
+            font-size: 3.6mm;
+
+            font-weight: 700;
+
+            color: #1a3028;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           COMPLETE SET
+           ========================================================= */
+
+        .fee-row.complete {
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255, 230, 109, 0.20),
+                    rgba(255, 245, 190, 0.35)
+                );
+        }
+
+
+        .fee-row.complete .fee-value {
+
+            color: #8f6a18;
+        }
+
+
+        .fee-row.complete .fee-owned {
+
+            font-weight: 700;
+
+            color: #5f4b17;
+        }
+
+
+        /* =========================================================
+           NOTE
+           ========================================================= */
+
+        .grid-note {
+
+            position: relative;
+            z-index: 1;
+
+            margin:
+                2.5mm
+                3mm
+                0;
+
+            padding-top: 2mm;
+
+            text-align: center;
+
+            font-size: 2.6mm;
+
+            line-height: 1.3;
+
+            font-weight: 500;
+
+            color: #5c6b64;
+
+            border-top:
+                0.2mm solid
+                rgba(40, 80, 60, 0.08);
+        }
+
+
+        .grid-note strong {
+
+            color: var(--green);
+
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           CARD ID
+           ========================================================= */
+
+        .bottom-id {
+
+            position: relative;
+            z-index: 1;
+
+            width: fit-content;
+
+            margin:
+                1.8mm
+                auto
+                0;
+
+            padding:
+                0.5mm
+                3.5mm;
+
+            border-radius: 999px;
+
+            font-size: 2mm;
+
+            font-weight: 600;
+
+            letter-spacing: 0.08em;
+
+            color: #7a8a82;
+
+            background: #f0f3f1;
+
+            border:
+                0.2mm solid
+                rgba(60, 90, 75, 0.08);
+        }
+
+
+        /* =========================================================
+           SVG SYMBOL HOLDER
+           ========================================================= */
+
+        .svg-definitions {
+
+            position: absolute;
+
+            width: 0;
+            height: 0;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           PRINT
+           ========================================================= */
+
+        @page {
+            size: 108mm 172mm; /* Portrait */
+            margin: 0;
+        }
+
+
+        @media print {
+
+            html,
+            body {
+
+                width: 108mm;
+                height: 172mm;
+            }
+
+
+            body {
+
+                display: block;
+
+                padding: 0;
+                margin: 0;
+
+                background: #ffffff;
+            }
+
+
+            .card-wrapper,
+            .energy-card {
+
+                width: 108mm;
+                height: 172mm;
+            }
+
+
+            .energy-card {
+
+                box-shadow: none;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<!-- ============================================================
+     REUSABLE SVG LIGHTNING SYMBOL
+
+     fill="currentColor" means CSS controls its color.
+
+     active   = gold
+     inactive = grey
+     ============================================================ -->
+
+<svg class="svg-definitions"
+     xmlns="http://www.w3.org/2000/svg">
+
+    <symbol id="lightning-bolt"
+            viewBox="0 0 24 32">
+
+        <path
+            fill="currentColor"
+            d="
+                M14.6 0
+                L3.2 17.1
+                H10
+                L7.8 32
+                L20.8 12.6
+                H13.8
+                Z
+            ">
+        </path>
+
+    </symbol>
+
+</svg>
+
+
+
+<div class="card-wrapper">
+
+    <article class="energy-card">
+
+
+        <!-- =====================================================
+             TITLE
+             ===================================================== -->
+
+        <header class="top-frame">
+
+            <div class="title-banner">
+
+                <div class="energy-title">
+                    Wind Energy
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =====================================================
+             CATEGORY
+             ===================================================== -->
+
+        <div class="grid-type">
+            Renewable Energy Grid
+        </div>
+
+
+
+        <!-- =====================================================
+             ARTWORK
+
+             Uncomment if your generator inserts image path:
+
+             <img
+                 src="Wind.png"
+                 alt="Wind Energy">
+             ===================================================== -->
+
+        <div class="energy-image">
+            <img src="../Wind.png" alt="Wind Energy">
+        </div>
+
+
+
+        <!-- =====================================================
+             PURCHASE PRICE
+             ===================================================== -->
+
+        <div class="purchase-panel">
+
+            <div class="purchase-label">
+                Purchase Price
+            </div>
+
+            <div class="purchase-value">
+                ₹20,000
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             ENERGY GRID FEE
+             ===================================================== -->
+
+        <section class="fee-panel">
+
+
+            <div class="fee-title">
+                Energy Grid Fee
+            </div>
+
+
+
+            <!-- =================================================
+                 OWN 1 GRID
+
+                 GOLD GREY GREY GREY
+                 ================================================= -->
+
+            <div class="fee-row">
+
+
+                <div class="grid-bolts">
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                </div>
+
+
+                <div class="fee-owned">
+                    Own 1 Grid
+                </div>
+
+
+                <div class="fee-value">
+                    ₹5,000
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 OWN 2 GRIDS
+
+                 GOLD GOLD GREY GREY
+                 ================================================= -->
+
+            <div class="fee-row">
+
+
+                <div class="grid-bolts">
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                </div>
+
+
+                <div class="fee-owned">
+                    Own 2 Grids
+                </div>
+
+
+                <div class="fee-value">
+                    ₹12,000
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 OWN 3 GRIDS
+
+                 GOLD GOLD GOLD GREY
+                 ================================================= -->
+
+            <div class="fee-row">
+
+
+                <div class="grid-bolts">
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon inactive">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                </div>
+
+
+                <div class="fee-owned">
+                    Own 3 Grids
+                </div>
+
+
+                <div class="fee-value">
+                    ₹25,000
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 OWN ALL 4
+
+                 GOLD GOLD GOLD GOLD
+                 ================================================= -->
+
+            <div class="fee-row complete">
+
+
+                <div class="grid-bolts">
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                    <svg class="bolt-icon active">
+                        <use href="#lightning-bolt"></use>
+                    </svg>
+
+
+                </div>
+
+
+                <div class="fee-owned">
+                    Own All 4
+                </div>
+
+
+                <div class="fee-value">
+                    ₹40,000
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================================
+             RULE
+             ===================================================== -->
+
+        <div class="grid-note">
+
+            Grid fee depends on the total number of
+
+            <strong>
+                Renewable Energy Grids
+            </strong>
+
+            owned by the same player.
+
+        </div>
+
+
+
+        <!-- =====================================================
+             CARD ID
+             ===================================================== -->
+
+        <div class="bottom-id">
+            ENG_02
+        </div>
+
+
+    </article>
+
+</div>
+
+
+</body>
+
+</html>

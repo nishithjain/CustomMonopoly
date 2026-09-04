@@ -82,7 +82,7 @@ class EditionArchitectureTests {
     @Test
     fun bundledEditionsExposeExpectedDefinitionVersions() {
         assertEquals(1, TestFixtures.definitions.edition!!.definitionVersion)
-        assertEquals(2, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
+        assertEquals(3, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
     }
 
     @Test
@@ -93,7 +93,7 @@ class EditionArchitectureTests {
             com.boardbanker.core.model.GameSession(
                 gameId = "INDIA_TEST",
                 editionId = EditionIds.INDIA,
-                editionDefinitionVersion = 2,
+                editionDefinitionVersion = 3,
             ),
             com.boardbanker.core.command.GameCommand.CreateGame("INDIA_TEST"),
         ).session

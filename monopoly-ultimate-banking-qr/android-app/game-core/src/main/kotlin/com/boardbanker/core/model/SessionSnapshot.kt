@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class SessionSnapshot(
     val players: Map<String, PlayerState>,
     val properties: Map<String, PropertyState>,
+    val energyGrids: Map<String, EnergyGridState> = emptyMap(),
     val colorGroups: Map<String, ColorGroupState>,
     val temporaryEffects: List<TemporaryEffect>,
     val debtResolution: DebtResolutionState? = null,
@@ -14,6 +15,7 @@ data class SessionSnapshot(
     val pendingEventExecution: PendingEventExecution? = null,
     val pendingEventDraw: PendingEventDraw? = null,
     val pendingDiceGamble: PendingDiceGamble? = null,
+    val pendingEnergyGridLanding: PendingEnergyGridLanding? = null,
     val eventChainDepth: Int = 0,
     val turnState: TurnState? = null,
     val status: GameStatus = GameStatus.ACTIVE,

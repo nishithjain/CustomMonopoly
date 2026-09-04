@@ -49,13 +49,29 @@ data class GameUiState(
     val diceGamble: DiceGambleUiState? = null,
     val eventDraw: EventDrawUiState? = null,
     val cardPresentation: CardPresentationUi? = null,
+    val activePlayerInJail: Boolean = false,
+    val jailResolutionMessage: String? = null,
+    val actionAvailability: ActiveGameActionAvailability = ActiveGameActionAvailability(
+        scanCardEnabled = false,
+        endTurnEnabled = false,
+        bankActionsEnabled = false,
+        getOutOfJailEnabled = false,
+    ),
 )
 
 sealed class GameEvent {
     data object NavigateHome : GameEvent()
     data class OpenScanner(val request: ScanRequest) : GameEvent()
     data object NavigateToBanking : GameEvent()
-    data class NavigateToAuction(val propertyId: String, val startedByPlayerId: String) : GameEvent()
+    data class NavigateToAuction(
+        val propertyId: String? = null,
+        val energyGridId: String? = null,
+        val startedByPlayerId: String,
+    ) : GameEvent() {
+        val assetId: String = requireNotNull(propertyId ?: energyGridId) {
+            "Auction navigation requires propertyId or energyGridId"
+        }
+    }
     data object NavigateToDebt : GameEvent()
     data object NavigateToGameOver : GameEvent()
     data class NavigateToPlayerDetails(val playerId: String) : GameEvent()

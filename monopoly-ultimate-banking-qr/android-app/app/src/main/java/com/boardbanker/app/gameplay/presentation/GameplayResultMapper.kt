@@ -9,8 +9,10 @@ import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.event.EventInstructionFormatter
 import com.boardbanker.core.model.displayNameWithNumber
 
 class GameplayResultMapper(
@@ -67,6 +69,128 @@ class GameplayResultMapper(
                     ownerName = resolvePlayerName,
                     ownerPlayerId = playerId,
                     rentLevelAfter = rentLevel,
+                    rentAmount = rentAmount,
+                ),
+            ),
+            lastTransactionSummary = summarizeLastTransaction(result),
+        )
+    }
+
+    fun mapEnergyGridPurchaseResult(
+        result: GameResult,
+        playerId: String,
+        energyGridId: String,
+        balanceBefore: Int,
+    ): GameplayResultUiModel {
+        if (result.outcome == GameOutcome.DEBT_RESOLUTION_REQUIRED) {
+            return insufficientFunds("Unable to complete purchase.")
+        }
+        if (!result.isSuccess) {
+            return errorResult(result.error)
+        }
+        val grid = definitions.energyGrids[energyGridId]!!
+        val resolvePlayerName = resolvePlayerName(playerId, result.session)
+        val balanceAfter = result.session.players[playerId]!!.balance
+        val currentRent = com.boardbanker.core.rules.EnergyGridRentCalculator.rentForOwner(
+            definitions,
+            result.session,
+            playerId,
+        )
+        return GameplayResultUiModel(
+            displayCardId = energyGridId,
+            title = "PURCHASE COMPLETE",
+            primaryPlayerId = playerId,
+            primaryPlayerName = resolvePlayerName,
+            primaryMessage = buildString {
+                append("bought\n${EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions)}\n\n")
+                append("Paid: ${money(grid.purchasePrice)}\n")
+                append("Balance: ${money(balanceAfter)}\n")
+                append("Current grid rent: ${money(currentRent)}")
+            },
+            balanceChanges = listOf(
+                BalanceChangeUi(playerId = playerId, playerName = resolvePlayerName, before = balanceBefore, after = balanceAfter),
+            ),
+            propertyChanges = listOf(
+                PropertyChangeUi(
+                    propertyName = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions),
+                    ownerName = resolvePlayerName,
+                    ownerPlayerId = playerId,
+                    rentAmount = currentRent,
+                ),
+            ),
+            lastTransactionSummary = summarizeLastTransaction(result),
+        )
+    }
+
+    fun mapEnergyGridLandingResult(
+        result: GameResult,
+        playerId: String,
+        energyGridId: String,
+        sessionBefore: GameSession,
+    ): GameplayResultUiModel {
+        if (result.outcome == GameOutcome.PENDING_ACTION) {
+            return GameplayResultUiModel(
+                displayCardId = energyGridId,
+                title = "ENERGY GRID",
+                primaryMessage = result.pendingMessage ?: "Choose BUY or AUCTION.",
+                isSuccess = true,
+            )
+        }
+        if (result.outcome == GameOutcome.DEBT_RESOLUTION_REQUIRED) {
+            return insufficientFunds("Unable to complete rent payment.")
+        }
+        if (!result.isSuccess) {
+            return errorResult(result.error)
+        }
+        val gridName = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions)
+        val ownerId = sessionBefore.energyGrids[energyGridId]?.ownerPlayerId
+        val ownerName = ownerId?.let { resolvePlayerName(it, result.session) }
+        val visitorName = resolvePlayerName(playerId, result.session)
+        val rentTx = result.transactions.firstOrNull {
+            it.transactionType == TransactionType.RENT_PAYMENT
+        }
+        if (ownerId == playerId) {
+            return GameplayResultUiModel(
+                displayCardId = energyGridId,
+                title = "YOUR ENERGY GRID",
+                primaryPlayerId = ownerId,
+                primaryPlayerName = ownerName,
+                primaryMessage = "$gridName\n\nYou own this Energy Grid.",
+                propertyChanges = listOf(
+                    PropertyChangeUi(
+                        propertyName = gridName,
+                        ownerName = ownerName,
+                        ownerPlayerId = ownerId,
+                    ),
+                ),
+                lastTransactionSummary = summarizeLastTransaction(result),
+            )
+        }
+        val rentAmount = rentTx?.amount
+        return GameplayResultUiModel(
+            displayCardId = energyGridId,
+            title = "RENT PAID",
+            primaryPlayerId = playerId,
+            primaryPlayerName = visitorName,
+            primaryMessage = buildString {
+                append("$visitorName paid rent on\n$gridName\n\n")
+                if (rentAmount != null) append("Amount: ${money(rentAmount)}")
+            },
+            balanceChanges = rentAmount?.let {
+                listOf(
+                    BalanceChangeUi(
+                        playerId = playerId,
+                        playerName = visitorName,
+                        before = sessionBefore.players[playerId]!!.balance,
+                        after = result.session.players[playerId]!!.balance,
+                    ),
+                )
+            } ?: emptyList(),
+            propertyChanges = listOf(
+                PropertyChangeUi(
+                    propertyName = gridName,
+                    ownerName = ownerName,
+                    ownerPlayerId = ownerId,
                     rentAmount = rentAmount,
                 ),
             ),
@@ -244,7 +368,7 @@ class GameplayResultMapper(
                 }
             }
             .distinct()
-        val gridlockMessage = if (eventId == "EVT_21") {
+        val gridlockMessage = if (eventId == "EVT_21" && definitions.editionId == "uk") {
             "TOTAL GRIDLOCK\n\nMove all players who are not in Jail directly to Free Parking.\n\n" +
                 "Do not collect ${formatMoney(definitions.bankingValues.goSalary, definitions)} for passing GO.\n\nPlayers already in Jail remain there."
         } else {
@@ -252,10 +376,10 @@ class GameplayResultMapper(
         }
         return GameplayResultUiModel(
             displayCardId = eventId,
-            title = if (eventId == "EVT_21") "TOTAL GRIDLOCK" else "EVENT APPLIED",
+            title = if (eventId == "EVT_21" && definitions.editionId == "uk") "TOTAL GRIDLOCK" else "EVENT APPLIED",
             primaryMessage = buildString {
                 append("${event.name}\n\n")
-                append(event.displayText().ifBlank { result.pendingMessage ?: "Event applied." })
+                append(EventInstructionFormatter.formatDisplayText(event, definitions).ifBlank { result.pendingMessage ?: "Event applied." })
                 if (extraTurnJailLines.isNotEmpty()) {
                     append("\n\n")
                     append(extraTurnJailLines.joinToString("\n"))

@@ -15,8 +15,8 @@ class DefinitionVersionValidatorTest {
     }
 
     @Test
-    fun indiaEditionLoadsWithVersionTwo() {
-        assertEquals(2, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
+    fun indiaEditionLoadsWithVersionThree() {
+        assertEquals(3, TestFixtures.loadEdition(EditionIds.INDIA).edition!!.definitionVersion)
     }
 
     @Test

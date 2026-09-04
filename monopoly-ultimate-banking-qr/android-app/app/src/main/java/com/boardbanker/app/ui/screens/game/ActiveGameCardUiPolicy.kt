@@ -26,6 +26,12 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.WaitingForPurchasingPlayer -> workflow.propertyId
             is GameplayWorkflowState.WaitingForRentPayer -> workflow.propertyId
             is GameplayWorkflowState.WaitingForAuctionStarter -> workflow.propertyId
+            is GameplayWorkflowState.EnergyGridSummary -> workflow.energyGridId
+            is GameplayWorkflowState.UnownedEnergyGridDecision -> workflow.energyGridId
+            is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid -> workflow.energyGridId
+            is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> workflow.energyGridId
+            is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid -> workflow.energyGridId
+            is GameplayWorkflowState.WaitingForExpectedEnergyGridScan -> workflow.energyGridId
             is GameplayWorkflowState.EventIntro -> workflow.eventId
             is GameplayWorkflowState.EventCollectingTargets -> workflow.eventId
             is GameplayWorkflowState.EventConfirm -> workflow.eventId
@@ -41,6 +47,7 @@ object ActiveGameCardUiPolicy {
         workflowState: GameplayWorkflowState,
         result: GameplayResultUiModel?,
         gameplayLocked: Boolean,
+        activePlayerInJail: Boolean = false,
     ): ActiveGameActionVisibility {
         if (gameplayLocked) {
             return ActiveGameActionVisibility(showDone = result != null)
@@ -48,10 +55,22 @@ object ActiveGameCardUiPolicy {
         if (result != null) {
             return ActiveGameActionVisibility(showDone = true)
         }
+        if (activePlayerInJail) {
+            return ActiveGameActionVisibility(showCancel = workflowState !is GameplayWorkflowState.Ready)
+        }
         return when (workflowState) {
             is GameplayWorkflowState.UnownedPropertyDecision -> ActiveGameActionVisibility(
                 showBuy = true,
                 showAuction = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.UnownedEnergyGridDecision -> ActiveGameActionVisibility(
+                showBuy = true,
+                showAuction = true,
+                showCancel = true,
+            )
+            is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> ActiveGameActionVisibility(
+                showScanPlayer = true,
                 showCancel = true,
             )
             is GameplayWorkflowState.WaitingForRentPayer -> ActiveGameActionVisibility(
@@ -66,6 +85,10 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.EventDrawScanRequired -> ActiveGameActionVisibility()
             is GameplayWorkflowState.EventCollectingTargets,
             is GameplayWorkflowState.EventConfirm,
+            is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid,
+            is GameplayWorkflowState.WaitingForExpectedEnergyGridScan,
+            -> ActiveGameActionVisibility(showCancel = true)
+            is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid,
             is GameplayWorkflowState.WaitingForPurchasingPlayer,
             is GameplayWorkflowState.WaitingForAuctionStarter,
             -> ActiveGameActionVisibility(showCancel = true)
@@ -95,6 +118,12 @@ object ActiveGameCardUiPolicy {
             is GameplayWorkflowState.WaitingForPurchasingPlayer -> CardType.PROPERTY
             is GameplayWorkflowState.WaitingForRentPayer -> CardType.PROPERTY
             is GameplayWorkflowState.WaitingForAuctionStarter -> CardType.PROPERTY
+            is GameplayWorkflowState.EnergyGridSummary -> CardType.ENERGY_GRID
+            is GameplayWorkflowState.UnownedEnergyGridDecision -> CardType.ENERGY_GRID
+            is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid -> CardType.ENERGY_GRID
+            is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> CardType.ENERGY_GRID
+            is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid -> CardType.ENERGY_GRID
+            is GameplayWorkflowState.WaitingForExpectedEnergyGridScan -> CardType.ENERGY_GRID
             is GameplayWorkflowState.EventIntro -> CardType.EVENT
             is GameplayWorkflowState.EventCollectingTargets -> CardType.EVENT
             is GameplayWorkflowState.EventConfirm -> CardType.EVENT
@@ -110,6 +139,7 @@ object ActiveGameCardUiPolicy {
     fun cardIdFromId(cardId: String): CardType? = when {
         cardId.startsWith("USR_") -> CardType.USER
         cardId.startsWith("PRP_") -> CardType.PROPERTY
+        cardId.startsWith("ENG_") -> CardType.ENERGY_GRID
         cardId.startsWith("EVT_") -> CardType.EVENT
         else -> null
     }

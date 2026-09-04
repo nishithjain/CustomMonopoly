@@ -81,7 +81,7 @@ class GoJailLocationAuctionTests {
     @Test
     fun tsAuction001_fixedM20Increments() {
         var session = TestFixtures.newGame()
-        session = engine.process(session, GameCommand.StartAuction("PRP_03", "USR_01")).session
+        session = engine.process(session, GameCommand.StartAuction(propertyId = "PRP_03", startedByPlayerId = "USR_01")).session
         session = engine.process(session, GameCommand.PlaceAuctionBid("USR_01", 20)).session
         session = engine.process(session, GameCommand.PlaceAuctionBid("USR_02", 40)).session
         session = engine.process(session, GameCommand.PlaceAuctionBid("USR_01", 60)).session
@@ -94,7 +94,7 @@ class GoJailLocationAuctionTests {
     @Test
     fun tsAuction002_noBidsCancels() {
         var session = TestFixtures.newGame()
-        session = engine.process(session, GameCommand.StartAuction("PRP_03", "USR_01")).session
+        session = engine.process(session, GameCommand.StartAuction(propertyId = "PRP_03", startedByPlayerId = "USR_01")).session
         val result = engine.process(session, GameCommand.CancelAuction)
         assertNull(result.session.auction)
         assertNull(result.session.properties["PRP_03"]!!.ownerPlayerId)

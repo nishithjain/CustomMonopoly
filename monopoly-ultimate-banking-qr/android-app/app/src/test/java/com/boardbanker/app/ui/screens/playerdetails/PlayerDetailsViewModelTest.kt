@@ -183,6 +183,64 @@ class PlayerDetailsViewModelTest {
     }
 
     @Test
+    fun jailedPlayer_disablesBankActionsExceptGetOutOfJail() = runTest {
+        startActiveGame()
+        executor.execute(GameCommand.SendPlayerToJail("USR_01"))
+        val viewModel = createViewModel("USR_01")
+        advanceUntilIdle()
+
+        val availability = PlayerDetailsActionAvailability.forPlayer(
+            inJail = viewModel.uiState.value.inJail,
+            commandInFlight = viewModel.uiState.value.commandInFlight,
+            step = viewModel.uiState.value.step,
+        )
+        assertFalse(availability.collectGoEnabled)
+        assertFalse(availability.locationEnabled)
+        assertTrue(availability.getOutOfJailEnabled)
+        assertFalse(availability.goToJailEnabled)
+    }
+
+    @Test
+    fun nonJailedPlayer_keepsNormalBankActionsWhenOtherPlayerJailed() = runTest {
+        startActiveGame()
+        executor.execute(GameCommand.SendPlayerToJail("USR_01"))
+        val viewModel = createViewModel("USR_02")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.inJail)
+        val availability = PlayerDetailsActionAvailability.forPlayer(
+            inJail = viewModel.uiState.value.inJail,
+            commandInFlight = false,
+            step = PlayerDetailsStep.Hub,
+        )
+        assertTrue(availability.collectGoEnabled)
+        assertTrue(availability.locationEnabled)
+        assertTrue(availability.goToJailEnabled)
+    }
+
+    @Test
+    fun successfulJailRelease_restoresNormalBankActions() = runTest {
+        startActiveGame()
+        executor.execute(GameCommand.SendPlayerToJail("USR_01"))
+        val viewModel = createViewModel("USR_01")
+        advanceUntilIdle()
+
+        viewModel.onGetOutOfJail()
+        viewModel.onPayJailFee()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.inJail)
+        val availability = PlayerDetailsActionAvailability.forPlayer(
+            inJail = viewModel.uiState.value.inJail,
+            commandInFlight = false,
+            step = PlayerDetailsStep.Hub,
+        )
+        assertTrue(availability.collectGoEnabled)
+        assertTrue(availability.locationEnabled)
+        assertTrue(availability.goToJailEnabled)
+    }
+
+    @Test
     fun ownedProperties_sortedByBoardSequence() = runTest {
         startActiveGame()
         executor.execute(GameCommand.PurchaseProperty("USR_01", "PRP_22"))

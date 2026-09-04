@@ -566,6 +566,54 @@
       "rotationApplied": false,
       "width": 1024,
       "height": 1630
+    },
+    "ENG_01": {
+      "cardId": "ENG_01",
+      "cardType": "ENERGY_GRID",
+      "name": "Solar Energy",
+      "sourceFrontPath": "Resources/Editions/india/EnergyGridCards/ENG_01_Solar_Front.png",
+      "runtimeAssetPath": "cards/editions/india/energy-grid/eng_01.png",
+      "asset": "cards/editions/india/energy-grid/eng_01.png",
+      "orientation": "PORTRAIT",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 1630
+    },
+    "ENG_02": {
+      "cardId": "ENG_02",
+      "cardType": "ENERGY_GRID",
+      "name": "Wind Energy",
+      "sourceFrontPath": "Resources/Editions/india/EnergyGridCards/ENG_02_Wind_Front.png",
+      "runtimeAssetPath": "cards/editions/india/energy-grid/eng_02.png",
+      "asset": "cards/editions/india/energy-grid/eng_02.png",
+      "orientation": "PORTRAIT",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 1630
+    },
+    "ENG_03": {
+      "cardId": "ENG_03",
+      "cardType": "ENERGY_GRID",
+      "name": "Hydroelectric Energy",
+      "sourceFrontPath": "Resources/Editions/india/EnergyGridCards/ENG_03_Hydroelectric_Front.png",
+      "runtimeAssetPath": "cards/editions/india/energy-grid/eng_03.png",
+      "asset": "cards/editions/india/energy-grid/eng_03.png",
+      "orientation": "PORTRAIT",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 1630
+    },
+    "ENG_04": {
+      "cardId": "ENG_04",
+      "cardType": "ENERGY_GRID",
+      "name": "Biomass Energy",
+      "sourceFrontPath": "Resources/Editions/india/EnergyGridCards/ENG_04_Biomass_Front.png",
+      "runtimeAssetPath": "cards/editions/india/energy-grid/eng_04.png",
+      "asset": "cards/editions/india/energy-grid/eng_04.png",
+      "orientation": "PORTRAIT",
+      "rotationApplied": false,
+      "width": 1024,
+      "height": 1630
     }
   }
 }

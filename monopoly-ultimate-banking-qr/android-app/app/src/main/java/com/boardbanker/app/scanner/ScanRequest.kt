@@ -4,6 +4,7 @@ import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.PropertyDisplayNames
 
 enum class ScanContext {
@@ -11,6 +12,7 @@ enum class ScanContext {
     PLAYER,
     PROPERTY,
     EVENT,
+    ENERGY_GRID,
     PLAYER_OR_PROPERTY,
     UNDO_AUTHORIZATION,
 }
@@ -31,7 +33,7 @@ data class ScanRequest(
     val singleExpectedType: CardType? get() = acceptedCardTypes.singleOrNull()
 
     companion object {
-        private val allGameTypes = setOf(CardType.USER, CardType.PROPERTY, CardType.EVENT)
+        private val allGameTypes = setOf(CardType.USER, CardType.PROPERTY, CardType.EVENT, CardType.ENERGY_GRID)
 
         fun gameCard(): ScanRequest = ofTypes(allGameTypes, ScanContext.ANY_GAME_CARD)
 
@@ -103,10 +105,30 @@ data class ScanRequest(
             )
         }
 
+        fun energyGrid(
+            specificCardId: String? = null,
+            specificCardName: String? = null,
+        ): ScanRequest {
+            val instruction = if (specificCardName.isNullOrBlank()) {
+                "Scan an Energy Grid Card"
+            } else {
+                "Scan Energy Grid Card: $specificCardName"
+            }
+            return ScanRequest(
+                acceptedCardTypes = setOf(CardType.ENERGY_GRID),
+                specificCardId = specificCardId,
+                specificCardName = specificCardName,
+                instruction = instruction,
+                mismatchInstruction = "Please ${instruction.replaceFirst("Scan", "scan")}.",
+                context = ScanContext.ENERGY_GRID,
+            )
+        }
+
         fun fromExpectedType(expectedCardType: CardType?): ScanRequest = when (expectedCardType) {
             CardType.USER -> player()
             CardType.PROPERTY -> property()
             CardType.EVENT -> event()
+            CardType.ENERGY_GRID -> energyGrid()
             null -> gameCard()
         }
 
@@ -123,6 +145,11 @@ data class ScanRequest(
                 specificCardName = display,
                 useTokenForm = useTokenForm,
             )
+        }
+
+        fun forEnergyGridId(energyGridId: String, definitions: GameDefinitions): ScanRequest {
+            val name = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions)
+            return energyGrid(energyGridId, name)
         }
 
         fun forPropertyId(propertyId: String, definitions: GameDefinitions): ScanRequest {
@@ -178,6 +205,7 @@ data class ScanRequest(
             CardType.USER -> "Player Card"
             CardType.PROPERTY -> "Property Card"
             CardType.EVENT -> "Event Card"
+            CardType.ENERGY_GRID -> "Energy Grid Card"
         }
 
         private fun withArticle(phrase: String): String =

@@ -79,7 +79,7 @@ class IndiaEditionReadinessTest {
             com.boardbanker.core.model.GameSession(
                 gameId = "INDIA_READY",
                 editionId = EditionIds.INDIA,
-                editionDefinitionVersion = 2,
+                editionDefinitionVersion = 3,
             ),
             GameCommand.CreateGame("INDIA_READY"),
         )
@@ -89,7 +89,7 @@ class IndiaEditionReadinessTest {
 
         val session = result.session
         assertEquals(EditionIds.INDIA, session.editionId)
-        assertEquals(2, session.editionDefinitionVersion)
+        assertEquals(3, session.editionDefinitionVersion)
         assertEquals(150000, session.players["USR_01"]!!.balance)
         assertEquals(20000, india.bankingValues.goSalary)
         assertEquals(10000, india.bankingValues.jailReleaseFee)
@@ -97,6 +97,8 @@ class IndiaEditionReadinessTest {
         assertEquals("Cubbon Park", india.properties["PRP_01"]!!.name)
         assertEquals(25, india.events.size)
         assertEquals(22, india.properties.size)
+        assertEquals(4, india.energyGrids.size)
+        assertEquals(55, india.edition!!.cardConfiguration!!.let { it.playerCardCount + it.propertyCardCount + it.eventCardCount + it.energyGridCardCount })
         assertTrue(GameRulesValidator.validateAgainstEdition(india.rules, india).isEmpty())
     }
 
@@ -242,9 +244,10 @@ class IndiaEditionReadinessTest {
         assertEquals(4, india.edition!!.cardConfiguration!!.playerCardCount)
         assertEquals(22, india.edition!!.cardConfiguration!!.propertyCardCount)
         assertEquals(25, india.edition!!.cardConfiguration!!.eventCardCount)
-        assertEquals(51, india.cards.size)
+        assertEquals(55, india.cards.size)
         assertFalse(india.cards.values.any { it.cardType == CardType.EVENT && it.cardId !in india.events })
         assertFalse(india.cards.values.any { it.cardType == CardType.PROPERTY && it.cardId !in india.properties })
+        assertFalse(india.cards.values.any { it.cardType == CardType.ENERGY_GRID && it.cardId !in india.energyGrids })
     }
 
     private fun loadRawIndiaEvents(): List<Map<String, String>> {

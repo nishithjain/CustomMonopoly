@@ -160,6 +160,8 @@ internal object TransactionHistoryEntries {
         TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL -> "Extra turn cancelled"
         TransactionType.EXTRA_TURN_GRANTED -> "Extra turn granted"
         TransactionType.BANKRUPTCY -> "Bankruptcy"
+        TransactionType.ENERGY_GRID_PURCHASE -> "Energy grid purchase"
+        TransactionType.ENERGY_GRID_OWNERSHIP_CHANGE -> "Energy grid ownership transfer"
         TransactionType.UNDO -> "Undo"
     }
 

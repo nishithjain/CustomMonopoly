@@ -340,10 +340,10 @@ def apply_inner_box(html: str, edition_id: str, html_output_path: Path) -> tuple
     if status["found"]:
         relative = posix_relative(html_output_path.parent, inner_box_path(edition_id))
         replacement = f'url("{relative}")'
-        print(f"InnerBox.png found: {status['expectedPath']}")
+        print(f"InnerBox artwork found: {status['expectedPath']}")
     else:
         replacement = "none"
-        print("InnerBox.png not found. Center board area will remain empty.")
+        print("InnerBox artwork not found. Center board area will remain empty.")
 
     return html.replace(INNER_BOX_TOKEN, replacement), status
 

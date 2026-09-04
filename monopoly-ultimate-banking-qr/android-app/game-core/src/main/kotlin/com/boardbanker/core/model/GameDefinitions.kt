@@ -11,6 +11,7 @@ data class GameDefinitions(
     val cardsByQrPayload: Map<String, CardDefinition>,
     val players: Map<String, PlayerDefinition>,
     val properties: Map<String, PropertyDefinition>,
+    val energyGrids: Map<String, EnergyGridDefinition> = emptyMap(),
     val events: Map<String, EventDefinition>,
     val boardRelationships: BoardRelationships,
     val boardLayout: BoardLayout,

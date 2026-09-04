@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TransactionType {
     GAME_START,
+    ENERGY_GRID_PURCHASE,
+    ENERGY_GRID_OWNERSHIP_CHANGE,
     PROPERTY_PURCHASE,
     RENT_PAYMENT,
     BANK_CREDIT,

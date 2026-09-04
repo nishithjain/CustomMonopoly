@@ -40,7 +40,7 @@ class IndiaEventTests {
     @Test
     fun indiaEditionLoadsTwentyFiveEvents() {
         assertEquals(25, definitions.events.size)
-        assertEquals(2, definitions.edition!!.definitionVersion)
+        assertEquals(3, definitions.edition!!.definitionVersion)
         assertEquals("Advance to GO", definitions.events["EVT_01"]!!.name)
     }
 
@@ -249,7 +249,7 @@ class IndiaEventTests {
 
     @Test fun evt21_wrongTerminal() {
         val result = apply("EVT_21")
-        assertTrue(result.physicalActions.any { it.instruction.contains("Energy Station", ignoreCase = true) })
+        assertTrue(result.physicalActions.any { it.instruction.contains("Energy Grid", ignoreCase = true) })
     }
 
     @Test fun evt22_cloudStorage() {

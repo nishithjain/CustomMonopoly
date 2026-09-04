@@ -26,9 +26,12 @@ object CardConfigurationValidator {
         if (config.rentLevelsPerProperty <= 0) {
             invalid("rentLevelsPerProperty", "must be greater than zero")
         }
+        if (config.energyGridCardCount < 0) {
+            invalid("energyGridCardCount", "must not be negative")
+        }
         return problems
     }
 
     fun expectedTotalCards(config: CardConfiguration): Int =
-        config.playerCardCount + config.propertyCardCount + config.eventCardCount
+        config.playerCardCount + config.propertyCardCount + config.eventCardCount + config.energyGridCardCount
 }

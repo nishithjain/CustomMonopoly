@@ -36,6 +36,7 @@ class CardFrontRegistry private constructor(
             }
             CardType.PROPERTY,
             CardType.EVENT,
+            CardType.ENERGY_GRID,
             -> {
                 val key = CardFrontLookupKey(normalizedEditionId, cardType, normalizedCardId)
                 val definition = editionCards[key]

@@ -14,6 +14,7 @@ import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.rules.DebtRules
 import com.boardbanker.core.rules.GoRules
+import com.boardbanker.core.rules.JailGameplayGuard
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.RentLevelOperations
 import com.boardbanker.core.transaction.TransactionFactory
@@ -79,6 +80,7 @@ class EventEngine(
         targetPlayerId: String? = null,
         secondPropertyId: String? = null,
         secondPlayerId: String? = null,
+        fromBoardPosition: Int? = null,
         timestamp: Long = System.currentTimeMillis(),
     ): EventResult {
         val event = definitions.events[eventId]
@@ -91,6 +93,10 @@ class EventEngine(
             }
             if (existingPending.actingPlayerId != actingPlayerId) {
                 return EventResult.failure("Acting player mismatch for pending event")
+            }
+        } else {
+            JailGameplayGuard.boardActionBlockedMessage(definitions, session, actingPlayerId)?.let {
+                return EventResult.failure(it)
             }
         }
 
@@ -144,6 +150,7 @@ class EventEngine(
                 targetPlayerId = resolvedTargetPlayerId,
                 secondPropertyId = resolvedSecondPropertyId,
                 secondPlayerId = resolvedSecondPlayerId,
+                fromBoardPosition = fromBoardPosition,
                 timestamp = timestamp,
                 finalizeEvent = isLastAction,
             )
@@ -247,6 +254,7 @@ class EventEngine(
         targetPlayerId: String?,
         secondPropertyId: String?,
         secondPlayerId: String?,
+        fromBoardPosition: Int?,
         timestamp: Long,
         finalizeEvent: Boolean,
     ): EventResult {
@@ -260,6 +268,7 @@ class EventEngine(
                 targetPlayerId = targetPlayerId,
                 secondPropertyId = secondPropertyId,
                 secondPlayerId = secondPlayerId,
+                fromBoardPosition = fromBoardPosition,
                 timestamp = timestamp,
             )
             if (!indiaResult.isSuccess) {

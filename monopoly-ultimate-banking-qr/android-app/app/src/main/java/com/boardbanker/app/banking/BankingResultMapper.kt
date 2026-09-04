@@ -223,6 +223,7 @@ class BankingResultMapper(
     fun mapDebtSettled(
         result: GameResult,
         propertyIds: List<String>,
+        energyGridIds: List<String> = emptyList(),
         sessionBefore: GameSession,
     ): GameplayResultUiModel {
         val debt = sessionBefore.debtResolution ?: return errorResult("No debt context.")
@@ -232,13 +233,14 @@ class BankingResultMapper(
         } else {
             resolvePlayerName(debt.creditorPlayerId, result.session)
         }
-        val propertyNames = propertyIds.map { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
-        val propertySummary = when (propertyNames.size) {
-            0 -> "Selected properties"
-            1 -> propertyNames.single()
-            else -> "${propertyNames.size} properties"
+        val assetNames = propertyIds.map { PropertyDisplayNames.displayNameWithNumber(it, definitions) } +
+            energyGridIds.map { com.boardbanker.core.model.EnergyGridDisplayNames.displayNameWithNumber(it, definitions) }
+        val propertySummary = when (assetNames.size) {
+            0 -> "Selected assets"
+            1 -> assetNames.single()
+            else -> "${assetNames.size} assets"
         }
-        val transferMessage = when (propertyNames.size) {
+        val transferMessage = when (assetNames.size) {
             1 -> "$propertySummary was transferred to $creditorName."
             else -> "$propertySummary were transferred to $creditorName."
         }
@@ -262,6 +264,17 @@ class BankingResultMapper(
                     rentLevelAfter = rentLevel,
                 )
             }
+        } + energyGridIds.mapNotNull { energyGridId ->
+            val gridName = com.boardbanker.core.model.EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions)
+            if (debt.creditorPlayerId == EntityRef.BANK) {
+                PropertyChangeUi(propertyName = gridName, ownerName = null)
+            } else {
+                PropertyChangeUi(
+                    propertyName = gridName,
+                    ownerName = creditorName,
+                    ownerPlayerId = debt.creditorPlayerId,
+                )
+            }
         }
         val balanceChanges = buildDebtSettlementBalanceChanges(
             result = result,
@@ -279,7 +292,7 @@ class BankingResultMapper(
                 primaryMessage = buildString {
                     append(transferMessage)
                     append("\n\n")
-                    append("${propertyNames.firstOrNull() ?: "Property"} is now unowned.\n\n")
+                    append("${assetNames.firstOrNull() ?: "Asset"} is now unowned.\n\n")
                     append("Remove the physical ownership indicator.")
                     if (changeMessage != null) {
                         append("\n\n")
@@ -304,7 +317,7 @@ class BankingResultMapper(
                     }
                     append("\n\n")
                     append("Please physically give the Property card")
-                    if (propertyNames.size == 1) {
+                    if (assetNames.size == 1) {
                         append(" to $creditorName.")
                     } else {
                         append("s to $creditorName.")
@@ -363,7 +376,7 @@ class BankingResultMapper(
 
     @Deprecated("Use mapDebtSettled(result, propertyIds, sessionBefore)")
     fun mapDebtSettled(result: GameResult, propertyId: String, sessionBefore: GameSession): GameplayResultUiModel =
-        mapDebtSettled(result, listOf(propertyId), sessionBefore)
+        mapDebtSettled(result, propertyIds = listOf(propertyId), sessionBefore = sessionBefore)
 
     fun mapBankruptcy(debtorId: String, session: GameSession): GameplayResultUiModel {
         val debtorName = resolvePlayerName(debtorId, session)

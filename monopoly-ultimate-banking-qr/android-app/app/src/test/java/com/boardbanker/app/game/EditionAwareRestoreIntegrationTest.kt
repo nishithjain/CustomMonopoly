@@ -38,7 +38,7 @@ class EditionAwareRestoreIntegrationTest {
         )
         val indiaEngine = DefaultGameEngine(AppTestSupport.editionRepository.load(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "INDIA_ONLY", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
+            GameSession(gameId = "INDIA_ONLY", editionId = EditionIds.INDIA, editionDefinitionVersion = 3),
             GameCommand.CreateGame("INDIA_ONLY"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))
@@ -125,7 +125,7 @@ class EditionAwareRestoreIntegrationTest {
             serializer = KotlinGameSessionSerializer(),
             editionLoader = { AppTestSupport.editionRepository.load(it) },
             manifestLoader = {
-                AppTestSupport.editionRepository.loadManifest(it).copy(definitionVersion = 2)
+                AppTestSupport.editionRepository.loadManifest(it).copy(definitionVersion = 3)
             },
         )
         val editionAware = EditionAwareGameSessionRepository(repository, repository, orchestrator)
@@ -145,7 +145,7 @@ class EditionAwareRestoreIntegrationTest {
         )
         val indiaEngine = DefaultGameEngine(AppTestSupport.editionRepository.load(EditionIds.INDIA))
         var result = indiaEngine.process(
-            GameSession(gameId = "BIND_INDIA", editionId = EditionIds.INDIA, editionDefinitionVersion = 2),
+            GameSession(gameId = "BIND_INDIA", editionId = EditionIds.INDIA, editionDefinitionVersion = 3),
             GameCommand.CreateGame("BIND_INDIA"),
         )
         result = indiaEngine.process(result.session, GameCommand.RegisterPlayer("USR_01", "Nishith"))

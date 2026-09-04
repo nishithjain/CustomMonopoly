@@ -7,6 +7,7 @@ enum class BoardSpaceType {
     PROPERTY,
     EVENT,
     LOCATION,
+    ENERGY_GRID,
     JAIL,
     FREE_PARKING,
     GO_TO_JAIL,
@@ -33,4 +34,12 @@ data class BoardLayout(
 
     val eventSpaces: List<BoardSpace> =
         spaces.filter { it.spaceType == BoardSpaceType.EVENT }
+
+    val energyGridSpaces: List<BoardSpace> =
+        spaces.filter { it.spaceType == BoardSpaceType.ENERGY_GRID }
+
+    fun spaceAt(position: Int): BoardSpace? = spaces.firstOrNull { it.position == position }
+
+    fun boardNumberForEnergyGrid(energyGridId: String): Int? =
+        energyGridSpaces.firstOrNull { it.targetId == energyGridId }?.position
 }

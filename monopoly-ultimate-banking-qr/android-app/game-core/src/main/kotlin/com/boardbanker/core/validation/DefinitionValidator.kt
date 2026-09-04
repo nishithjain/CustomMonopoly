@@ -5,6 +5,7 @@ import com.boardbanker.core.model.BoardLayout
 import com.boardbanker.core.model.BoardSpaceType
 import com.boardbanker.core.model.CardConfiguration
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.rules.EnergyGridRentCalculator
 
 class DefinitionValidator {
 
@@ -82,6 +83,7 @@ class DefinitionValidator {
         val playerCards = definitions.cards.values.count { it.cardType == CardType.USER }
         val propertyCards = definitions.cards.values.count { it.cardType == CardType.PROPERTY }
         val eventCards = definitions.cards.values.count { it.cardType == CardType.EVENT }
+        val energyGridCards = definitions.cards.values.count { it.cardType == CardType.ENERGY_GRID }
         val expectedTotal = CardConfigurationValidator.expectedTotalCards(config)
 
         if (definitions.players.size != config.playerCardCount) {
@@ -127,6 +129,23 @@ class DefinitionValidator {
                 eventCards,
             )
         }
+        if (definitions.energyGrids.size != config.energyGridCardCount) {
+            problems += countMismatch(
+                editionId,
+                "Energy Grid Cards",
+                config.energyGridCardCount,
+                definitions.energyGrids.size,
+            )
+        }
+        if (energyGridCards != config.energyGridCardCount) {
+            problems += countMismatch(
+                editionId,
+                "Energy Grid Cards in registry",
+                config.energyGridCardCount,
+                energyGridCards,
+            )
+        }
+        problems += EnergyGridRentCalculator.validateRentTable(definitions.energyGrids.values)
         if (definitions.cards.size != expectedTotal) {
             problems += "Edition '$editionId': expected $expectedTotal total cards from edition.json, but found ${definitions.cards.size}."
         }
@@ -177,6 +196,7 @@ class DefinitionValidator {
         }
 
         val propertySpaceTargets = mutableSetOf<String>()
+        val energyGridSpaceTargets = mutableSetOf<String>()
         for (space in layout.spaces) {
             when (space.spaceType) {
                 BoardSpaceType.PROPERTY -> {
@@ -201,6 +221,18 @@ class DefinitionValidator {
                 }
                 BoardSpaceType.GO,
                 BoardSpaceType.LOCATION,
+                BoardSpaceType.ENERGY_GRID -> {
+                    if (space.spaceType == BoardSpaceType.ENERGY_GRID) {
+                        val targetId = space.targetId?.trim().orEmpty()
+                        if (targetId.isEmpty()) {
+                            problems += "Edition '$editionId', space '${space.spaceId}': ENERGY_GRID space requires targetId"
+                        } else if (!definitions.energyGrids.containsKey(targetId)) {
+                            problems += "Edition '$editionId', space '${space.spaceId}': unknown energy grid target '$targetId'"
+                        } else {
+                            energyGridSpaceTargets += targetId
+                        }
+                    }
+                }
                 BoardSpaceType.JAIL,
                 BoardSpaceType.FREE_PARKING,
                 BoardSpaceType.GO_TO_JAIL,
@@ -208,13 +240,23 @@ class DefinitionValidator {
             }
         }
 
-        if (config != null && propertySpaceTargets.size != config.propertyCardCount) {
-            problems += "Edition '$editionId': expected ${config.propertyCardCount} PROPERTY board spaces, but found ${propertySpaceTargets.size}."
+        if (config != null) {
+            if (propertySpaceTargets.size > config.propertyCardCount) {
+                problems += "Edition '$editionId': expected at most ${config.propertyCardCount} PROPERTY board spaces, but found ${propertySpaceTargets.size}."
+            }
+            if (energyGridSpaceTargets.size != config.energyGridCardCount) {
+                problems += "Edition '$editionId': expected ${config.energyGridCardCount} ENERGY_GRID board spaces, but found ${energyGridSpaceTargets.size}."
+            }
+            for (energyGridId in definitions.energyGrids.keys) {
+                if (!energyGridSpaceTargets.contains(energyGridId)) {
+                    problems += "Edition '$editionId', energy grid '$energyGridId': missing ENERGY_GRID board space"
+                }
+            }
         }
 
-        for (propertyId in definitions.properties.keys) {
-            if (!propertySpaceTargets.contains(propertyId)) {
-                problems += "Edition '$editionId', property '$propertyId': missing PROPERTY board space"
+        for (propertyId in propertySpaceTargets) {
+            if (!definitions.properties.containsKey(propertyId)) {
+                problems += "Edition '$editionId', property board space references unknown property '$propertyId'"
             }
         }
 

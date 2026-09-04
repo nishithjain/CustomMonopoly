@@ -25,8 +25,9 @@ class JailRules(
             return JailResult.success(session, emptyList())
         }
         val updatedPlayer = player.copy(jailStatus = true)
-        var updatedSession = session.copy(
-            players = session.players + (playerId to updatedPlayer),
+        var updatedSession = JailGameplayGuard.clearPendingGameplayForPlayer(
+            session.copy(players = session.players + (playerId to updatedPlayer)),
+            playerId,
         )
         val extraTurnCancellation = extraTurnRules.cancelPendingExtraTurnOnJail(
             session = updatedSession,

@@ -36,6 +36,7 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
 import com.boardbanker.core.persistence.SavedGameLoadResult
+import com.boardbanker.core.rules.JailGameplayGuard
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -78,6 +79,7 @@ class GameViewModel(
                 if (session.debtResolution != null && _uiState.value.workflowState == GameplayWorkflowState.Ready) {
                     _events.emit(GameEvent.NavigateToDebt)
                 }
+                invalidateIncompatiblePropertyWorkflow(session)
                 refreshDashboardFromSession(session)
             }
         }
@@ -127,8 +129,20 @@ class GameViewModel(
     fun onBankActionsRequested() {
         if (_uiState.value.commandInFlight || _uiState.value.gameplayLocked) return
         if (workflowController.hasMandatoryEventActionPending()) return
+        if (!_uiState.value.actionAvailability.bankActionsEnabled) return
+        val session = sessionManager.currentSession() ?: return
+        if (session.turnState?.activePlayerId?.let { session.players[it]?.jailStatus } == true) {
+            session.turnState?.activePlayerId?.let { _events.tryEmit(GameEvent.NavigateToPlayerDetails(it)) }
+            return
+        }
         if (!isActiveTurnPlayable()) return
         _events.tryEmit(GameEvent.NavigateToBanking)
+    }
+
+    fun onGetOutOfJailRequested() {
+        if (!_uiState.value.actionAvailability.getOutOfJailEnabled) return
+        val activePlayerId = sessionManager.currentSession()?.turnState?.activePlayerId ?: return
+        _events.tryEmit(GameEvent.NavigateToPlayerDetails(activePlayerId))
     }
 
     fun onPlayerSelected(playerId: String) {
@@ -141,6 +155,13 @@ class GameViewModel(
         if (workflowController.hasMandatoryEventActionPending()) return
         if (sessionManager.currentSession()?.pendingDiceGamble != null) return
         if (sessionManager.currentSession()?.pendingEventDraw != null) return
+        if (!_uiState.value.actionAvailability.scanCardEnabled) {
+            activePlayerJailBlockedMessage()?.let { message ->
+                InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                _uiState.update { it.copy(message = message) }
+            }
+            return
+        }
         if (!isActiveTurnPlayable()) return
         val request = ScanRequest.gameCard()
         _uiState.update { it.withScanRequest(request) }
@@ -150,6 +171,13 @@ class GameViewModel(
 
     fun onScanPropertyRequested() {
         if (_uiState.value.commandInFlight) return
+        val session = sessionManager.currentSession() ?: return
+        if (activePlayerJailBlocksCardScan(session, CardType.PROPERTY)) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+            invalidateIncompatiblePropertyWorkflow(session)
+            return
+        }
         val request = _uiState.value.scanRequest ?: ScanRequest.property()
         _events.tryEmit(GameEvent.OpenScanner(request))
     }
@@ -166,6 +194,12 @@ class GameViewModel(
     fun onCardScanned(cardId: String, cardType: CardType) {
         ScanPromptAudio.endPromptSession(scanPromptToken)
         val session = sessionManager.currentSession() ?: return
+        if (activePlayerJailBlocksCardScan(session, cardType)) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+            invalidateIncompatiblePropertyWorkflow(session)
+            return
+        }
         if (_uiState.value.workflowState is GameplayWorkflowState.EventDiceGamble) {
             InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
             _uiState.update {
@@ -208,7 +242,7 @@ class GameViewModel(
                         it.copy(message = "PROPERTY CARD EXPECTED\n\nPlease scan the destination Property card.")
                     }
                 }
-                CardType.EVENT -> {
+                CardType.EVENT, CardType.ENERGY_GRID -> {
                     InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
                     _uiState.update {
                         it.copy(message = "PROPERTY CARD EXPECTED\n\nPlease scan the destination Property card.")
@@ -225,7 +259,8 @@ class GameViewModel(
                     workflowController.onPropertyScanned(cardId, session)
                 }
             }
-            CardType.EVENT -> workflowController.onEventScanned(cardId)
+            CardType.ENERGY_GRID -> workflowController.onEnergyGridScanned(cardId, session)
+            CardType.EVENT -> workflowController.onEventScanned(cardId, session)
             CardType.USER -> workflowController.onUserScanned(cardId, session)
         }
         handleWorkflowActions(actions)
@@ -234,11 +269,43 @@ class GameViewModel(
     fun onBuyProperty() {
         if (_uiState.value.commandInFlight) return
         val session = sessionManager.currentSession() ?: return
+        if (_uiState.value.workflowState is GameplayWorkflowState.UnownedEnergyGridDecision) {
+            if (activePlayerJailBlocksPropertyPurchase(session)) {
+                InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+                invalidateIncompatiblePropertyWorkflow(session)
+                return
+            }
+            handleWorkflowActions(workflowController.onBuyEnergyGridSelected(session))
+            return
+        }
+        if (activePlayerJailBlocksPropertyPurchase(session)) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+            invalidateIncompatiblePropertyWorkflow(session)
+            return
+        }
         handleWorkflowActions(workflowController.onBuySelected(session))
     }
 
     fun onAuctionProperty() {
         val session = sessionManager.currentSession() ?: return
+        if (_uiState.value.workflowState is GameplayWorkflowState.UnownedEnergyGridDecision) {
+            if (activePlayerJailBlocksPropertyPurchase(session)) {
+                InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+                invalidateIncompatiblePropertyWorkflow(session)
+                return
+            }
+            handleWorkflowActions(workflowController.onAuctionEnergyGridSelected(session))
+            return
+        }
+        if (activePlayerJailBlocksPropertyPurchase(session)) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
+            invalidateIncompatiblePropertyWorkflow(session)
+            return
+        }
         handleWorkflowActions(workflowController.onAuctionSelected(session))
     }
 
@@ -249,7 +316,8 @@ class GameViewModel(
 
     fun onEventContinue() {
         if (_uiState.value.commandInFlight) return
-        handleWorkflowActions(workflowController.onEventContinue())
+        val session = sessionManager.currentSession() ?: return
+        handleWorkflowActions(workflowController.onEventContinue(session))
     }
 
     fun onEventChoice(choice: GameCommand.EventPropertyChoiceType) {
@@ -371,6 +439,14 @@ class GameViewModel(
     fun onEndTurn() {
         if (!commandLock.compareAndSet(false, true)) return
         val session = sessionManager.currentSession() ?: run {
+            commandLock.set(false)
+            return
+        }
+        if (!_uiState.value.actionAvailability.endTurnEnabled) {
+            activePlayerJailBlockedMessage(session)?.let { message ->
+                InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+                _uiState.update { it.copy(message = message) }
+            }
             commandLock.set(false)
             return
         }
@@ -497,6 +573,7 @@ class GameViewModel(
                     _events.tryEmit(
                         GameEvent.NavigateToAuction(
                             propertyId = action.propertyId,
+                            energyGridId = action.energyGridId,
                             startedByPlayerId = action.startedByPlayerId,
                         ),
                     )
@@ -521,6 +598,7 @@ class GameViewModel(
                     transientWorkflow.enterWaitingForProperty()
                 }
             }
+            CardType.ENERGY_GRID -> transientWorkflow.enterWaitingForProperty()
             CardType.EVENT -> transientWorkflow.enterEventIdentified()
             else -> transientWorkflow.resetToReady()
         }
@@ -543,6 +621,16 @@ class GameViewModel(
                 _uiState.update {
                     it.copy(result = resultMapper.mapPlayerInfo(state.playerId, currentSession))
                 }
+            }
+            is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> {
+                _uiState.update { it.withScanRequest(ScanRequest.player()) }
+            }
+            is GameplayWorkflowState.WaitingForExpectedEnergyGridScan -> {
+                val gridName = com.boardbanker.core.model.EnergyGridDisplayNames.displayNameWithNumber(
+                    state.energyGridId,
+                    definitions,
+                )
+                _uiState.update { it.withScanRequest(ScanRequest.energyGrid(state.energyGridId, gridName)) }
             }
             is GameplayWorkflowState.WaitingForRentPayer -> {
                 _uiState.update { it.withScanRequest(ScanRequest.player()) }
@@ -622,6 +710,7 @@ class GameViewModel(
                             handlePendingDiceGamble(commit.session)
                             handlePendingEventDraw(commit.session)
                             handlePendingEventExecution(commit.session, commit.result)
+                            handlePendingEnergyGridLanding(commit.session)
                             updateFromSession(commit.session)
                             _uiState.update {
                                 it.copy(
@@ -703,6 +792,11 @@ class GameViewModel(
         }
     }
 
+    private fun handlePendingEnergyGridLanding(session: GameSession) {
+        if (session.pendingEnergyGridLanding == null) return
+        handleWorkflowActions(workflowController.beginPendingEnergyGridLanding(session))
+    }
+
     private fun mapCommittedResult(
         result: GameResult,
         context: WorkflowCommandContext,
@@ -712,6 +806,10 @@ class GameViewModel(
             resultMapper.mapPurchaseResult(result, context.playerId, context.propertyId, context.balanceBefore)
         is WorkflowCommandContext.PropertyLanding ->
             resultMapper.mapPropertyLandingResult(result, context.playerId, context.propertyId, sessionBefore)
+        is WorkflowCommandContext.EnergyGridPurchase ->
+            resultMapper.mapEnergyGridPurchaseResult(result, context.playerId, context.energyGridId, context.balanceBefore)
+        is WorkflowCommandContext.EnergyGridLanding ->
+            resultMapper.mapEnergyGridLandingResult(result, context.playerId, context.energyGridId, sessionBefore)
         is WorkflowCommandContext.ApplyEvent ->
             resultMapper.mapEventResult(result, context.eventId)
         is WorkflowCommandContext.EventChoice ->
@@ -726,7 +824,30 @@ class GameViewModel(
         refreshDashboardFromSession(session)
     }
 
+    private fun invalidateIncompatiblePropertyWorkflow(session: GameSession) {
+        if (!workflowController.isIncompatiblePropertyWorkflowForJailedPlayer(
+                _uiState.value.workflowState,
+                session,
+            )
+        ) {
+            return
+        }
+        workflowController.reset()
+        _uiState.update {
+            it.copy(
+                workflowState = GameplayWorkflowState.Ready,
+                cardPresentation = null,
+                scanRequest = null,
+                scanPrompt = null,
+                expectedCardType = null,
+            )
+        }
+    }
+
     private fun refreshDashboardFromSession(session: GameSession) {
+        invalidateIncompatiblePropertyWorkflow(session)
+        val commandInFlight = _uiState.value.commandInFlight
+        val workflowState = _uiState.value.workflowState
         val activeEvent = session.temporaryEffects.firstOrNull {
             it.active && it.effectType == "FORCE_LEVEL_1_RENT"
         }?.let { effect ->
@@ -736,6 +857,21 @@ class GameViewModel(
         val activePlayerName = activePlayerId?.let {
             PlayerDisplayNames.displayName(session, it, definitions)
         }
+        val activePlayerInJail = activePlayerId?.let { session.players[it]?.jailStatus } == true
+        val jailResolutionMessage = if (activePlayerInJail) {
+            workflowController.jailResolutionGuidance(session)
+        } else {
+            null
+        }
+        val actionAvailability = ActiveGameActionAvailability.forActivePlayer(
+            activePlayerInJail = activePlayerInJail,
+            commandInFlight = commandInFlight,
+            gameplayLocked = session.status == GameStatus.FINISHED,
+            workflowState = workflowState,
+            hasMandatoryEventPending = workflowController.hasMandatoryEventActionPending(),
+            hasPendingDiceGamble = session.pendingDiceGamble != null,
+            hasPendingEventDraw = session.pendingEventDraw != null,
+        )
         _uiState.update {
             it.copy(
                 loading = false,
@@ -744,6 +880,9 @@ class GameViewModel(
                 players = ActiveGamePresentation.buildPlayerDashboard(session, definitions),
                 activePlayerId = activePlayerId,
                 activePlayerName = activePlayerName,
+                activePlayerInJail = activePlayerInJail,
+                jailResolutionMessage = jailResolutionMessage,
+                actionAvailability = actionAvailability,
                 turnKind = session.turnState?.turnKind,
                 diceGamble = DiceGambleUiMapper.map(
                     session = session,
@@ -765,9 +904,34 @@ class GameViewModel(
         val session = sessionManager.currentSession() ?: return false
         if (session.pendingDiceGamble != null) return false
         if (session.pendingEventDraw != null) return false
-        val activePlayerId = session.turnState?.activePlayerId ?: return true
+        if (session.turnState?.activePlayerId?.let { session.players[it]?.jailStatus } == true) {
+            return false
+        }
         return _uiState.value.workflowState == GameplayWorkflowState.Ready &&
             _uiState.value.result == null
+    }
+
+    private fun activePlayerJailBlockedMessage(session: GameSession? = sessionManager.currentSession()): String? {
+        session ?: return null
+        return JailGameplayGuard.activePlayerJailGuidance(definitions, session)
+    }
+
+    private fun activePlayerJailBlocksCardScan(session: GameSession, cardType: CardType): Boolean {
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return false
+        if (session.players[activePlayerId]?.jailStatus != true) return false
+        return when (cardType) {
+            CardType.PROPERTY,
+            CardType.EVENT,
+            CardType.ENERGY_GRID,
+            -> true
+            CardType.USER -> false
+            else -> false
+        }
+    }
+
+    private fun activePlayerJailBlocksPropertyPurchase(session: GameSession): Boolean {
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return false
+        return JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, activePlayerId) != null
     }
 }
 

@@ -20,6 +20,7 @@ REPORT_NAME = "card_front_asset_validation.txt"
 CARD_TYPE_FOLDERS = {
     "PROPERTY": "property",
     "EVENT": "event",
+    "ENERGY_GRID": "energy-grid",
 }
 
 
@@ -96,6 +97,20 @@ def load_edition_cards(project_root: Path, edition_id: str) -> list[dict]:
                 "frontAsset": item.get("frontAsset"),
             },
         )
+    energy_grids_file = edition.get("data", {}).get("energyGrids")
+    if energy_grids_file:
+        energy_grids = load_json(
+            project_root / "data" / "editions" / edition_id / energy_grids_file,
+        )["energyGrids"]
+        for item in energy_grids:
+            cards.append(
+                {
+                    "cardId": item["energyGridId"],
+                    "cardType": "ENERGY_GRID",
+                    "name": item["name"],
+                    "frontAsset": item.get("frontAsset"),
+                },
+            )
     return cards
 
 
@@ -130,7 +145,7 @@ def validate_manifest(
     artwork_status: str,
     problems: list[str],
 ) -> dict[str, int]:
-    counts = {"USER": 0, "PROPERTY": 0, "EVENT": 0}
+    counts = {"USER": 0, "PROPERTY": 0, "EVENT": 0, "ENERGY_GRID": 0}
     if not manifest_path.is_file():
         if artwork_status == "READY":
             problems.append(
@@ -273,6 +288,11 @@ def main() -> int:
             f"Event fronts:    {counts.get('EVENT', 0)} / "
             f"{sum(1 for card in expected_cards if card['cardType'] == 'EVENT')}",
         )
+        energy_expected = sum(1 for card in expected_cards if card["cardType"] == "ENERGY_GRID")
+        if energy_expected > 0:
+            lines.append(
+                f"Energy grid fronts: {counts.get('ENERGY_GRID', 0)} / {energy_expected}",
+            )
 
     image_hits = scan_game_core_for_images(project_root)
     if image_hits:

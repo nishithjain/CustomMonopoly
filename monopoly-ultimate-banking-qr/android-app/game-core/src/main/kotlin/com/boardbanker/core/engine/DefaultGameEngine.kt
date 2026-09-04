@@ -7,6 +7,7 @@ import com.boardbanker.core.model.AuctionState
 import com.boardbanker.core.model.ColorGroupState
 import com.boardbanker.core.model.DebtReason
 import com.boardbanker.core.model.EntityRef
+import com.boardbanker.core.model.EnergyGridState
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
@@ -16,7 +17,10 @@ import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.rules.BankruptcyRules
 import com.boardbanker.core.rules.ColorSetRules
 import com.boardbanker.core.rules.DebtRules
+import com.boardbanker.core.rules.EnergyGridRentRules
+import com.boardbanker.core.rules.EnergyGridRules
 import com.boardbanker.core.rules.GoRules
+import com.boardbanker.core.rules.JailGameplayGuard
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.PropertyRules
 import com.boardbanker.core.rules.RentRules
@@ -34,10 +38,12 @@ class DefaultGameEngine(
     private val transactionFactory = TransactionFactory()
     private val colorSetRules = ColorSetRules(definitions, transactionFactory)
     private val propertyRules = PropertyRules(definitions, colorSetRules, transactionFactory)
+    private val energyGridRules = EnergyGridRules(definitions, transactionFactory)
     private val winnerCalculator = WinnerCalculator(definitions)
     private val bankruptcyRules = BankruptcyRules(definitions, transactionFactory, winnerCalculator)
     private val debtRules = DebtRules(definitions, transactionFactory, bankruptcyRules)
     private val rentRules = RentRules(definitions, transactionFactory, debtRules)
+    private val energyGridRentRules = EnergyGridRentRules(definitions, transactionFactory, debtRules)
     private val goRules = GoRules(definitions, transactionFactory)
     private val jailRules = JailRules(definitions, transactionFactory)
     private val turnScheduler = TurnScheduler(transactionFactory)
@@ -55,7 +61,9 @@ class DefaultGameEngine(
             is GameCommand.RenamePlayer -> handleRenamePlayer(session, command)
             is GameCommand.StartGame -> handleStartGame(session)
             is GameCommand.ProcessPropertyLanding -> handlePropertyLanding(session, command)
+            is GameCommand.ProcessEnergyGridLanding -> handleEnergyGridLanding(session, command)
             is GameCommand.PurchaseProperty -> handlePurchase(session, command)
+            is GameCommand.PurchaseEnergyGrid -> handlePurchaseEnergyGrid(session, command)
             is GameCommand.ApplyEvent -> handleApplyEvent(session, command)
             is GameCommand.EventPropertyChoice -> handleEventPropertyChoice(session, command)
             is GameCommand.PayGoSalary -> handlePayGo(session, command)
@@ -157,6 +165,12 @@ class DefaultGameEngine(
                 currentRentLevel = def.initialRentLevel,
             )
         }
+        val energyGrids = definitions.energyGrids.values.associate { def ->
+            def.energyGridId to EnergyGridState(
+                energyGridId = def.energyGridId,
+                ownerPlayerId = null,
+            )
+        }
         val colorGroups = definitions.boardRelationships.colorGroups.keys.associateWith { group ->
             ColorGroupState(colorGroup = group)
         }
@@ -167,6 +181,7 @@ class DefaultGameEngine(
             status = GameStatus.ACTIVE,
             players = players,
             properties = properties,
+            energyGrids = energyGrids,
             colorGroups = colorGroups,
             turnState = TurnScheduler.initialTurnState(players),
         )
@@ -183,6 +198,9 @@ class DefaultGameEngine(
     ): GameResult {
         if (session.status != GameStatus.ACTIVE) {
             return reject(session, GameError.GameFinished)
+        }
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, command.playerId)?.let {
+            return reject(session, GameError.Validation(it))
         }
         val propertyState = session.properties[command.propertyId]
             ?: return reject(session, GameError.NotFound("Property", command.propertyId))
@@ -226,6 +244,9 @@ class DefaultGameEngine(
             ?: return reject(session, GameError.NotFound("Property", command.propertyId))
         val buyer = session.players[command.playerId]
             ?: return reject(session, GameError.NotFound("Player", command.playerId))
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, command.playerId)?.let {
+            return reject(session, GameError.Validation(it))
+        }
         if (buyer.balance < propertyDef.purchasePrice) {
             val debtResult = debtRules.enterDebtResolution(
                 session = session,
@@ -251,6 +272,86 @@ class DefaultGameEngine(
         return GameResult(result.session!!, transactions = result.transactions)
     }
 
+    private fun handleEnergyGridLanding(
+        session: GameSession,
+        command: GameCommand.ProcessEnergyGridLanding,
+    ): GameResult {
+        if (session.status != GameStatus.ACTIVE) {
+            return reject(session, GameError.GameFinished)
+        }
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, command.playerId)?.let {
+            return reject(session, GameError.Validation(it))
+        }
+        val gridState = session.energyGrids[command.energyGridId]
+            ?: return reject(session, GameError.NotFound("EnergyGrid", command.energyGridId))
+        when (gridState.ownerPlayerId) {
+            null -> return GameResult(
+                session = session.copy(pendingEnergyGridLanding = null),
+                outcome = GameOutcome.PENDING_ACTION,
+                pendingMessage = "Energy grid unowned: choose BUY or AUCTION",
+            )
+            command.playerId -> {
+                val result = energyGridRules.ownerLandsOnOwnGrid(
+                    session, command.playerId, command.energyGridId,
+                )
+                if (!result.isSuccess) {
+                    return reject(session, GameError.Validation(result.error!!))
+                }
+                return GameResult(result.session!!, transactions = result.transactions)
+            }
+            else -> {
+                val result = energyGridRentRules.processVisitorRent(
+                    session, command.playerId, command.energyGridId,
+                )
+                if (!result.isSuccess) {
+                    return reject(session, GameError.Validation(result.error!!))
+                }
+                val outcome = if (result.session!!.debtResolution != null) {
+                    GameOutcome.DEBT_RESOLUTION_REQUIRED
+                } else {
+                    GameOutcome.SUCCESS
+                }
+                return GameResult(result.session, outcome = outcome, transactions = result.transactions)
+            }
+        }
+    }
+
+    private fun handlePurchaseEnergyGrid(
+        session: GameSession,
+        command: GameCommand.PurchaseEnergyGrid,
+    ): GameResult {
+        val gridDef = definitions.energyGrids[command.energyGridId]
+            ?: return reject(session, GameError.NotFound("EnergyGrid", command.energyGridId))
+        val buyer = session.players[command.playerId]
+            ?: return reject(session, GameError.NotFound("Player", command.playerId))
+        JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, command.playerId)?.let {
+            return reject(session, GameError.Validation(it))
+        }
+        if (buyer.balance < gridDef.purchasePrice) {
+            val debtResult = debtRules.enterDebtResolution(
+                session = session,
+                debtorId = command.playerId,
+                creditorId = EntityRef.BANK,
+                amount = gridDef.purchasePrice,
+                reason = DebtReason.PURCHASE,
+                propertyId = command.energyGridId,
+            )
+            if (!debtResult.isSuccess) {
+                return reject(session, GameError.Validation(debtResult.error!!))
+            }
+            return GameResult(
+                session = debtResult.session!!,
+                outcome = GameOutcome.DEBT_RESOLUTION_REQUIRED,
+                transactions = debtResult.transactions,
+            )
+        }
+        val result = energyGridRules.purchaseEnergyGrid(session, command.playerId, command.energyGridId)
+        if (!result.isSuccess) {
+            return reject(session, GameError.Validation(result.error!!))
+        }
+        return GameResult(result.session!!, transactions = result.transactions)
+    }
+
     private fun handleApplyEvent(
         session: GameSession,
         command: GameCommand.ApplyEvent,
@@ -269,6 +370,7 @@ class DefaultGameEngine(
             targetPlayerId = command.targetPlayerId,
             secondPropertyId = command.secondPropertyId,
             secondPlayerId = command.secondPlayerId,
+            fromBoardPosition = command.fromBoardPosition,
         )
         if (!result.isSuccess) {
             return reject(session, GameError.EventError(result.error!!))
@@ -388,7 +490,10 @@ class DefaultGameEngine(
             GameCommand.EventPropertyChoiceType.AUCTION -> {
                 handleStartAuction(
                     baseSession,
-                    GameCommand.StartAuction(command.propertyId, command.actingPlayerId),
+                    GameCommand.StartAuction(
+                        propertyId = command.propertyId,
+                        startedByPlayerId = command.actingPlayerId,
+                    ),
                 )
             }
             GameCommand.EventPropertyChoiceType.RAISE_RENT_LEVEL -> {
@@ -611,24 +716,42 @@ class DefaultGameEngine(
         session: GameSession,
         command: GameCommand.StartAuction,
     ): GameResult {
-        val propertyState = session.properties[command.propertyId]
-            ?: return reject(session, GameError.NotFound("Property", command.propertyId))
-        if (propertyState.ownerPlayerId != null) {
-            return reject(session, GameError.AuctionError("Property is already owned"))
-        }
         if (session.auction != null) {
             return reject(session, GameError.AuctionError("Auction already in progress"))
         }
-        val updated = session.copy(
-            auction = AuctionState(
-                propertyId = command.propertyId,
-                startedByPlayerId = command.startedByPlayerId,
-            ),
-        )
+        JailGameplayGuard.boardActionBlockedMessage(definitions, session, command.startedByPlayerId)?.let {
+            return reject(session, GameError.Validation(it))
+        }
+        val auction = when {
+            command.propertyId != null -> {
+                val propertyState = session.properties[command.propertyId]
+                    ?: return reject(session, GameError.NotFound("Property", command.propertyId))
+                if (propertyState.ownerPlayerId != null) {
+                    return reject(session, GameError.AuctionError("Property is already owned"))
+                }
+                AuctionState(
+                    propertyId = command.propertyId,
+                    startedByPlayerId = command.startedByPlayerId,
+                )
+            }
+            command.energyGridId != null -> {
+                val gridState = session.energyGrids[command.energyGridId]
+                    ?: return reject(session, GameError.NotFound("EnergyGrid", command.energyGridId))
+                if (gridState.ownerPlayerId != null) {
+                    return reject(session, GameError.AuctionError("Energy grid is already owned"))
+                }
+                AuctionState(
+                    energyGridId = command.energyGridId,
+                    startedByPlayerId = command.startedByPlayerId,
+                )
+            }
+            else -> return reject(session, GameError.AuctionError("Auction target missing"))
+        }
+        val updated = session.copy(auction = auction)
         return GameResult(
             updated,
             outcome = GameOutcome.PENDING_ACTION,
-            pendingMessage = "Auction started for ${command.propertyId}",
+            pendingMessage = "Auction started for ${auction.assetId}",
         )
     }
 
@@ -672,7 +795,7 @@ class DefaultGameEngine(
         if (winnerId == null) {
             return reject(session, GameError.AuctionError("No bids placed"))
         }
-        val propertyId = auction.propertyId
+        val assetId = auction.assetId
         val bid = auction.currentBid
         val winner = session.players[winnerId]!!
         if (winner.balance < bid) {
@@ -682,7 +805,7 @@ class DefaultGameEngine(
                 creditorId = EntityRef.BANK,
                 amount = bid,
                 reason = DebtReason.PURCHASE,
-                propertyId = propertyId,
+                propertyId = assetId,
             )
             if (!debtResult.isSuccess) {
                 return reject(session, GameError.Validation(debtResult.error!!))
@@ -696,27 +819,43 @@ class DefaultGameEngine(
         val updatedWinner = winner.copy(balance = winner.balance - bid)
         var updated = session.copy(
             players = session.players + (winnerId to updatedWinner),
-            properties = session.properties + (
-                propertyId to session.properties[propertyId]!!.copy(
-                    ownerPlayerId = winnerId,
-                    currentRentLevel = policies.auction.winnerInitialRentLevel(),
-                )
-            ),
             auction = null,
         )
+        updated = if (auction.propertyId != null) {
+            updated.copy(
+                properties = updated.properties + (
+                    assetId to updated.properties[assetId]!!.copy(
+                        ownerPlayerId = winnerId,
+                        currentRentLevel = policies.auction.winnerInitialRentLevel(),
+                    )
+                ),
+            )
+        } else {
+            updated.copy(
+                energyGrids = updated.energyGrids + (
+                    assetId to updated.energyGrids[assetId]!!.copy(ownerPlayerId = winnerId)
+                ),
+            )
+        }
         val (tx, sessionAfter) = transactionFactory.create(
             session = updated,
             type = TransactionType.AUCTION_WIN,
             fromEntity = winnerId,
             toEntity = EntityRef.BANK,
             playerId = winnerId,
-            propertyId = propertyId,
+            propertyId = assetId,
             amount = bid,
         )
         updated = sessionAfter
-        val bonus = colorSetRules.applyCompletionBonusIfNeeded(updated, propertyId, winnerId)
-        updated = bonus.session
-        return GameResult(updated, transactions = listOf(tx) + bonus.transactions)
+        val bonusTransactions = if (auction.propertyId != null) {
+            colorSetRules.applyCompletionBonusIfNeeded(updated, assetId, winnerId).let { bonus ->
+                updated = bonus.session
+                bonus.transactions
+            }
+        } else {
+            emptyList()
+        }
+        return GameResult(updated, transactions = listOf(tx) + bonusTransactions)
     }
 
     private fun handleCancelAuction(session: GameSession): GameResult {
@@ -738,7 +877,11 @@ class DefaultGameEngine(
         session: GameSession,
         command: GameCommand.ResolveDebtWithProperties,
     ): GameResult {
-        val result = debtRules.resolveWithProperties(session, command.propertyIds)
+        val result = debtRules.resolveWithProperties(
+            session,
+            propertyIds = command.propertyIds,
+            energyGridIds = command.energyGridIds,
+        )
         if (!result.isSuccess) {
             return reject(session, GameError.DebtError(result.error!!))
         }

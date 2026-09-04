@@ -143,6 +143,12 @@ object GameplayOutcomeAudio {
         return when (context) {
             is WorkflowCommandContext.Purchase -> resolvePurchaseCue(result)
             is WorkflowCommandContext.PropertyLanding -> resolvePropertyLandingCue(result, context, sessionBefore)
+            is WorkflowCommandContext.EnergyGridPurchase -> resolvePurchaseCue(result)
+            is WorkflowCommandContext.EnergyGridLanding -> resolvePropertyLandingCue(
+                result,
+                WorkflowCommandContext.PropertyLanding(context.playerId, context.energyGridId),
+                sessionBefore,
+            )
             is WorkflowCommandContext.ApplyEvent -> resolveEventCue(context.eventId, result, sessionBefore)
             is WorkflowCommandContext.EventChoice -> resolveEventCue(context.eventId, result, sessionBefore)
             is WorkflowCommandContext.ResolvePendingEventDraw -> resolveEventCue(context.eventId, result, sessionBefore)

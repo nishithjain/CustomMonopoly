@@ -10,6 +10,8 @@ import com.boardbanker.core.model.BoardLayout
 import com.boardbanker.core.model.BoardSpace
 import com.boardbanker.core.model.BoardSpaceType
 import com.boardbanker.core.model.BoardRelationships
+import com.boardbanker.core.model.EnergyGridDefinition
+import com.boardbanker.core.model.EnergyGridRentLevel
 import com.boardbanker.core.model.EventActionDefinition
 import com.boardbanker.core.model.EventDefinition
 import com.boardbanker.core.model.GameDefinitions
@@ -192,6 +194,29 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
                 )
             }
 
+    fun loadEnergyGrids(jsonString: String): List<EnergyGridDefinition> {
+        val root = json.parseToJsonElement(jsonString).jsonObject
+        return root["energyGrids"]!!.jsonArray.map { element ->
+            val obj = element.jsonObject
+            EnergyGridDefinition(
+                energyGridId = obj["energyGridId"]!!.jsonPrimitive.content,
+                name = obj["name"]!!.jsonPrimitive.content,
+                sequence = obj["sequence"]!!.jsonPrimitive.content.toInt(),
+                qrPayload = obj["qrPayload"]!!.jsonPrimitive.content,
+                frontAsset = obj["frontAsset"]!!.jsonPrimitive.content,
+                qrAsset = obj["qrAsset"]!!.jsonPrimitive.content,
+                purchasePrice = obj["purchasePrice"]!!.jsonPrimitive.content.toInt(),
+                rentLevels = obj["rentLevels"]!!.jsonArray.map { rl ->
+                    val r = rl.jsonObject
+                    EnergyGridRentLevel(
+                        ownedCount = r["ownedCount"]!!.jsonPrimitive.content.toInt(),
+                        amount = r["amount"]!!.jsonPrimitive.content.toInt(),
+                    )
+                },
+            )
+        }
+    }
+
     fun loadAll(
         commonCardsJson: String,
         editionCardsJson: String,
@@ -203,16 +228,19 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         gameRulesJson: String,
         bankingValuesJson: String,
         edition: EditionDefinition? = null,
+        energyGridsJson: String? = null,
     ): GameDefinitions {
         val rules = loadGameRules(gameRulesJson)
         val bankingValues = loadBankingValues(bankingValuesJson)
         val engineRuleEntries = loadEventEngineRuleEntries(eventEngineRulesJson)
         val properties = loadProperties(propertiesJson)
+        val energyGrids = energyGridsJson?.let { loadEnergyGrids(it) } ?: emptyList()
         val events = loadEvents(eventsJson, engineRuleEntries)
         val cards = overlayEditionCardNames(
             mergeCardRegistries(commonCardsJson, editionCardsJson),
             properties,
             events,
+            energyGrids,
         )
         val resolvedEdition = edition ?: EditionDefinition(
             editionId = EditionIds.LEGACY_EDITION_ID,
@@ -236,6 +264,7 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
             cardsByQrPayload = cards.associateBy { it.qrPayload },
             players = loadPlayersFromCards(cards).associateBy { it.playerId },
             properties = properties.associateBy { it.propertyId },
+            energyGrids = energyGrids.associateBy { it.energyGridId },
             events = events.associateBy { it.eventId },
             boardRelationships = loadBoardRelationships(boardRelationshipsJson),
             boardLayout = loadBoardLayout(boardLayoutJson),
@@ -260,13 +289,16 @@ class GameDefinitionLoader(private val json: Json = Json { ignoreUnknownKeys = t
         cards: List<CardDefinition>,
         properties: List<PropertyDefinition>,
         events: List<EventDefinition>,
+        energyGrids: List<EnergyGridDefinition> = emptyList(),
     ): List<CardDefinition> {
         val propertyNames = properties.associate { it.propertyId to it.name }
         val eventNames = events.associate { it.eventId to it.name }
+        val energyGridNames = energyGrids.associate { it.energyGridId to it.name }
         return cards.map { card ->
             val overlay = when (card.cardType) {
                 CardType.PROPERTY -> propertyNames[card.cardId]
                 CardType.EVENT -> eventNames[card.cardId]
+                CardType.ENERGY_GRID -> energyGridNames[card.cardId]
                 CardType.USER -> null
             }
             if (overlay == null) card else card.copy(name = overlay)

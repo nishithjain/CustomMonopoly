@@ -28,6 +28,7 @@ data class EditionDataFiles(
     val cardRegistry: String = "card_registry.json",
     val eventEngineRules: String? = null,
     val gameRules: String? = "game_rules.json",
+    val energyGrids: String? = null,
 )
 
 @Serializable

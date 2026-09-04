@@ -57,7 +57,9 @@ def test_data_root_points_at_game_editions() -> None:
 
 def test_inner_box_path_is_under_workspace_resources() -> None:
     path = inner_box_path("india")
-    assert path.name == "InnerBox.png"
+    assert path.name.startswith("InnerBox.")
+    assert path.suffix.lower() in {".png", ".jpg", ".jpeg"}
+    assert path.is_file()
     assert path.parent.name == "Board"
     assert path.parent.parent.name == "india"
     assert path.parent.parent.parent.name == "Editions"

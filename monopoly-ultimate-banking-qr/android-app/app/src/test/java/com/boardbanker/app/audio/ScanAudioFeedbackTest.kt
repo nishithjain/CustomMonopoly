@@ -225,8 +225,9 @@ class GameplayWorkflowAudioTest {
 
     @Test
     fun invalidEventTargetPlaysErrorInWorkflowLayer() {
-        controller.onEventScanned("EVT_06")
-        controller.onEventContinue()
+        val session = AppTestSupport.newGame()
+        controller.onEventScanned("EVT_06", session)
+        controller.onEventContinue(session)
         val actions = controller.onEventPropertyScanned("PRP_01")
         val wrong = actions.filterIsInstance<com.boardbanker.app.gameplay.workflow.WorkflowAction.WrongCardType>()
         assertEquals(1, wrong.size)

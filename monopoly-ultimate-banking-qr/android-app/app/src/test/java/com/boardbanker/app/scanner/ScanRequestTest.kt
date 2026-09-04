@@ -92,7 +92,7 @@ class ScanRequestTest {
     fun genericGameCardOnlyWhenAnyTypeAccepted() {
         val any = ScanRequest.gameCard()
         assertEquals("Scan a Game Card", any.instruction)
-        assertEquals(setOf(CardType.USER, CardType.PROPERTY, CardType.EVENT), any.acceptedCardTypes)
+        assertEquals(setOf(CardType.USER, CardType.PROPERTY, CardType.EVENT, CardType.ENERGY_GRID), any.acceptedCardTypes)
         assertTrue(ScanRequest.player().instruction != "Scan a Game Card")
         assertTrue(ScanRequest.property().instruction != "Scan a Game Card")
         assertTrue(ScanRequest.event().instruction != "Scan a Game Card")

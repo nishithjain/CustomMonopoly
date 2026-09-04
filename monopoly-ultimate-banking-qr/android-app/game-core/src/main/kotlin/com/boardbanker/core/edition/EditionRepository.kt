@@ -41,6 +41,9 @@ class EditionRepository(
             } else {
                 files.readCommon("game_rules.json")
             }
+            val energyGridsJson = manifest.data.energyGrids?.let { fileName ->
+                files.readEdition(id, fileName)
+            }
             loader.loadAll(
                 commonCardsJson = files.readCommon("card_registry.json"),
                 editionCardsJson = files.readEdition(id, manifest.data.cardRegistry),
@@ -52,6 +55,7 @@ class EditionRepository(
                 gameRulesJson = gameRulesJson,
                 bankingValuesJson = files.readEdition(id, manifest.data.bankingValues),
                 edition = manifest,
+                energyGridsJson = energyGridsJson,
             )
         }
     }

@@ -18,10 +18,10 @@ class DefaultCardResolver(
         }
         val card = definitions.cardsByQrPayload[normalized]
             ?: return CardResolution.UnknownQr(qrPayload)
-        val displayName = if (card.cardType == CardType.PROPERTY) {
-            definitions.properties[card.cardId]?.displayNameWithNumber() ?: card.name
-        } else {
-            card.name
+        val displayName = when (card.cardType) {
+            CardType.PROPERTY -> definitions.properties[card.cardId]?.displayNameWithNumber() ?: card.name
+            CardType.ENERGY_GRID -> definitions.energyGrids[card.cardId]?.name ?: card.name
+            else -> card.name
         }
         return CardResolution.Success(
             cardId = card.cardId,

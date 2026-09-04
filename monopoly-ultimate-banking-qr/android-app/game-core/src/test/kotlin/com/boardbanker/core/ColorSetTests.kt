@@ -33,7 +33,7 @@ class ColorSetTests {
             },
         )
         val result = engine.process(
-            session,
+            TestFixtures.endTurn(session, "USR_01", engine).session,
             GameCommand.PurchaseProperty("USR_02", "PRP_08"),
         )
         assertEquals(3, result.session.properties["PRP_06"]!!.currentRentLevel)

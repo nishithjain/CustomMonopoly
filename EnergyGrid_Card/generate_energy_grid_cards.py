@@ -143,7 +143,7 @@ def inject_artwork(html: str, image_filename: str, alt_text: str) -> str:
     """
     replacement = (
         '<div class="energy-image">\n'
-        f'            <img src="{image_filename}" alt="{alt_text}">\n'
+        f'            <img src="../{image_filename}" alt="{alt_text}">\n'
         '        </div>'
     )
 

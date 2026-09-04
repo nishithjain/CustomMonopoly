@@ -34,7 +34,7 @@ class EditionDefinitionVersionCompatibilityTest {
         val result = manager.createNewGame(EditionIds.INDIA)
         val session = (result as ProcessCommitResult.Committed).session
         assertEquals(EditionIds.INDIA, session.editionId)
-        assertEquals(2, session.editionDefinitionVersion)
+        assertEquals(3, session.editionDefinitionVersion)
     }
 
     @Test

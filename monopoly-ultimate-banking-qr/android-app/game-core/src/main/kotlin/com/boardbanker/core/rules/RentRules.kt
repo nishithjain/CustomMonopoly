@@ -33,6 +33,10 @@ class RentRules(
             ?: return RentResult.failure("Unknown owner")
         val propertyDef = definitions.properties[propertyId]!!
 
+        JailGameplayGuard.boardActionBlockedMessage(definitions, session, visitorId)?.let {
+            return RentResult.failure(it)
+        }
+
         if (policies.rent.jailedOwnerCannotCollectRent() && owner.jailStatus) {
             return RentResult.success(session, emptyList())
         }

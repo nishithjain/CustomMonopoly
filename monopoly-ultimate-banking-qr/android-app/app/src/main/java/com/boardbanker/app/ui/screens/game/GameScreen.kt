@@ -45,7 +45,7 @@ fun GameScreen(
     onNavigateHome: () -> Unit,
     onOpenScanner: (ScanRequest) -> Unit,
     onNavigateToBanking: () -> Unit,
-    onNavigateToAuction: (String, String) -> Unit,
+    onNavigateToAuction: (String?, String?, String) -> Unit,
     onNavigateToDebt: () -> Unit,
     onNavigateToGameOver: () -> Unit,
     onNavigateToPlayerDetails: (String) -> Unit,
@@ -58,7 +58,11 @@ fun GameScreen(
                 GameEvent.NavigateHome -> onNavigateHome()
                 is GameEvent.OpenScanner -> onOpenScanner(event.request)
                 GameEvent.NavigateToBanking -> onNavigateToBanking()
-                is GameEvent.NavigateToAuction -> onNavigateToAuction(event.propertyId, event.startedByPlayerId)
+                is GameEvent.NavigateToAuction -> onNavigateToAuction(
+                    event.propertyId,
+                    event.energyGridId,
+                    event.startedByPlayerId,
+                )
                 GameEvent.NavigateToDebt -> onNavigateToDebt()
                 GameEvent.NavigateToGameOver -> onNavigateToGameOver()
                 is GameEvent.NavigateToPlayerDetails -> onNavigateToPlayerDetails(event.playerId)
@@ -105,6 +109,7 @@ fun GameScreen(
         workflowState = uiState.workflowState,
         result = uiState.result,
         gameplayLocked = uiState.gameplayLocked,
+        activePlayerInJail = uiState.activePlayerInJail,
     )
     val showCardInteraction = ActiveGameCardUiPolicy.showCardInteraction(
         workflowState = uiState.workflowState,
@@ -208,16 +213,30 @@ fun GameScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             }
+                            uiState.jailResolutionMessage?.let { jailMessage ->
+                                Text(
+                                    jailMessage,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
                             Button(
                                 onClick = viewModel::onScanCardRequested,
-                                enabled = !uiState.commandInFlight,
+                                enabled = uiState.actionAvailability.scanCardEnabled,
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text("SCAN CARD")
                             }
+                            if (uiState.actionAvailability.getOutOfJailEnabled) {
+                                Button(
+                                    onClick = viewModel::onGetOutOfJailRequested,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text("GET OUT OF JAIL")
+                                }
+                            }
                             Button(
                                 onClick = viewModel::onBankActionsRequested,
-                                enabled = !uiState.commandInFlight,
+                                enabled = uiState.actionAvailability.bankActionsEnabled,
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text("BANK ACTIONS")
@@ -225,7 +244,7 @@ fun GameScreen(
                             if (uiState.activePlayerId != null) {
                                 Button(
                                     onClick = viewModel::onEndTurn,
-                                    enabled = !uiState.commandInFlight,
+                                    enabled = uiState.actionAvailability.endTurnEnabled,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Text("END TURN")

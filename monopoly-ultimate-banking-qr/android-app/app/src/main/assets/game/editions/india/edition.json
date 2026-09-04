@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "editionId": "india",
-  "definitionVersion": 2,
+  "definitionVersion": 3,
   "name": "India Edition",
   "countryCode": "IN",
   "currency": {
@@ -17,18 +17,20 @@
     "boardLayout": "board_layout.json",
     "cardRegistry": "card_registry.json",
     "gameRules": "game_rules.json",
-    "eventEngineRules": "event_engine_rules.json"
+    "eventEngineRules": "event_engine_rules.json",
+    "energyGrids": "energy_grids.json"
   },
   "resources": {
     "propertyCards": "Editions/india/PropertyCards",
     "eventCards": "Editions/india/EventCards"
   },
   "artworkStatus": "READY",
-  "notes": "India edition uses a 25-card event deck. Published card fronts and QR card backs live under Resources/Editions/india/. definitionVersion 2 ships the full India event engine rules.",
+  "notes": "India edition uses a 25-card event deck and 4 Renewable Energy Grid cards. definitionVersion 3 adds Energy Grid gameplay.",
   "cardConfiguration": {
     "playerCardCount": 4,
     "propertyCardCount": 22,
     "eventCardCount": 25,
+    "energyGridCardCount": 4,
     "rentLevelsPerProperty": 5
   }
 }

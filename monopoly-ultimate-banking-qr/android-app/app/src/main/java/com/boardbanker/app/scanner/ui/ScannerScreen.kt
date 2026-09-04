@@ -222,6 +222,7 @@ private fun expectedTypeLabel(type: CardType): String = when (type) {
     CardType.USER -> "Expected: Player Card"
     CardType.PROPERTY -> "Expected: Property Card"
     CardType.EVENT -> "Expected: Event Card"
+    CardType.ENERGY_GRID -> "Expected: Energy Grid Card"
 }
 
 @Composable

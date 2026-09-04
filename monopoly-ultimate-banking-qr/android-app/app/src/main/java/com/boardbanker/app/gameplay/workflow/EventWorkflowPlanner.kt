@@ -94,7 +94,10 @@ object EventWorkflowPlanner {
     }
 
     private fun buildSteps(pattern: EventWorkflowPattern, rule: EventEngineRule): List<EventScanStep> {
-        val steps = mutableListOf<EventScanStep>(EventScanStep.ACTING_PLAYER)
+        val steps = mutableListOf<EventScanStep>()
+        if (rule.requiresPlayerScan) {
+            steps += EventScanStep.ACTING_PLAYER
+        }
         when (pattern) {
             EventWorkflowPattern.EVENT_ONLY,
             EventWorkflowPattern.ACTING_PLAYER_ONLY,

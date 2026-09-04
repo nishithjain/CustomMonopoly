@@ -66,18 +66,22 @@ class PlayerDetailsViewModel(
     }
 
     fun onCollectGo() {
+        if (!currentActionAvailability().collectGoEnabled) return
         _uiState.update { it.copy(step = PlayerDetailsStep.GoConfirm, result = null) }
     }
 
     fun onLocation() {
+        if (!currentActionAvailability().locationEnabled) return
         _uiState.update { it.copy(step = PlayerDetailsStep.LocationConfirm, result = null) }
     }
 
     fun onGoToJail() {
+        if (!currentActionAvailability().goToJailEnabled) return
         _uiState.update { it.copy(step = PlayerDetailsStep.GoToJailConfirm, result = null) }
     }
 
     fun onGetOutOfJail() {
+        if (!currentActionAvailability().getOutOfJailEnabled) return
         val session = sessionManager.currentSession() ?: return
         if (session.players[playerId]?.jailStatus != true) {
             InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
@@ -272,6 +276,15 @@ class PlayerDetailsViewModel(
                 ownedProperties = ActiveGamePresentation.buildOwnedProperties(session, playerId, definitions),
             )
         }
+    }
+
+    private fun currentActionAvailability(): PlayerDetailsActionAvailability {
+        val state = _uiState.value
+        return PlayerDetailsActionAvailability.forPlayer(
+            inJail = state.inJail,
+            commandInFlight = state.commandInFlight,
+            step = state.step,
+        )
     }
 
     private fun executeCommand(

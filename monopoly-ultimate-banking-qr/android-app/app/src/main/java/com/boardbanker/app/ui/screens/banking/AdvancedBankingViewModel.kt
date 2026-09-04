@@ -186,7 +186,7 @@ class AdvancedBankingViewModel(
         when (cardType) {
             CardType.USER -> onPlayerScanned(cardId)
             CardType.PROPERTY -> onPropertyScanned(cardId)
-            CardType.EVENT -> Unit
+            CardType.EVENT, CardType.ENERGY_GRID -> Unit
         }
     }
 

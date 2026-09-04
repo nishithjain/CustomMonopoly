@@ -23,6 +23,7 @@ FRONT_SUFFIXES = (".png", ".jpg", ".jpeg")
 CARD_TYPE_FOLDERS = {
     "PROPERTY": "property",
     "EVENT": "event",
+    "ENERGY_GRID": "energy-grid",
 }
 
 
@@ -105,14 +106,51 @@ def load_edition_cards(project_root: Path, edition_id: str) -> list[dict]:
                 "frontAsset": item.get("frontAsset"),
             },
         )
+    energy_grids_file = edition.get("data", {}).get("energyGrids")
+    if energy_grids_file:
+        energy_grids = load_json(
+            project_root / "data" / "editions" / edition_id / energy_grids_file,
+        )["energyGrids"]
+        for item in energy_grids:
+            cards.append(
+                {
+                    "cardId": item["energyGridId"],
+                    "cardType": "ENERGY_GRID",
+                    "name": item["name"],
+                    "frontAsset": item.get("frontAsset"),
+                },
+            )
     return cards
 
 
-def validate_front_path(front_rel: str) -> None:
+def resolve_source_front_path(
+    workspace_root: Path,
+    card: dict,
+    front_rel: str,
+) -> Path | None:
+    source_path = workspace_root / front_rel
+    if source_path.is_file():
+        return source_path
+    if card.get("cardType") != "ENERGY_GRID":
+        return None
+    parent = source_path.parent
+    if not parent.is_dir():
+        return None
+    grid_id = str(card.get("cardId", "")).lower()
+    prefix = grid_id.replace("eng_", "eng_")
+    for candidate in sorted(parent.glob(f"{prefix}*.png")):
+        lowered = candidate.name.lower()
+        if "_back" in lowered or "_qr" in lowered:
+            continue
+        return candidate
+    return None
+
+
+def validate_front_path(front_rel: str, *, allow_energy_grid_alias: bool = False) -> None:
     lowered = front_rel.replace("\\", "/").lower()
     if "_back_qr" in lowered or lowered.endswith("_back.png") or lowered.endswith("_back.jpg"):
         raise ValueError(f"Back/QR asset must not be used as front: {front_rel}")
-    if "_front" not in lowered:
+    if "_front" not in lowered and not allow_energy_grid_alias:
         raise ValueError(f"Front asset must contain '_Front' marker: {front_rel}")
     if not lowered.endswith(FRONT_SUFFIXES):
         raise ValueError(
@@ -318,12 +356,12 @@ def sync_edition_cards(
                 print(f"  SKIP {msg}")
             continue
         try:
-            validate_front_path(front_rel)
+            validate_front_path(front_rel, allow_energy_grid_alias=card_type == "ENERGY_GRID")
         except ValueError as exc:
             problems.append(f"{edition_id}/{card_type}/{card_id}: {exc}")
             continue
-        source_path = workspace_root / front_rel
-        if not source_path.is_file():
+        source_path = resolve_source_front_path(workspace_root, card, front_rel)
+        if source_path is None:
             msg = f"{edition_id}/{card_type}/{card_id}: missing source front asset: {front_rel}"
             if artwork_status in {"READY", "FRONTS_READY"}:
                 problems.append(msg)

@@ -18,6 +18,7 @@ import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.util.formatMoney
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.PropertyDisplayNames
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -55,12 +56,18 @@ class AuctionViewModel(
     private var scanPromptToken: Long = 0L
     private var auctionEndingPlayed = false
 
+    private val isEnergyGrid: Boolean = propertyId.startsWith("ENG_")
+
     init {
-        val propertyName = PropertyDisplayNames.displayNameWithNumber(propertyId, definitions)
+        val assetName = if (isEnergyGrid) {
+            EnergyGridDisplayNames.displayNameWithNumber(propertyId, definitions)
+        } else {
+            PropertyDisplayNames.displayNameWithNumber(propertyId, definitions)
+        }
         _uiState.update {
             it.copy(
                 propertyId = propertyId,
-                propertyName = propertyName,
+                propertyName = assetName,
                 remainingSeconds = auctionTimerSeconds,
                 bidIncrement = bidIncrement,
             )
@@ -70,14 +77,23 @@ class AuctionViewModel(
 
     private fun startAuctionIfNeeded() {
         val session = sessionManager.currentSession() ?: return
-        if (session.auction?.propertyId == propertyId) {
+        val auction = session.auction
+        if (auction != null && (auction.propertyId == propertyId || auction.energyGridId == propertyId)) {
             syncFromSession()
             startTimer()
             return
         }
         viewModelScope.launch {
             _uiState.update { it.copy(commandInFlight = true) }
-            when (val outcome = executor.execute(GameCommand.StartAuction(propertyId, startedByPlayerId))) {
+            when (
+                val outcome = executor.execute(
+                    if (isEnergyGrid) {
+                        GameCommand.StartAuction(energyGridId = propertyId, startedByPlayerId = startedByPlayerId)
+                    } else {
+                        GameCommand.StartAuction(propertyId = propertyId, startedByPlayerId = startedByPlayerId)
+                    },
+                )
+            ) {
                 is BankingCommitOutcome.Success -> {
                     GameplayOutcomeAudio.playCommittedOutcome(
                         gameAudioFeedback,

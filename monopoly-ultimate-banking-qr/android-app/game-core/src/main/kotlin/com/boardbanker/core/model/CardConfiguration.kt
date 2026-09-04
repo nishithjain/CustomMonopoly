@@ -8,4 +8,5 @@ data class CardConfiguration(
     val propertyCardCount: Int,
     val eventCardCount: Int,
     val rentLevelsPerProperty: Int,
+    val energyGridCardCount: Int = 0,
 )

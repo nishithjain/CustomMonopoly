@@ -17,6 +17,7 @@ import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.displayNameWithNumber
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -71,8 +72,25 @@ class DebtResolutionViewModel(
                     debtValue = def.purchasePrice,
                 )
             }
-            .sortedBy { PropertyDisplayNames.propertyNumber(it.propertyId) ?: Int.MAX_VALUE }
-        val ownedPropertyIds = ownedProperties.map { it.propertyId }.toSet()
+        val ownedEnergyGrids = session.energyGrids.values
+            .filter { it.ownerPlayerId == debt.debtorPlayerId }
+            .mapNotNull { state ->
+                val def = definitions.energyGrids[state.energyGridId] ?: return@mapNotNull null
+                DebtPropertyOption(
+                    propertyId = state.energyGridId,
+                    propertyName = EnergyGridDisplayNames.displayNameWithNumber(state.energyGridId, definitions),
+                    debtValue = def.purchasePrice,
+                )
+            }
+        val allAssets = (ownedProperties + ownedEnergyGrids)
+            .sortedBy { option ->
+                if (option.propertyId.startsWith("ENG_")) {
+                    10_000 + (option.propertyId.removePrefix("ENG_").toIntOrNull() ?: 0)
+                } else {
+                    PropertyDisplayNames.propertyNumber(option.propertyId) ?: Int.MAX_VALUE
+                }
+            }
+        val ownedPropertyIds = allAssets.map { it.propertyId }.toSet()
         val preservedSelection = if (clearSelection) {
             emptySet()
         } else {
@@ -88,7 +106,7 @@ class DebtResolutionViewModel(
                 availableCash = debtor.balance,
                 remainingAfterCash = debt.amountRemaining,
                 selectedPropertyIds = preservedSelection,
-                properties = ownedProperties,
+                properties = allAssets,
             ).withSettlementSummary(::money)
         }
     }
@@ -133,12 +151,21 @@ class DebtResolutionViewModel(
         resolveDebt(selectedPropertyIds)
     }
 
-    private fun resolveDebt(propertyIds: List<String>) {
-        if (propertyIds.isEmpty() || _uiState.value.commandInFlight) return
+    private fun resolveDebt(selectedAssetIds: List<String>) {
+        if (selectedAssetIds.isEmpty() || _uiState.value.commandInFlight) return
+        val propertyIds = selectedAssetIds.filter { it.startsWith("PRP_") }
+        val energyGridIds = selectedAssetIds.filter { it.startsWith("ENG_") }
         val sessionBefore = sessionManager.currentSession() ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(commandInFlight = true) }
-            when (val outcome = executor.execute(GameCommand.ResolveDebtWithProperties(propertyIds))) {
+            when (
+                val outcome = executor.execute(
+                    GameCommand.ResolveDebtWithProperties(
+                        propertyIds = propertyIds,
+                        energyGridIds = energyGridIds,
+                    ),
+                )
+            ) {
                 is BankingCommitOutcome.Success -> {
                     if (outcome.session.debtResolution != null) {
                         refreshFromSession(clearSelection = true)
@@ -156,6 +183,7 @@ class DebtResolutionViewModel(
                                 result = resultMapper.mapDebtSettled(
                                     result = outcome.result,
                                     propertyIds = propertyIds,
+                                    energyGridIds = energyGridIds,
                                     sessionBefore = sessionBefore,
                                 ),
                                 selectedPropertyIds = emptySet(),

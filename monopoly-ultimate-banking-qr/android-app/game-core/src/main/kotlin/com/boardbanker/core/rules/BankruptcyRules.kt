@@ -32,10 +32,7 @@ class BankruptcyRules(
 
         if (creditorId != EntityRef.BANK && creditorId != bankruptPlayerId) {
             val creditor = updatedSession.players[creditorId]!!
-            val shortfall = amountOwed - player.balance -
-                session.properties.values
-                    .filter { it.ownerPlayerId == bankruptPlayerId }
-                    .sumOf { definitions.properties[it.propertyId]!!.purchasePrice }
+            val shortfall = amountOwed - player.balance - totalAssetValue(bankruptPlayerId, session)
             if (shortfall > 0) {
                 updatedSession = updatedSession.copy(
                     players = updatedSession.players + (
@@ -60,9 +57,16 @@ class BankruptcyRules(
 
     fun canCoverDebt(session: GameSession, playerId: String, amount: Int): Boolean {
         val cash = session.players[playerId]?.balance ?: 0
+        return cash + totalAssetValue(playerId, session) >= amount
+    }
+
+    private fun totalAssetValue(playerId: String, session: GameSession): Int {
         val propertyValue = session.properties.values
             .filter { it.ownerPlayerId == playerId }
             .sumOf { definitions.properties[it.propertyId]!!.purchasePrice }
-        return cash + propertyValue >= amount
+        val energyGridValue = session.energyGrids.values
+            .filter { it.ownerPlayerId == playerId }
+            .sumOf { definitions.energyGrids[it.energyGridId]!!.purchasePrice }
+        return propertyValue + energyGridValue
     }
 }

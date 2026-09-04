@@ -5,6 +5,7 @@ import com.boardbanker.core.model.DebtResolutionState
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.EnergyGridState
 import com.boardbanker.core.model.GameStatus
 import com.boardbanker.core.model.PropertyState
 import com.boardbanker.core.model.RentLevelChangeSnapshot
@@ -69,18 +70,22 @@ class DebtRules(
         session: GameSession,
         propertyId: String,
         timestamp: Long = System.currentTimeMillis(),
-    ): DebtResult = resolveWithProperties(session, listOf(propertyId), timestamp)
+    ): DebtResult = resolveWithProperties(session, propertyIds = listOf(propertyId), timestamp = timestamp)
 
     fun resolveWithProperties(
         session: GameSession,
-        propertyIds: List<String>,
+        propertyIds: List<String> = emptyList(),
+        energyGridIds: List<String> = emptyList(),
         timestamp: Long = System.currentTimeMillis(),
     ): DebtResult {
-        if (propertyIds.isEmpty()) {
-            return DebtResult.failure("No properties selected")
+        if (propertyIds.isEmpty() && energyGridIds.isEmpty()) {
+            return DebtResult.failure("No assets selected")
         }
         if (propertyIds.size != propertyIds.toSet().size) {
             return DebtResult.failure("Duplicate property selected")
+        }
+        if (energyGridIds.size != energyGridIds.toSet().size) {
+            return DebtResult.failure("Duplicate energy grid selected")
         }
 
         val debt = session.debtResolution
@@ -90,6 +95,7 @@ class DebtRules(
         val undoSnapshotBeforeSettlement = session.snapshot()
 
         val selectedProperties = mutableListOf<Pair<String, PropertyState>>()
+        val selectedEnergyGrids = mutableListOf<Pair<String, EnergyGridState>>()
         val selectedValues = mutableListOf<Int>()
         for (propertyId in propertyIds) {
             val propertyDef = definitions.properties[propertyId]
@@ -102,10 +108,45 @@ class DebtRules(
             selectedProperties += propertyId to propertyState
             selectedValues += propertyDef.purchasePrice
         }
+        for (energyGridId in energyGridIds) {
+            val gridDef = definitions.energyGrids[energyGridId]
+                ?: return DebtResult.failure("Unknown energy grid")
+            val gridState = session.energyGrids[energyGridId]
+                ?: return DebtResult.failure("Energy grid state missing")
+            if (gridState.ownerPlayerId != debtorId) {
+                return DebtResult.failure("Energy grid not owned by debtor")
+            }
+            selectedEnergyGrids += energyGridId to gridState
+            selectedValues += gridDef.purchasePrice
+        }
 
         val settlement = DebtSettlementCalculator.calculate(debt.amountRemaining, selectedValues)
         val transactions = mutableListOf<Transaction>()
         var updatedSession = session
+
+        for ((energyGridId, gridState) in selectedEnergyGrids) {
+            val valuation = definitions.energyGrids[energyGridId]!!.purchasePrice
+            val updatedGrid = if (creditorId != EntityRef.BANK) {
+                gridState.copy(ownerPlayerId = creditorId)
+            } else {
+                gridState.copy(ownerPlayerId = null)
+            }
+            updatedSession = updatedSession.copy(
+                energyGrids = updatedSession.energyGrids + (energyGridId to updatedGrid),
+            )
+            val (ownershipTx, sessionAfterOwnership) = transactionFactory.create(
+                session = updatedSession,
+                type = TransactionType.ENERGY_GRID_OWNERSHIP_CHANGE,
+                timestamp = timestamp,
+                fromEntity = debtorId,
+                toEntity = if (creditorId != EntityRef.BANK) creditorId else EntityRef.BANK,
+                playerId = debtorId,
+                propertyId = energyGridId,
+                amount = valuation,
+            )
+            transactions += ownershipTx
+            updatedSession = sessionAfterOwnership
+        }
 
         for ((propertyId, propertyState) in selectedProperties) {
             val valuation = definitions.properties[propertyId]!!.purchasePrice
@@ -489,10 +530,15 @@ class DebtRules(
         return DebtResult.success(updatedSession, transactions)
     }
 
-    private fun totalPropertyValue(playerId: String, session: GameSession): Int =
-        session.properties.values
+    private fun totalPropertyValue(playerId: String, session: GameSession): Int {
+        val propertyValue = session.properties.values
             .filter { it.ownerPlayerId == playerId }
             .sumOf { definitions.properties[it.propertyId]!!.purchasePrice }
+        val energyGridValue = session.energyGrids.values
+            .filter { it.ownerPlayerId == playerId }
+            .sumOf { definitions.energyGrids[it.energyGridId]!!.purchasePrice }
+        return propertyValue + energyGridValue
+    }
 
     private fun clearDebtAndMaybeReleaseJail(session: GameSession, debtorId: String): GameSession {
         val player = session.players[debtorId]!!

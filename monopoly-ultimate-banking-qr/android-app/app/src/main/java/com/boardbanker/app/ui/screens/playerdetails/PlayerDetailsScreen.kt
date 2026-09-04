@@ -47,6 +47,11 @@ fun PlayerDetailsScreen(
     onContinueLocationOnActiveGame: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val actionAvailability = PlayerDetailsActionAvailability.forPlayer(
+        inJail = uiState.inJail,
+        commandInFlight = uiState.commandInFlight,
+        step = uiState.step,
+    )
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -161,18 +166,34 @@ fun PlayerDetailsScreen(
                 PlayerDetailsStep.Hub -> {
                     if (uiState.result == null) {
                         Text("BANK ACTIONS", style = MaterialTheme.typography.titleMedium)
-                        Button(onClick = viewModel::onCollectGo, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = viewModel::onCollectGo,
+                            enabled = actionAvailability.collectGoEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("COLLECT GO")
                         }
-                        Button(onClick = viewModel::onLocation, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = viewModel::onLocation,
+                            enabled = actionAvailability.locationEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("LOCATION")
                         }
                         if (uiState.inJail) {
-                            Button(onClick = viewModel::onGetOutOfJail, modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = viewModel::onGetOutOfJail,
+                                enabled = actionAvailability.getOutOfJailEnabled,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
                                 Text("GET OUT OF JAIL")
                             }
                         } else {
-                            Button(onClick = viewModel::onGoToJail, modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = viewModel::onGoToJail,
+                                enabled = actionAvailability.goToJailEnabled,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
                                 Text("GO TO JAIL")
                             }
                         }
