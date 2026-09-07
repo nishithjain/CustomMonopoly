@@ -12,6 +12,7 @@ import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.model.EditionIds
+import com.boardbanker.core.model.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -33,18 +34,23 @@ class GameViewModelLuckyBreakTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeGameSessionRepository
     private lateinit var sessionManager: com.boardbanker.app.game.ActiveGameSessionManager
-    private lateinit var diceRoller: SequenceDiceRoller
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeGameSessionRepository()
-        sessionManager = AppTestSupport.sessionManager(repository)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    private fun configureSessionManager(vararg rolls: Pair<Int, Int>) {
+        sessionManager = AppTestSupport.sessionManager(
+            repository = repository,
+            diceRoller = SequenceDiceRoller(*rolls),
+        )
     }
 
     private suspend fun startIndiaGame() {
@@ -73,12 +79,28 @@ class GameViewModelLuckyBreakTest {
             locationWorkflowHolder = LocationWorkflowHolder(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
-            diceRoller = diceRoller,
         )
 
     @Test
+    fun initialButtonSaysRollDiceAndIsEnabled() = runTest {
+        configureSessionManager(3 to 5)
+        startIndiaGame()
+        applyLuckyBreak()
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val gamble = viewModel.uiState.value.diceGamble!!
+        assertEquals("Roll Dice", gamble.rollButtonLabel)
+        assertTrue(gamble.rollEnabled)
+        assertEquals("Attempt 1 of 3", gamble.attemptLabel)
+        assertEquals(DiceGambleStatus.WAITING_TO_ROLL, gamble.status)
+        assertFalse(viewModel.uiState.value.luckyBreakRollInProgress)
+    }
+
+    @Test
     fun pendingGambleShowsLuckyBreakPanel() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(3, 3)).iterator())
+        configureSessionManager(3 to 3)
         startIndiaGame()
         applyLuckyBreak()
 
@@ -91,8 +113,8 @@ class GameViewModelLuckyBreakTest {
     }
 
     @Test
-    fun rollDispatchesSingleCommandAndShowsSuccess() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(4, 4)).iterator())
+    fun doublesResultStaysVisibleUntilContinue() = runTest {
+        configureSessionManager(4 to 4)
         startIndiaGame()
         applyLuckyBreak()
 
@@ -102,13 +124,25 @@ class GameViewModelLuckyBreakTest {
         advanceUntilIdle()
 
         assertNull(sessionManager.currentSession()!!.pendingDiceGamble)
-        assertNotNull(viewModel.uiState.value.result)
-        assertTrue(viewModel.uiState.value.result!!.primaryMessage.contains("won"))
+        assertNull(viewModel.uiState.value.result)
+        assertNotNull(viewModel.uiState.value.luckyBreakCompletedOutcome)
+        val gamble = viewModel.uiState.value.diceGamble!!
+        assertTrue(gamble.showContinue)
+        assertEquals("Doubles!", gamble.outcomeHeadline)
+        assertEquals(4, gamble.dieOne)
+        assertEquals(4, gamble.dieTwo)
+        assertFalse(viewModel.uiState.value.luckyBreakRollInProgress)
+
+        viewModel.onLuckyBreakContinue()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.diceGamble)
+        assertNull(viewModel.uiState.value.luckyBreakCompletedOutcome)
     }
 
     @Test
     fun doubleTapDispatchesOnce() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(1, 2), listOf(3, 3)).iterator())
+        configureSessionManager(1 to 2, 3 to 3)
         startIndiaGame()
         applyLuckyBreak()
 
@@ -122,8 +156,8 @@ class GameViewModelLuckyBreakTest {
     }
 
     @Test
-    fun buttonReenabledAfterNonFinalFailure() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(1, 2)).iterator())
+    fun failedRollShowsDiceAndRollAgain() = runTest {
+        configureSessionManager(1 to 2)
         startIndiaGame()
         applyLuckyBreak()
 
@@ -132,13 +166,84 @@ class GameViewModelLuckyBreakTest {
         viewModel.onRollLuckyBreakDice()
         advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.diceGamble!!.rollEnabled)
-        assertEquals(DiceGambleStatus.WAITING_TO_ROLL, viewModel.uiState.value.diceGamble!!.status)
+        val gamble = viewModel.uiState.value.diceGamble!!
+        assertEquals(1, gamble.dieOne)
+        assertEquals(2, gamble.dieTwo)
+        assertEquals("No doubles — 2 attempts remaining", gamble.attemptLabel)
+        assertEquals("Roll Again", gamble.rollButtonLabel)
+        assertTrue(gamble.rollEnabled)
+        assertEquals(DiceGambleStatus.WAITING_TO_ROLL, gamble.status)
+        assertFalse(viewModel.uiState.value.luckyBreakRollInProgress)
+    }
+
+    @Test
+    fun rollInProgressResetsAfterSuccessAndFailure() = runTest {
+        configureSessionManager(1 to 2, 4 to 4)
+        startIndiaGame()
+        applyLuckyBreak()
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.luckyBreakRollInProgress)
+
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.luckyBreakRollInProgress)
+    }
+
+    @Test
+    fun thirdFailedAttemptShowsPenaltyUntilContinue() = runTest {
+        configureSessionManager(1 to 2, 2 to 3, 4 to 5)
+        startIndiaGame()
+        applyLuckyBreak()
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+
+        val gamble = viewModel.uiState.value.diceGamble!!
+        assertEquals(4, gamble.dieOne)
+        assertEquals(5, gamble.dieTwo)
+        assertEquals("No doubles", gamble.outcomeHeadline)
+        assertTrue(gamble.showContinue)
+        assertEquals(145_000, sessionManager.currentSession()!!.players["USR_01"]!!.balance)
+    }
+
+    @Test
+    fun jackpotOrPenaltyAppliedOnlyOnce() = runTest {
+        configureSessionManager(4 to 4)
+        startIndiaGame()
+        applyLuckyBreak()
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+
+        val credits = sessionManager.currentSession()!!
+            .transactions
+            .count { it.transactionType == TransactionType.BANK_CREDIT }
+        assertEquals(1, credits)
+
+        viewModel.onRollLuckyBreakDice()
+        advanceUntilIdle()
+
+        val creditsAfterSecondTap = sessionManager.currentSession()!!
+            .transactions
+            .count { it.transactionType == TransactionType.BANK_CREDIT }
+        assertEquals(1, creditsAfterSecondTap)
     }
 
     @Test
     fun unrelatedScanBlockedDuringGamble() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(1, 1)).iterator())
+        configureSessionManager(1 to 1)
         startIndiaGame()
         applyLuckyBreak()
 
@@ -153,7 +258,7 @@ class GameViewModelLuckyBreakTest {
 
     @Test
     fun restoreAfterFailedRollKeepsDiceValues() = runTest {
-        diceRoller = SequenceDiceRoller(listOf(listOf(1, 3)).iterator())
+        configureSessionManager(1 to 3)
         startIndiaGame()
         applyLuckyBreak()
 

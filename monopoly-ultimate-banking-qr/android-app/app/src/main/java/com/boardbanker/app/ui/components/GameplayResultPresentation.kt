@@ -22,7 +22,13 @@ fun GameplayResultPresentation(
     showLargePrimaryPlayer: Boolean = false,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                if (result.title == "RENT WAIVED") {
+                    contentDescription = "Rent waived. ${result.primaryMessage}"
+                }
+            },
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(result.title, style = MaterialTheme.typography.headlineSmall)

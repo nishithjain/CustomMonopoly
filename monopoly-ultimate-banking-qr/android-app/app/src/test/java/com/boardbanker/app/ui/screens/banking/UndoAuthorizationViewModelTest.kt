@@ -267,6 +267,59 @@ class UndoAuthorizationViewModelTest {
     }
 
     @Test
+    fun collectGoUsesActivePlayerWithoutScan() = runTest {
+        startActiveGame()
+        val viewModel = createViewModel()
+        viewModel.onCollectGo()
+        advanceUntilIdle()
+
+        val step = viewModel.uiState.value.step
+        assertTrue(step is AdvancedBankingStep.GoConfirm)
+        assertEquals("USR_01", (step as AdvancedBankingStep.GoConfirm).playerId)
+    }
+
+    @Test
+    fun locationUsesActivePlayerWithoutScan() = runTest {
+        startActiveGame()
+        val viewModel = createViewModel()
+        viewModel.onLocation()
+        viewModel.onLocationPay()
+        advanceUntilIdle()
+
+        val step = viewModel.uiState.value.step
+        assertTrue(step is AdvancedBankingStep.LocationConfirmPlayer)
+        assertEquals("USR_01", (step as AdvancedBankingStep.LocationConfirmPlayer).playerId)
+    }
+
+    @Test
+    fun goToJailUsesActivePlayerWithoutScan() = runTest {
+        startActiveGame()
+        val viewModel = createViewModel()
+        viewModel.onGoToJail()
+        advanceUntilIdle()
+
+        val step = viewModel.uiState.value.step
+        assertTrue(step is AdvancedBankingStep.GoToJailConfirm)
+        assertEquals("USR_01", (step as AdvancedBankingStep.GoToJailConfirm).playerId)
+    }
+
+    @Test
+    fun getOutOfJailUsesActivePlayerWithoutScan() = runTest {
+        startActiveGame()
+        sessionManager.processCommand(
+            sessionManager.currentSession()!!,
+            GameCommand.SendPlayerToJail("USR_01"),
+        )
+        val viewModel = createViewModel()
+        viewModel.onGetOutOfJail()
+        advanceUntilIdle()
+
+        val step = viewModel.uiState.value.step
+        assertTrue(step is AdvancedBankingStep.GetOutOfJailChoice)
+        assertEquals("USR_01", (step as AdvancedBankingStep.GetOutOfJailChoice).playerId)
+    }
+
+    @Test
     fun scannerRoutingResumesAfterCancel() = runTest {
         startActiveGame()
         makeUndoAvailable()
@@ -274,7 +327,6 @@ class UndoAuthorizationViewModelTest {
         viewModel.onUndo()
         viewModel.onCancelUndo()
         viewModel.onCollectGo()
-        viewModel.onScanDelivered("USR_01", CardType.USER)
         advanceUntilIdle()
 
         val step = viewModel.uiState.value.step

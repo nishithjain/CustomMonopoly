@@ -5,6 +5,7 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.isJailPassEvent
 import com.boardbanker.core.transaction.TransactionFactory
 
 class JailRules(
@@ -116,6 +117,48 @@ class JailRules(
             timestamp = timestamp,
             playerId = playerId,
             amount = 1,
+            reversible = true,
+        )
+        updatedSession = sessionAfterPass
+        val (jailTx, sessionAfterJail) = transactionFactory.create(
+            session = updatedSession,
+            type = TransactionType.JAIL_STATUS_CHANGE,
+            timestamp = timestamp,
+            playerId = playerId,
+            reversible = true,
+        )
+        return JailResult.success(
+            sessionAfterJail.copy(undoSnapshot = session.snapshot()),
+            listOf(passTx, jailTx),
+        )
+    }
+
+    fun releaseWithScannedJailPass(
+        session: GameSession,
+        playerId: String,
+        eventId: String,
+        timestamp: Long = System.currentTimeMillis(),
+    ): JailResult {
+        val player = session.players[playerId]
+            ?: return JailResult.failure("Unknown player")
+        if (!player.jailStatus) {
+            return JailResult.failure("Player is not in jail")
+        }
+        if (!definitions.isJailPassEvent(eventId)) {
+            return JailResult.failure("Invalid Get Out of Jail Pass event")
+        }
+
+        val updatedPlayer = player.copy(jailStatus = false)
+        var updatedSession = session.copy(
+            players = session.players + (playerId to updatedPlayer),
+        )
+        val (passTx, sessionAfterPass) = transactionFactory.create(
+            session = updatedSession,
+            type = TransactionType.JAIL_PASS_USED,
+            timestamp = timestamp,
+            playerId = playerId,
+            eventId = eventId,
+            amount = 0,
             reversible = true,
         )
         updatedSession = sessionAfterPass

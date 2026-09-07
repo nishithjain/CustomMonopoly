@@ -129,8 +129,8 @@ class SessionRestoreValidator(
             if (!session.players.containsKey(draw.actingPlayerId)) {
                 problems += "Pending event draw references unknown player ${draw.actingPlayerId}"
             }
-            if (draw.chainDepth < 1 || draw.chainDepth > draw.maximumChainDepth) {
-                problems += "Pending event draw has invalid chain depth ${draw.chainDepth}"
+            if (draw.remainingDraws < 1) {
+                problems += "Pending event draw has no remaining draws"
             }
         }
 

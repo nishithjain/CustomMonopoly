@@ -42,7 +42,7 @@ import com.boardbanker.app.ui.components.PlayerIconSize
 fun AdvancedBankingScreen(
     viewModel: AdvancedBankingViewModel,
     onNavigateBack: () -> Unit,
-    onOpenScanner: (ScanRequest) -> Unit,
+    onOpenScanner: (ScanRequest, onCancelled: (() -> Unit)?) -> Unit,
     onNavigateToDebt: () -> Unit,
     onNavigateToGameOver: () -> Unit,
     onNavigateToGameStatus: () -> Unit,
@@ -59,7 +59,7 @@ fun AdvancedBankingScreen(
         viewModel.events.collect { event ->
             when (event) {
                 AdvancedBankingEvent.NavigateBack -> onNavigateBack()
-                is AdvancedBankingEvent.OpenScanner -> onOpenScanner(event.request)
+                is AdvancedBankingEvent.OpenScanner -> onOpenScanner(event.request, event.onCancelled)
                 AdvancedBankingEvent.NavigateToDebt -> onNavigateToDebt()
                 AdvancedBankingEvent.NavigateToGameOver -> onNavigateToGameOver()
                 AdvancedBankingEvent.NavigateToGameStatus -> onNavigateToGameStatus()
@@ -110,24 +110,58 @@ fun AdvancedBankingScreen(
             when (val step = uiState.step) {
                 AdvancedBankingStep.Hub -> {
                     if (uiState.result == null) {
-                        Button(onClick = viewModel::onCollectGo, modifier = Modifier.fillMaxWidth()) {
+                        val eligibility = uiState.hubEligibility
+                        eligibility.activePlayerName?.let { activeName ->
+                            Text(
+                                "Active player: $activeName",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                        Button(
+                            onClick = viewModel::onCollectGo,
+                            enabled = eligibility.collectGoEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("COLLECT GO")
                         }
-                        Button(onClick = viewModel::onLocation, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = viewModel::onLocation,
+                            enabled = eligibility.locationEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("LOCATION")
                         }
-                        Button(onClick = viewModel::onGoToJail, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = viewModel::onGoToJail,
+                            enabled = eligibility.goToJailEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("GO TO JAIL")
                         }
-                        Button(onClick = viewModel::onGetOutOfJail, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = viewModel::onGetOutOfJail,
+                            enabled = eligibility.getOutOfJailEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("GET OUT OF JAIL")
+                        }
+                        if (eligibility.activePlayerInJail) {
+                            Text(
+                                "Collect GO and Location are unavailable while the active player is in Jail.",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        } else if (!eligibility.getOutOfJailEnabled) {
+                            Text(
+                                "Get out of Jail is available only when the active player is in Jail.",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                         Button(
                             onClick = viewModel::onUndo,
                             enabled = uiState.canUndo,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(if (uiState.canUndo) "UNDO LAST ACTION" else "UNDO LAST ACTION")
+                            Text("UNDO LAST ACTION")
                         }
                         if (!uiState.canUndo) {
                             Text(
@@ -143,16 +177,6 @@ fun AdvancedBankingScreen(
                         }
                     }
                 }
-                AdvancedBankingStep.GoScanPlayer -> {
-                    Text(
-                        "Scan the Player card\nwho passed or landed on GO.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                    )
-                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("SCAN PLAYER CARD")
-                    }
-                }
                 is AdvancedBankingStep.GoConfirm -> {
                     PlayerIdentity(
                         playerId = step.playerId,
@@ -160,7 +184,7 @@ fun AdvancedBankingScreen(
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
-                        "Collect ${viewModel.goSalaryText()}?\n\n" +
+                        "Collect ${viewModel.goSalaryText()} for ${viewModel.playerDisplayName(step.playerId)}?\n\n" +
                             "Use this only when the player passed\n" +
                             "or landed on GO during normal movement.",
                         style = MaterialTheme.typography.bodyLarge,
@@ -173,8 +197,9 @@ fun AdvancedBankingScreen(
                     )
                 }
                 AdvancedBankingStep.LocationIntro -> {
+                    val playerName = uiState.hubEligibility.activePlayerName ?: "the active player"
                     Text(
-                        "LOCATION\n\nPay ${viewModel.locationFeeText()} and move to a Property?",
+                        "LOCATION\n\nPay ${viewModel.locationFeeText()} and move $playerName to a Property?",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     BankingActionBar(
@@ -191,12 +216,6 @@ fun AdvancedBankingScreen(
                         onCancel = viewModel::onBack,
                     )
                 }
-                AdvancedBankingStep.LocationScanPlayer -> {
-                    Text("Scan the Player card.", style = MaterialTheme.typography.bodyLarge)
-                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("SCAN PLAYER CARD")
-                    }
-                }
                 is AdvancedBankingStep.LocationConfirmPlayer -> {
                     PlayerIdentity(
                         playerId = step.playerId,
@@ -204,7 +223,7 @@ fun AdvancedBankingScreen(
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
-                        "Pay ${viewModel.locationFeeText()}?\n\n" +
+                        "Pay ${viewModel.locationFeeText()} for ${viewModel.playerDisplayName(step.playerId)}?\n\n" +
                             "Move the physical token to the Property you choose.\n\n" +
                             "Do not collect ${viewModel.goSalaryText()} if you pass GO.",
                         style = MaterialTheme.typography.bodyLarge,
@@ -216,15 +235,6 @@ fun AdvancedBankingScreen(
                         onCancel = viewModel::onBack,
                     )
                 }
-                AdvancedBankingStep.GoToJailScanPlayer -> {
-                    Text(
-                        "Scan the Player card\nto send to Jail.",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("SCAN PLAYER CARD")
-                    }
-                }
                 is AdvancedBankingStep.GoToJailConfirm -> {
                     PlayerIdentity(
                         playerId = step.playerId,
@@ -232,7 +242,9 @@ fun AdvancedBankingScreen(
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
-                        "Send to Jail?\n\nMove the physical token\ndirectly to Jail.\n\nDo not collect ${viewModel.goSalaryText()}.",
+                        "Send ${viewModel.playerDisplayName(step.playerId)} to Jail?\n\n" +
+                            "Move the physical token\ndirectly to Jail.\n\n" +
+                            "Do not collect ${viewModel.goSalaryText()}.",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     BankingActionBar(
@@ -242,14 +254,57 @@ fun AdvancedBankingScreen(
                         onCancel = viewModel::onBack,
                     )
                 }
-                AdvancedBankingStep.GetOutOfJailScanPlayer -> {
+                is AdvancedBankingStep.GetOutOfJailChoice -> {
+                    PlayerIdentity(
+                        playerId = step.playerId,
+                        playerName = viewModel.playerDisplayName(step.playerId),
+                        iconSize = PlayerIconSize.Normal,
+                    )
+                    Text("GET OUT OF JAIL", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Scan the jailed Player card.",
+                        "How would ${viewModel.playerDisplayName(step.playerId)} like to get out of Jail?",
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Button(onClick = { onOpenScanner(ScanRequest.player()) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("SCAN PLAYER CARD")
+                    if (!viewModel.supportsJailPassScan()) {
+                        Text(
+                            "This edition does not include a Get out of Jail Pass Event Card.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
+                    val jailPassLabel = viewModel.jailPassActionLabel(step.playerId)
+                    BankingActionBar(
+                        confirmLabel = BankingActionLabels.confirm("PAY ${viewModel.jailFeeText()}"),
+                        onConfirm = { viewModel.onPayJailFee(step.playerId) },
+                        extraActions = buildList {
+                            if (viewModel.supportsJailPassScan()) {
+                                add(
+                                    BankingExtraAction(
+                                        label = "SCAN GET OUT OF JAIL PASS",
+                                        onClick = { viewModel.onScanJailPass(step.playerId) },
+                                        contentDescription = "Scan Get out of Jail Pass Event Card",
+                                    ),
+                                )
+                            }
+                            if (jailPassLabel != null) {
+                                add(
+                                    BankingExtraAction(
+                                        label = jailPassLabel.uppercase(),
+                                        onClick = { viewModel.onUseJailPass(step.playerId) },
+                                        contentDescription = "Use stored Get Out of Jail pass",
+                                    ),
+                                )
+                            }
+                            add(
+                                BankingExtraAction(
+                                    label = "MORE OPTIONS",
+                                    onClick = { viewModel.onOpenJailOptions(step.playerId) },
+                                    contentDescription = "Show additional jail release options",
+                                ),
+                            )
+                        },
+                        cancelLabel = BankingActionLabels.cancel("CANCEL"),
+                        onCancel = viewModel::onBack,
+                    )
                 }
                 is AdvancedBankingStep.JailOptions -> {
                     PlayerIdentity(

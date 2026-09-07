@@ -17,10 +17,14 @@ import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
 import com.boardbanker.app.game.ActiveGamePresentation
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.jailPassEventIds
+import com.boardbanker.core.model.supportsJailPassScan
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -47,6 +51,9 @@ class PlayerDetailsViewModel(
     private val _events = MutableSharedFlow<PlayerDetailsEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<PlayerDetailsEvent> = _events.asSharedFlow()
 
+    private var jailPassScanInProgress = false
+    private var jailPassScanHandling = false
+
     init {
         sessionManager.currentSession()?.let { refreshFromSession(it) }
         viewModelScope.launch {
@@ -61,6 +68,12 @@ class PlayerDetailsViewModel(
     fun onBack() {
         when (_uiState.value.step) {
             PlayerDetailsStep.Hub -> _events.tryEmit(PlayerDetailsEvent.NavigateBack)
+            PlayerDetailsStep.JailDoublesConfirm -> {
+                _uiState.update { it.copy(step = PlayerDetailsStep.JailOptions, result = null) }
+            }
+            PlayerDetailsStep.JailOptions -> {
+                _uiState.update { it.copy(step = PlayerDetailsStep.GetOutOfJailChoice, result = null) }
+            }
             else -> _uiState.update { it.copy(step = PlayerDetailsStep.Hub, result = null) }
         }
     }
@@ -89,6 +102,69 @@ class PlayerDetailsViewModel(
             return
         }
         GameplayOutcomeAudio.playCue(gameAudioFeedback, GameplayAudioCue.JAIL_WORKFLOW)
+        _uiState.update { it.copy(step = PlayerDetailsStep.GetOutOfJailChoice, result = null) }
+    }
+
+    fun supportsJailPassScan(): Boolean = definitions.supportsJailPassScan()
+
+    fun onScanJailPass() {
+        if (!supportsJailPassScan()) return
+        val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) return
+        jailPassScanInProgress = true
+        _events.tryEmit(
+            PlayerDetailsEvent.OpenJailPassScanner(
+                ScanRequest.getOutOfJailPass(definitions.jailPassEventIds()),
+            ),
+        )
+    }
+
+    fun onJailPassScannerCancelled() {
+        jailPassScanInProgress = false
+    }
+
+    fun onJailPassScanned(cardId: String, cardType: CardType) {
+        if (!jailPassScanInProgress || jailPassScanHandling || _uiState.value.commandInFlight) return
+        val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) {
+            jailPassScanInProgress = false
+            return
+        }
+
+        val allowedEventIds = definitions.jailPassEventIds()
+        if (cardType != CardType.EVENT || cardId !in allowedEventIds) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            return
+        }
+
+        jailPassScanHandling = true
+        jailPassScanInProgress = false
+        executeCommand(
+            GameCommand.GetOutOfJailWithPass(
+                playerId = playerId,
+                eventId = cardId,
+                restrictToActivePlayer = restrictBankActionToActivePlayer(),
+            ),
+        ) { outcome ->
+            jailPassScanHandling = false
+            when (outcome) {
+                is BankingCommitOutcome.Success -> {
+                    val updatedSession = sessionManager.currentSession()
+                    resultMapper.mapJailPassScannedResult(playerId, updatedSession ?: return@executeCommand null)
+                }
+                is BankingCommitOutcome.Rejected ->
+                    resultMapper.errorResult(
+                        outcome.result.error?.let { it.toString() }
+                            ?: "Unable to use Get out of Jail Pass.",
+                    )
+                is BankingCommitOutcome.PersistenceFailed ->
+                    resultMapper.errorResult("Unable to save the game.\nPlease try again.")
+                else -> null
+            }
+        }
+    }
+
+    fun onOpenJailOptions() {
         _uiState.update { it.copy(step = PlayerDetailsStep.JailOptions, result = null) }
     }
 
@@ -169,7 +245,12 @@ class PlayerDetailsViewModel(
     fun onPayJailFee() {
         val session = sessionManager.currentSession() ?: return
         val balanceBefore = session.players[playerId]?.balance ?: 0
-        executeCommand(GameCommand.PayJailFee(playerId)) { outcome ->
+        executeCommand(
+            GameCommand.PayJailFee(
+                playerId,
+                restrictToActivePlayer = restrictBankActionToActivePlayer(),
+            ),
+        ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success ->
                     resultMapper.mapJailFeeResult(outcome.result, playerId, balanceBefore)
@@ -191,7 +272,12 @@ class PlayerDetailsViewModel(
     }
 
     fun onUseJailPass() {
-        executeCommand(GameCommand.UseGetOutOfJailPass(playerId)) { outcome ->
+        executeCommand(
+            GameCommand.UseGetOutOfJailPass(
+                playerId,
+                restrictToActivePlayer = restrictBankActionToActivePlayer(),
+            ),
+        ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
                     val session = sessionManager.currentSession()
@@ -217,7 +303,12 @@ class PlayerDetailsViewModel(
     }
 
     fun onConfirmJailDoubles() {
-        executeCommand(GameCommand.ReleasePlayerFromJailByDoubles(playerId)) { outcome ->
+        executeCommand(
+            GameCommand.ReleasePlayerFromJailByDoubles(
+                playerId,
+                restrictToActivePlayer = restrictBankActionToActivePlayer(),
+            ),
+        ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
                     val session = sessionManager.currentSession()
@@ -243,11 +334,19 @@ class PlayerDetailsViewModel(
     }
 
     fun onPropertySelected(propertyId: String) {
-        _uiState.update { it.copy(selectedPropertyId = propertyId) }
+        _uiState.update { it.copy(selectedPropertyId = propertyId, selectedEnergyGridId = null) }
     }
 
     fun dismissPropertyPreview() {
         _uiState.update { it.copy(selectedPropertyId = null) }
+    }
+
+    fun onEnergyGridSelected(energyGridId: String) {
+        _uiState.update { it.copy(selectedEnergyGridId = energyGridId, selectedPropertyId = null) }
+    }
+
+    fun dismissEnergyGridPreview() {
+        _uiState.update { it.copy(selectedEnergyGridId = null) }
     }
 
     fun onDone() {
@@ -260,8 +359,16 @@ class PlayerDetailsViewModel(
 
     fun jailFeeText(): String = formatMoney(definitions.bankingValues.jailReleaseFee, definitions)
 
+    private fun restrictBankActionToActivePlayer(): Boolean {
+        val session = sessionManager.currentSession() ?: return false
+        return session.turnState?.activePlayerId == playerId
+    }
+
     private fun refreshFromSession(session: GameSession) {
         val player = session.players[playerId] ?: return
+        val propertyCount = session.properties.values.count { state -> state.ownerPlayerId == playerId }
+        val energyGridCount = ActiveGamePresentation.ownedEnergyGridCount(session, playerId)
+        val activePlayerId = session.turnState?.activePlayerId
         _uiState.update {
             it.copy(
                 editionId = session.editionId,
@@ -269,11 +376,16 @@ class PlayerDetailsViewModel(
                 playerName = PlayerDisplayNames.displayName(session, playerId, definitions),
                 tokenName = definitions.players[playerId]?.displayName.orEmpty(),
                 balanceText = formatMoney(player.balance, definitions),
-                jailStatusText = if (player.jailStatus) "IN JAIL" else "No",
-                propertyCount = session.properties.values.count { state -> state.ownerPlayerId == playerId },
+                playerStatusText = if (player.jailStatus) "In Jail" else "Active",
+                propertyCount = propertyCount,
+                energyGridCount = energyGridCount,
+                totalAssetCount = propertyCount + energyGridCount,
+                isActiveTurn = playerId == activePlayerId,
+                hasEnergyGridsInEdition = definitions.energyGrids.isNotEmpty(),
                 inJail = player.jailStatus,
                 jailPassCount = player.jailPassCount,
                 ownedProperties = ActiveGamePresentation.buildOwnedProperties(session, playerId, definitions),
+                ownedEnergyGrids = ActiveGamePresentation.buildOwnedEnergyGrids(session, playerId, definitions),
             )
         }
     }

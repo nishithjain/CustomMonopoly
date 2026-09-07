@@ -39,7 +39,9 @@ class TurnScheduler(
             return TurnTransitionResult.failure("Cannot end turn while Lucky Break is in progress")
         }
         if (session.pendingEventDraw != null) {
-            return TurnTransitionResult.failure("Cannot end turn while Lucky Draw is in progress")
+            return TurnTransitionResult.failure(
+                "Complete Lucky Draw by scanning one additional Event Card before ending the turn.",
+            )
         }
 
         val eligibleOrder = eligibleTurnOrder(session, turnState)

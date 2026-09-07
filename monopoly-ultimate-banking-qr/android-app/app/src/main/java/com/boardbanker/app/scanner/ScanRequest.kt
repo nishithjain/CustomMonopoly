@@ -15,6 +15,8 @@ enum class ScanContext {
     ENERGY_GRID,
     PLAYER_OR_PROPERTY,
     UNDO_AUTHORIZATION,
+    GET_OUT_OF_JAIL_PASS,
+    RESOLVE_PENDING_EVENT_DRAW,
 }
 
 /**
@@ -24,8 +26,10 @@ data class ScanRequest(
     val acceptedCardTypes: Set<CardType>,
     val specificCardId: String? = null,
     val specificCardName: String? = null,
+    val allowedEventIds: Set<String>? = null,
     val instruction: String,
     val mismatchInstruction: String,
+    val supportingInstruction: String? = null,
     val context: ScanContext,
 ) {
     val heading: String get() = instruction
@@ -162,6 +166,32 @@ data class ScanRequest(
         fun forEventId(eventId: String, definitions: GameDefinitions): ScanRequest {
             val name = definitions.events[eventId]?.name?.takeIf { it.isNotBlank() }
             return if (name == null) event() else event(eventId, name)
+        }
+
+        fun getOutOfJailPass(allowedEventIds: Set<String>): ScanRequest {
+            return ScanRequest(
+                acceptedCardTypes = setOf(CardType.EVENT),
+                allowedEventIds = allowedEventIds,
+                instruction = "Scan Get out of Jail Pass",
+                mismatchInstruction = "Only the Get out of Jail Pass Event Card is accepted.",
+                supportingInstruction = "Only the Get out of Jail Pass Event Card is accepted.",
+                context = ScanContext.GET_OUT_OF_JAIL_PASS,
+            )
+        }
+
+        fun resolvePendingEventDraw(
+            parentEventId: String,
+            parentEventName: String? = null,
+        ): ScanRequest {
+            val luckyDrawName = parentEventName?.takeIf { it.isNotBlank() } ?: "Lucky Draw"
+            return ScanRequest(
+                acceptedCardTypes = setOf(CardType.EVENT),
+                specificCardId = null,
+                instruction = "Scan Additional Event Card",
+                mismatchInstruction = "Please scan an Event Card from this edition.",
+                supportingInstruction = "Scan one Event Card to complete $luckyDrawName.",
+                context = ScanContext.RESOLVE_PENDING_EVENT_DRAW,
+            )
         }
 
         private fun playerInstruction(specificCardName: String?, useTokenForm: Boolean): String {

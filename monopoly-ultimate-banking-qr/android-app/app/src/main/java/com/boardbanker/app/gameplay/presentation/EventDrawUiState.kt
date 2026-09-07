@@ -6,6 +6,7 @@ data class EventDrawUiState(
     val actingPlayerId: String,
     val actingPlayerName: String,
     val instruction: String,
-    val chainProgressText: String?,
+    val requiredDrawsText: String,
+    val scanButtonLabel: String,
     val scanEnabled: Boolean,
 )

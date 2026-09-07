@@ -10,7 +10,6 @@ import com.boardbanker.core.model.PendingEventExecution
 import com.boardbanker.core.event.EventInstructionFormatter
 import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.model.EnergyGridDisplayNames
-import com.boardbanker.core.rules.EnergyGridRentCalculator
 import com.boardbanker.core.rules.JailGameplayGuard
 
 sealed class GameplayWorkflowState {
@@ -87,8 +86,6 @@ sealed class GameplayWorkflowState {
     data class EventDrawScanRequired(
         val parentEventId: String,
         val actingPlayerId: String,
-        val chainDepth: Int,
-        val maximumChainDepth: Int,
     ) : GameplayWorkflowState()
 
     data class WaitingForAuctionStarter(
@@ -261,31 +258,34 @@ class GameplayWorkflowController(
         val gridDef = definitions.energyGrids[energyGridId]!!
         val gridState = session.energyGrids[energyGridId]
         val ownerId = gridState?.ownerPlayerId
-        val ownerName = ownerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
-        val rentTable = gridDef.rentLevels.sortedBy { it.ownedCount }.map { it.ownedCount to it.amount }
-        val currentRent = ownerId?.let {
-            EnergyGridRentCalculator.rentForOwner(definitions, session, it)
-        }
+        val effectiveLandingPlayerId = landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
 
-        if (landingPlayerId != null) {
-            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, landingPlayerId)?.let { message ->
-                state = GameplayWorkflowState.Error(message)
-                return listOf(WorkflowAction.StateChanged(state))
+        if (effectiveLandingPlayerId != null) {
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, effectiveLandingPlayerId)?.let { message ->
+                if (ownerId == null) {
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
             }
             return when (ownerId) {
                 null -> {
-                    state = GameplayWorkflowState.UnownedEnergyGridDecision(energyGridId, landingPlayerId)
+                    JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, effectiveLandingPlayerId)?.let { message ->
+                        state = GameplayWorkflowState.Error(message)
+                        return listOf(WorkflowAction.StateChanged(state))
+                    }
+                    state = GameplayWorkflowState.UnownedEnergyGridDecision(energyGridId, effectiveLandingPlayerId)
                     listOf(
                         WorkflowAction.StateChanged(showUnownedEnergyGrid(energyGridId)),
                         WorkflowAction.StateChanged(state),
                     )
                 }
-                landingPlayerId -> listOf(
+                effectiveLandingPlayerId -> listOf(
                     WorkflowAction.ExecuteCommand(
                         WorkflowCommandRequest(
-                            command = GameCommand.ProcessEnergyGridLanding(landingPlayerId, energyGridId),
+                            command = GameCommand.ProcessEnergyGridLanding(effectiveLandingPlayerId, energyGridId),
                             context = WorkflowCommandContext.EnergyGridLanding(
-                                playerId = landingPlayerId,
+                                playerId = effectiveLandingPlayerId,
                                 energyGridId = energyGridId,
                             ),
                         ),
@@ -294,9 +294,9 @@ class GameplayWorkflowController(
                 else -> listOf(
                     WorkflowAction.ExecuteCommand(
                         WorkflowCommandRequest(
-                            command = GameCommand.ProcessEnergyGridLanding(landingPlayerId, energyGridId),
+                            command = GameCommand.ProcessEnergyGridLanding(effectiveLandingPlayerId, energyGridId),
                             context = WorkflowCommandContext.EnergyGridLanding(
-                                playerId = landingPlayerId,
+                                playerId = effectiveLandingPlayerId,
                                 energyGridId = energyGridId,
                             ),
                         ),
@@ -318,25 +318,8 @@ class GameplayWorkflowController(
                 WorkflowAction.StateChanged(state),
             )
         } else {
-            state = GameplayWorkflowState.WaitingForRentPayerEnergyGrid(
-                energyGridId = energyGridId,
-                ownerPlayerId = ownerId,
-                ownerName = ownerName,
-            )
-            listOf(
-                WorkflowAction.StateChanged(
-                    GameplayWorkflowState.EnergyGridSummary(
-                        energyGridId = energyGridId,
-                        energyGridName = EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions),
-                        ownerName = ownerName,
-                        isUnowned = false,
-                        purchasePrice = gridDef.purchasePrice,
-                        rentTable = rentTable,
-                        currentRent = currentRent,
-                    ),
-                ),
-                WorkflowAction.StateChanged(state),
-            )
+            state = GameplayWorkflowState.Error("No active player for energy grid landing.")
+            listOf(WorkflowAction.StateChanged(state))
         }
     }
 
@@ -439,29 +422,34 @@ class GameplayWorkflowController(
         val propertyDef = definitions.properties[propertyId]!!
         val propertyState = session.properties[propertyId]
         val ownerId = propertyState?.ownerPlayerId
-        val ownerName = ownerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
-        val rentLevel = propertyState?.currentRentLevel ?: propertyDef.initialRentLevel
-        val currentRent = propertyDef.rentLevels.firstOrNull { it.level == rentLevel }?.amount
+        val effectiveLandingPlayerId = landingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
 
-        if (landingPlayerId != null) {
-            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, landingPlayerId)?.let { message ->
-                state = GameplayWorkflowState.Error(message)
-                return listOf(WorkflowAction.StateChanged(state))
+        if (effectiveLandingPlayerId != null) {
+            JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, effectiveLandingPlayerId)?.let { message ->
+                if (ownerId == null) {
+                    state = GameplayWorkflowState.Error(message)
+                    return listOf(WorkflowAction.StateChanged(state))
+                }
             }
             return when (ownerId) {
                 null -> {
-                    state = GameplayWorkflowState.UnownedPropertyDecision(propertyId, landingPlayerId)
+                    JailGameplayGuard.propertyPurchaseBlockedMessage(definitions, session, effectiveLandingPlayerId)?.let { message ->
+                        state = GameplayWorkflowState.Error(message)
+                        return listOf(WorkflowAction.StateChanged(state))
+                    }
+                    state = GameplayWorkflowState.UnownedPropertyDecision(propertyId, effectiveLandingPlayerId)
                     listOf(
                         WorkflowAction.StateChanged(showUnownedProperty(propertyId)),
                         WorkflowAction.StateChanged(state),
                     )
                 }
-                landingPlayerId -> listOf(
+                effectiveLandingPlayerId -> listOf(
                     WorkflowAction.ExecuteCommand(
                         WorkflowCommandRequest(
-                            command = GameCommand.ProcessPropertyLanding(landingPlayerId, propertyId),
+                            command = GameCommand.ProcessPropertyLanding(effectiveLandingPlayerId, propertyId),
                             context = WorkflowCommandContext.PropertyLanding(
-                                playerId = landingPlayerId,
+                                playerId = effectiveLandingPlayerId,
                                 propertyId = propertyId,
                             ),
                         ),
@@ -470,9 +458,9 @@ class GameplayWorkflowController(
                 else -> listOf(
                     WorkflowAction.ExecuteCommand(
                         WorkflowCommandRequest(
-                            command = GameCommand.ProcessPropertyLanding(landingPlayerId, propertyId),
+                            command = GameCommand.ProcessPropertyLanding(effectiveLandingPlayerId, propertyId),
                             context = WorkflowCommandContext.PropertyLanding(
-                                playerId = landingPlayerId,
+                                playerId = effectiveLandingPlayerId,
                                 propertyId = propertyId,
                             ),
                         ),
@@ -494,26 +482,8 @@ class GameplayWorkflowController(
                 WorkflowAction.StateChanged(state),
             )
         } else {
-            state = GameplayWorkflowState.WaitingForRentPayer(
-                propertyId = propertyId,
-                ownerPlayerId = ownerId,
-                ownerName = ownerName,
-            )
-            listOf(
-                WorkflowAction.StateChanged(
-                    GameplayWorkflowState.PropertySummary(
-                        propertyId = propertyId,
-                        propertyName = propertyDef.displayNameWithNumber(),
-                        ownerName = ownerName,
-                        isUnowned = false,
-                        purchasePrice = propertyDef.purchasePrice,
-                        rentLevel = rentLevel,
-                        currentRent = currentRent,
-                        maximumRentLevel = propertyDef.maximumRentLevel,
-                    ),
-                ),
-                WorkflowAction.StateChanged(state),
-            )
+            state = GameplayWorkflowState.Error("No active player for property landing.")
+            listOf(WorkflowAction.StateChanged(state))
         }
     }
 
@@ -575,7 +545,7 @@ class GameplayWorkflowController(
             return listOf(WorkflowAction.StateChanged(state))
         }
         session.pendingEventDraw?.let { pending ->
-            return enterEventDrawScan(pending.parentEventId, pending.actingPlayerId, pending.chainDepth, pending.maximumChainDepth)
+            return enterEventDrawScan(pending.parentEventId, pending.actingPlayerId)
         }
         session.pendingEventChoice?.let { choice ->
             state = GameplayWorkflowState.EventPropertyChoice(
@@ -604,14 +574,10 @@ class GameplayWorkflowController(
     fun enterEventDrawScan(
         parentEventId: String,
         actingPlayerId: String,
-        chainDepth: Int,
-        maximumChainDepth: Int,
     ): List<WorkflowAction> {
         state = GameplayWorkflowState.EventDrawScanRequired(
             parentEventId = parentEventId,
             actingPlayerId = actingPlayerId,
-            chainDepth = chainDepth,
-            maximumChainDepth = maximumChainDepth,
         )
         return listOf(WorkflowAction.StateChanged(state))
     }
@@ -623,6 +589,23 @@ class GameplayWorkflowController(
                 WorkflowAction.WrongCardType(
                     expected = CardType.EVENT,
                     message = "EVENT CARD EXPECTED\n\nScan an Event card from this edition.",
+                ),
+            )
+        }
+        if (eventId == pending.parentEventId) {
+            return listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.EVENT,
+                    message = "This Event would start another Lucky Draw.\nScan a different Event Card.",
+                ),
+            )
+        }
+        val event = definitions.events[eventId]!!
+        if (event.actions.any { it.actionType == "DRAW_ANOTHER_EVENT" }) {
+            return listOf(
+                WorkflowAction.WrongCardType(
+                    expected = CardType.EVENT,
+                    message = "This Event would start another Lucky Draw.\nScan a different Event Card.",
                 ),
             )
         }

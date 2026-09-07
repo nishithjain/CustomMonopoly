@@ -166,6 +166,33 @@ class GameplayResultMapper(
                 lastTransactionSummary = summarizeLastTransaction(result),
             )
         }
+        val waivedTx = result.transactions.firstOrNull {
+            it.transactionType == TransactionType.RENT_WAIVED
+        }
+        if (waivedTx != null) {
+            val waivedAmount = waivedTx.amount
+            return GameplayResultUiModel(
+                displayCardId = energyGridId,
+                title = "RENT WAIVED",
+                primaryPlayerId = playerId,
+                primaryPlayerName = visitorName,
+                primaryMessage = buildString {
+                    append("No rent needs to be paid because $visitorName has Rent Relief.\n\n")
+                    append("Rent waived: ${money(waivedAmount)}\n")
+                    append("Energy Grid: $gridName\n")
+                    append("Owner: ${ownerName ?: "Unknown"}")
+                },
+                propertyChanges = listOf(
+                    PropertyChangeUi(
+                        propertyName = gridName,
+                        ownerName = ownerName,
+                        ownerPlayerId = ownerId,
+                        rentAmount = waivedAmount,
+                    ),
+                ),
+                lastTransactionSummary = summarizeLastTransaction(result),
+            )
+        }
         val rentAmount = rentTx?.amount
         return GameplayResultUiModel(
             displayCardId = energyGridId,
@@ -269,6 +296,34 @@ class GameplayResultMapper(
                         rentLevelAfter = levelBefore,
                     ),
                 ),
+            )
+        }
+
+        val waivedTx = result.transactions.firstOrNull { it.transactionType == TransactionType.RENT_WAIVED }
+        if (waivedTx != null) {
+            val waivedAmount = waivedTx.amount ?: rentAmount
+            return GameplayResultUiModel(
+                displayCardId = propertyId,
+                title = "RENT WAIVED",
+                primaryPlayerId = playerId,
+                primaryPlayerName = visitorName,
+                primaryMessage = buildString {
+                    append("No rent needs to be paid because $visitorName has Rent Relief.\n\n")
+                    append("Rent waived: ${money(waivedAmount)}\n")
+                    append("Property: ${property.displayNameWithNumber()}\n")
+                    append("Owner: ${ownerName ?: "Unknown"}")
+                },
+                propertyChanges = listOf(
+                    PropertyChangeUi(
+                        propertyName = property.displayNameWithNumber(),
+                        ownerName = ownerName,
+                        ownerPlayerId = ownerId,
+                        rentLevelBefore = levelBefore,
+                        rentLevelAfter = levelBefore,
+                        rentAmount = waivedAmount,
+                    ),
+                ),
+                lastTransactionSummary = summarizeLastTransaction(result),
             )
         }
 
@@ -528,6 +583,9 @@ class GameplayResultMapper(
 
     private fun summarizeLastTransaction(result: GameResult): String? {
         val tx = result.transactions.lastOrNull() ?: return null
+        if (tx.transactionType == TransactionType.RENT_WAIVED) {
+            return "Rent waived: ${money(tx.amount)}"
+        }
         val from = tx.fromEntity?.let { entityName(it, result.session) }
         val to = tx.toEntity?.let { entityName(it, result.session) }
         val amount = tx.amount?.let { money(it) } ?: ""

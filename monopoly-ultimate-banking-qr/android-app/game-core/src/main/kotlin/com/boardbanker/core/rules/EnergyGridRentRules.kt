@@ -39,15 +39,27 @@ class EnergyGridRentRules(
         val rentAmount = EnergyGridRentCalculator.rentForOwner(definitions, session, ownerId)
 
         if (rentAmount > 0 && visitor.pendingRentWaiver) {
-            val updatedVisitor = visitor.copy(pendingRentWaiver = false)
-            return RentResult.success(
-                session.copy(
-                    players = session.players + (visitorId to updatedVisitor),
-                    undoSnapshot = session.snapshot(),
-                ),
-                emptyList(),
-                0,
+            val updatedVisitor = visitor.copy(
+                pendingRentWaiver = false,
+                rentWaiverSourceEventId = null,
             )
+            var updatedSession = session.copy(
+                players = session.players + (visitorId to updatedVisitor),
+            )
+            val (waivedTx, sessionAfterTx) = transactionFactory.create(
+                session = updatedSession,
+                type = TransactionType.RENT_WAIVED,
+                timestamp = timestamp,
+                fromEntity = visitorId,
+                toEntity = ownerId,
+                playerId = visitorId,
+                propertyId = energyGridId,
+                amount = rentAmount,
+                eventId = visitor.rentWaiverSourceEventId,
+                reversible = true,
+            )
+            updatedSession = sessionAfterTx.copy(undoSnapshot = session.snapshot())
+            return RentResult.success(updatedSession, listOf(waivedTx), rentAmount)
         }
 
         if (visitor.balance < rentAmount) {

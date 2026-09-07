@@ -90,6 +90,7 @@ class EnergyGridGameplayTest {
         session = engine.process(session, GameCommand.PurchaseEnergyGrid("USR_01", "ENG_02")).session
         assertEquals(12000, EnergyGridRentCalculator.rentForOwner(definitions, session, "USR_01"))
 
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine)
         session = engine.process(session, GameCommand.ProcessEnergyGridLanding("USR_02", "ENG_01")).session
         val rentTx = session.transactions.lastOrNull { it.transactionType == TransactionType.RENT_PAYMENT }
         assertNotNull(rentTx)
@@ -167,6 +168,19 @@ class EnergyGridGameplayTest {
         val result = engine.process(session, GameCommand.ProcessEnergyGridLanding("USR_01", "ENG_01"))
         assertEquals(before, result.session.players["USR_01"]!!.balance)
         assertTrue(result.transactions.none { it.transactionType == TransactionType.RENT_PAYMENT })
+    }
+}
+
+class EnergyGridConcludeGameTest {
+    private val engine = DefaultGameEngine(TestFixtures.loadEdition(EditionIds.INDIA))
+
+    @Test
+    fun concludeGameSetsFinishedStatusAndWinner() {
+        val session = TestFixtures.newGameForEdition(EditionIds.INDIA)
+        val result = engine.process(session, GameCommand.ConcludeGame)
+        assertTrue(result.isSuccess)
+        assertEquals(com.boardbanker.core.model.GameStatus.FINISHED, result.session.status)
+        assertEquals("USR_01", result.session.winnerPlayerId)
     }
 }
 

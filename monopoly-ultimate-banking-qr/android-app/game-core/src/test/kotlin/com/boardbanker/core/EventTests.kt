@@ -51,6 +51,7 @@ class EventTests {
             ),
         )
         val level1Rent = TestFixtures.rentAmount("PRP_20", 1)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         val result = engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_20"),

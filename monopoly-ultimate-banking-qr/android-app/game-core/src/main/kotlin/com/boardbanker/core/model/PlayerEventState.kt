@@ -6,8 +6,7 @@ import kotlinx.serialization.Serializable
 data class PendingEventDraw(
     val parentEventId: String,
     val actingPlayerId: String,
-    val chainDepth: Int,
-    val maximumChainDepth: Int,
+    val remainingDraws: Int = 1,
 )
 
 @Serializable

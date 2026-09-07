@@ -26,6 +26,9 @@ import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.GoCollectionReason
+import com.boardbanker.core.model.jailPassEventIds
+import com.boardbanker.core.model.supportsJailPassScan
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -53,43 +56,47 @@ class AdvancedBankingViewModel(
     private val _events = MutableSharedFlow<AdvancedBankingEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<AdvancedBankingEvent> = _events.asSharedFlow()
 
-    private var pendingPlayerId: String? = null
     private var scanPromptToken: Long = 0L
-
-    private fun requestPlayerScan(step: AdvancedBankingStep) {
-        scanPromptToken = ScanPromptAudio.beginPromptSession()
-        ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
-        _uiState.update {
-            it.copy(step = step, result = null, message = null)
-        }
-        _events.tryEmit(AdvancedBankingEvent.OpenScanner(ScanRequest.player()))
-    }
-
-    private fun requestPropertyScan(step: AdvancedBankingStep) {
-        scanPromptToken = ScanPromptAudio.beginPromptSession()
-        ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
-        _uiState.update { it.copy(step = step) }
-        _events.tryEmit(AdvancedBankingEvent.OpenScanner(ScanRequest.property()))
-    }
+    private var jailPassScanInProgress = false
+    private var jailPassScanHandling = false
 
     init {
         refreshUndoState()
+        refreshHubEligibility()
     }
 
     fun onCollectGo() {
         if (_uiState.value.authorization.active) return
-        requestPlayerScan(AdvancedBankingStep.GoScanPlayer)
+        val playerId = requireActivePlayerId() ?: return
+        if (isActivePlayerJailed()) {
+            notifyJailedBankActionBlocked()
+            return
+        }
+        _uiState.update {
+            it.copy(step = AdvancedBankingStep.GoConfirm(playerId), result = null, message = null)
+        }
     }
 
     fun onLocation() {
         if (_uiState.value.authorization.active) return
+        if (isActivePlayerJailed()) {
+            notifyJailedBankActionBlocked()
+            return
+        }
         _uiState.update {
             it.copy(step = AdvancedBankingStep.LocationIntro, result = null, message = null)
         }
     }
 
     fun onLocationPay() {
-        requestPlayerScan(AdvancedBankingStep.LocationScanPlayer)
+        val playerId = requireActivePlayerId() ?: return
+        if (isActivePlayerJailed()) {
+            notifyJailedBankActionBlocked()
+            return
+        }
+        _uiState.update {
+            it.copy(step = AdvancedBankingStep.LocationConfirmPlayer(playerId), result = null, message = null)
+        }
     }
 
     fun onLocationDoNothing() {
@@ -98,12 +105,65 @@ class AdvancedBankingViewModel(
 
     fun onGetOutOfJail() {
         if (_uiState.value.authorization.active) return
-        requestPlayerScan(AdvancedBankingStep.GetOutOfJailScanPlayer)
+        val session = sessionManager.currentSession() ?: return
+        val playerId = requireActivePlayerId() ?: return
+        val player = session.players[playerId]
+        if (player == null || !player.jailStatus) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update {
+                it.copy(
+                    step = AdvancedBankingStep.Hub,
+                    result = resultMapper.mapNotInJail(playerId, session),
+                )
+            }
+            return
+        }
+        GameplayOutcomeAudio.playCue(gameAudioFeedback, GameplayAudioCue.JAIL_WORKFLOW)
+        _uiState.update {
+            it.copy(step = AdvancedBankingStep.GetOutOfJailChoice(playerId), result = null, message = null)
+        }
+    }
+
+    fun supportsJailPassScan(): Boolean = definitions.supportsJailPassScan()
+
+    fun onScanJailPass(playerId: String) {
+        if (!supportsJailPassScan()) return
+        val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) return
+        jailPassScanInProgress = true
+        _events.tryEmit(
+            AdvancedBankingEvent.OpenScanner(
+                ScanRequest.getOutOfJailPass(definitions.jailPassEventIds()),
+                onCancelled = ::onJailPassScannerCancelled,
+            ),
+        )
+    }
+
+    fun onJailPassScannerCancelled() {
+        jailPassScanInProgress = false
+    }
+
+    fun onOpenJailOptions(playerId: String) {
+        _uiState.update { it.copy(step = AdvancedBankingStep.JailOptions(playerId), result = null) }
     }
 
     fun onGoToJail() {
         if (_uiState.value.authorization.active) return
-        requestPlayerScan(AdvancedBankingStep.GoToJailScanPlayer)
+        val session = sessionManager.currentSession() ?: return
+        val playerId = requireActivePlayerId() ?: return
+        if (isActivePlayerJailed()) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update {
+                it.copy(
+                    step = AdvancedBankingStep.Hub,
+                    result = resultMapper.mapAlreadyInJail(playerId, session),
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(step = AdvancedBankingStep.GoToJailConfirm(playerId), result = null, message = null)
+        }
     }
 
     fun onUndo() {
@@ -150,6 +210,7 @@ class AdvancedBankingViewModel(
             )
         }
         refreshUndoState()
+        refreshHubEligibility()
     }
 
     fun onRequestUndoScan() {
@@ -171,82 +232,88 @@ class AdvancedBankingViewModel(
     }
 
     fun onBack() {
-        when (_uiState.value.step) {
+        when (val step = _uiState.value.step) {
             AdvancedBankingStep.Hub -> _events.tryEmit(AdvancedBankingEvent.NavigateBack)
             AdvancedBankingStep.UndoAuthorization -> onCancelUndo()
+            is AdvancedBankingStep.JailDoublesConfirm -> {
+                _uiState.update {
+                    it.copy(step = AdvancedBankingStep.JailOptions(step.playerId), result = null, message = null)
+                }
+            }
+            is AdvancedBankingStep.JailOptions -> {
+                _uiState.update {
+                    it.copy(step = AdvancedBankingStep.GetOutOfJailChoice(step.playerId), result = null, message = null)
+                }
+            }
             else -> _uiState.update { it.copy(step = AdvancedBankingStep.Hub, result = null, message = null) }
         }
     }
 
     fun onScanDelivered(cardId: String, cardType: CardType) {
-        if (_uiState.value.authorization.active) {
-            onUndoAuthorizationScan(cardId, cardType)
+        if (jailPassScanInProgress) {
+            onJailPassScanned(cardId, cardType)
             return
         }
-        when (cardType) {
-            CardType.USER -> onPlayerScanned(cardId)
-            CardType.PROPERTY -> onPropertyScanned(cardId)
-            CardType.EVENT, CardType.ENERGY_GRID -> Unit
+        if (_uiState.value.authorization.active) {
+            onUndoAuthorizationScan(cardId, cardType)
+        }
+    }
+
+    private fun onJailPassScanned(cardId: String, cardType: CardType) {
+        if (!jailPassScanInProgress || jailPassScanHandling || _uiState.value.commandInFlight) return
+        val playerId = requireActivePlayerId() ?: return
+        val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) {
+            jailPassScanInProgress = false
+            return
+        }
+
+        val allowedEventIds = definitions.jailPassEventIds()
+        if (cardType != CardType.EVENT || cardId !in allowedEventIds) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            return
+        }
+
+        jailPassScanHandling = true
+        jailPassScanInProgress = false
+        executeCommand(
+            GameCommand.GetOutOfJailWithPass(
+                playerId = playerId,
+                eventId = cardId,
+                restrictToActivePlayer = true,
+            ),
+        ) { outcome ->
+            jailPassScanHandling = false
+            when (outcome) {
+                is BankingCommitOutcome.Success -> {
+                    val updatedSession = sessionManager.currentSession()
+                    resultMapper.mapJailPassScannedResult(playerId, updatedSession ?: return@executeCommand null)
+                }
+                is BankingCommitOutcome.Rejected ->
+                    resultMapper.errorResult(
+                        outcome.result.error?.let { it.toString() }
+                            ?: "Unable to use Get out of Jail Pass.",
+                    )
+                is BankingCommitOutcome.PersistenceFailed ->
+                    resultMapper.errorResult("Unable to save the game.\nPlease try again.")
+                else -> null
+            }
         }
     }
 
     fun onPlayerScanned(playerId: String) {
-        ScanPromptAudio.endPromptSession(scanPromptToken)
-        if (_uiState.value.authorization.active) {
-            onUndoAuthorizationScan(playerId, CardType.USER)
-            return
-        }
-        if (definitions.players[playerId] == null) {
-            _uiState.update { it.copy(message = "Unknown player card.") }
-            return
-        }
-        when (val step = _uiState.value.step) {
-            AdvancedBankingStep.GoScanPlayer -> {
-                _uiState.update { it.copy(step = AdvancedBankingStep.GoConfirm(playerId)) }
-            }
-            AdvancedBankingStep.LocationScanPlayer -> {
-                _uiState.update { it.copy(step = AdvancedBankingStep.LocationConfirmPlayer(playerId)) }
-            }
-            AdvancedBankingStep.GoToJailScanPlayer -> {
-                val session = sessionManager.currentSession() ?: return
-                val player = session.players[playerId]
-                if (player?.jailStatus == true) {
-                    InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
-                    _uiState.update {
-                        it.copy(
-                            step = AdvancedBankingStep.Hub,
-                            result = resultMapper.mapAlreadyInJail(playerId, session),
-                        )
-                    }
-                } else {
-                    _uiState.update { it.copy(step = AdvancedBankingStep.GoToJailConfirm(playerId)) }
-                }
-            }
-            AdvancedBankingStep.GetOutOfJailScanPlayer -> {
-                val session = sessionManager.currentSession() ?: return
-                val player = session.players[playerId]
-                if (player == null || !player.jailStatus) {
-                    InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
-                    _uiState.update {
-                        it.copy(
-                            step = AdvancedBankingStep.Hub,
-                            result = resultMapper.mapNotInJail(playerId, session),
-                        )
-                    }
-                } else {
-                    GameplayOutcomeAudio.playCue(gameAudioFeedback, GameplayAudioCue.JAIL_WORKFLOW)
-                    _uiState.update { it.copy(step = AdvancedBankingStep.JailOptions(playerId)) }
-                }
-            }
-            else -> Unit
-        }
+        // Bank actions no longer require player scans during the active turn.
     }
 
     fun onConfirmLocationPlayer(playerId: String) {
         val session = sessionManager.currentSession() ?: return
         val balanceBefore = session.players[playerId]?.balance ?: 0
         executeCommand(
-            GameCommand.PayLocationFee(playerId, LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID),
+            GameCommand.PayLocationFee(
+                playerId,
+                LocationWorkflowConstants.FEE_ONLY_PROPERTY_ID,
+                restrictToActivePlayer = true,
+            ),
         ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
@@ -282,7 +349,7 @@ class AdvancedBankingViewModel(
             }
             return
         }
-        executeCommand(GameCommand.SendPlayerToJail(playerId)) { outcome ->
+        executeCommand(GameCommand.SendPlayerToJail(playerId, restrictToActivePlayer = true)) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success ->
                     resultMapper.mapGoToJailResult(outcome.session, playerId)
@@ -302,7 +369,9 @@ class AdvancedBankingViewModel(
     fun onConfirmGo(playerId: String) {
         val session = sessionManager.currentSession() ?: return
         val balanceBefore = session.players[playerId]?.balance ?: 0
-        executeCommand(GameCommand.PayGoSalary(playerId)) { outcome ->
+        executeCommand(
+            GameCommand.PayGoSalary(playerId, GoCollectionReason.MANUAL_BANK_ACTION),
+        ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success ->
                     resultMapper.mapGoResult(outcome.result, playerId, balanceBefore)
@@ -326,7 +395,7 @@ class AdvancedBankingViewModel(
     fun onPayJailFee(playerId: String) {
         val session = sessionManager.currentSession() ?: return
         val balanceBefore = session.players[playerId]?.balance ?: 0
-        executeCommand(GameCommand.PayJailFee(playerId)) { outcome ->
+        executeCommand(GameCommand.PayJailFee(playerId, restrictToActivePlayer = true)) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success ->
                     resultMapper.mapJailFeeResult(outcome.result, playerId, balanceBefore)
@@ -348,7 +417,7 @@ class AdvancedBankingViewModel(
     }
 
     fun onUseJailPass(playerId: String) {
-        executeCommand(GameCommand.UseGetOutOfJailPass(playerId)) { outcome ->
+        executeCommand(GameCommand.UseGetOutOfJailPass(playerId, restrictToActivePlayer = true)) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
                     val session = sessionManager.currentSession()
@@ -374,7 +443,7 @@ class AdvancedBankingViewModel(
     }
 
     fun onConfirmJailDoubles(playerId: String) {
-        executeCommand(GameCommand.ReleasePlayerFromJailByDoubles(playerId)) { outcome ->
+        executeCommand(GameCommand.ReleasePlayerFromJailByDoubles(playerId, restrictToActivePlayer = true)) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
                     val session = sessionManager.currentSession()
@@ -408,9 +477,9 @@ class AdvancedBankingViewModel(
     }
 
     fun onDone() {
-        pendingPlayerId = null
         undoAuthorization.cancel()
         refreshUndoState()
+        refreshHubEligibility()
         _uiState.update {
             it.copy(
                 step = AdvancedBankingStep.Hub,
@@ -495,6 +564,7 @@ class AdvancedBankingViewModel(
                     }
                     undoAuthorization.markCompleted()
                     refreshUndoState()
+                    refreshHubEligibility()
                     _uiState.update {
                         it.copy(
                             commandInFlight = false,
@@ -582,6 +652,7 @@ class AdvancedBankingViewModel(
             }
             val mapped = mapResult(outcome)
             refreshUndoState()
+            refreshHubEligibility()
             val continueLocation = outcome is BankingCommitOutcome.Success &&
                 locationWorkflowHolder.isWaitingForDestination()
             if (continueLocation) {
@@ -609,6 +680,52 @@ class AdvancedBankingViewModel(
                 undoDescription = session?.let { s -> undoEligibility.undoDescription(s) },
             )
         }
+    }
+
+    private fun refreshHubEligibility() {
+        val session = sessionManager.currentSession()
+        val activePlayerId = session?.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        val inJail = activePlayerId?.let { session?.players[it]?.jailStatus } == true
+        _uiState.update {
+            it.copy(
+                hubEligibility = BankingHubEligibility(
+                    activePlayerId = activePlayerId,
+                    activePlayerName = activePlayerId?.let { playerDisplayName(it) },
+                    activePlayerInJail = inJail,
+                    collectGoEnabled = activePlayerId != null && !inJail,
+                    locationEnabled = activePlayerId != null && !inJail,
+                    goToJailEnabled = activePlayerId != null && !inJail,
+                    getOutOfJailEnabled = activePlayerId != null && inJail,
+                ),
+            )
+        }
+    }
+
+    private fun requireActivePlayerId(): String? {
+        val session = sessionManager.currentSession()
+        val activePlayerId = session?.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        if (activePlayerId == null) {
+            InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+            _uiState.update { it.copy(message = "No active player for bank action.") }
+            return null
+        }
+        return activePlayerId
+    }
+
+    private fun isActivePlayerJailed(): Boolean {
+        val session = sessionManager.currentSession() ?: return false
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return false
+        return session.players[activePlayerId]?.jailStatus == true
+    }
+
+    private fun notifyJailedBankActionBlocked() {
+        InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
+        val session = sessionManager.currentSession()
+        val activePlayerId = session?.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        val message = activePlayerId?.let {
+            com.boardbanker.core.rules.JailGameplayGuard.blockedMessage(definitions, it)
+        } ?: "This action is unavailable while in Jail."
+        _uiState.update { it.copy(message = message) }
     }
 
     fun playerDisplayName(playerId: String): String {

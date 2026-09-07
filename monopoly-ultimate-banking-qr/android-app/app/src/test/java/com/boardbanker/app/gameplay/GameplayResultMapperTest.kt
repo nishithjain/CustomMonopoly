@@ -34,6 +34,7 @@ class GameplayResultMapperTest {
             session,
             GameCommand.PurchaseProperty("USR_01", "PRP_01"),
         ).session
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         val before = session
         val result = AppTestSupport.engine.process(
             session,

@@ -28,8 +28,6 @@ import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.command.GameCommand
-import com.boardbanker.core.dice.DiceRoller
-import com.boardbanker.core.dice.RandomDiceRoller
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.GameDefinitions
@@ -55,7 +53,6 @@ class GameViewModel(
     private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
-    private val diceRoller: DiceRoller = RandomDiceRoller(),
 ) : ViewModel() {
     private val workflowController = GameplayWorkflowController(definitions)
     private val resultMapper = GameplayResultMapper(definitions)
@@ -68,10 +65,18 @@ class GameViewModel(
     private val _events = MutableSharedFlow<GameEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<GameEvent> = _events.asSharedFlow()
 
+    private var testMode = false
+
+    internal fun setTestUiState(state: GameUiState) {
+        testMode = true
+        _uiState.value = state
+    }
+
     init {
         loadSession()
         viewModelScope.launch {
             sessionManager.committedSession.collect { session ->
+                if (testMode) return@collect
                 if (session == null) return@collect
                 if (session.status == GameStatus.FINISHED && !_uiState.value.gameplayLocked) {
                     _events.emit(GameEvent.NavigateToGameOver)
@@ -86,7 +91,9 @@ class GameViewModel(
     }
 
     private fun loadSession() {
+        if (testMode) return
         viewModelScope.launch {
+            if (testMode) return@launch
             val session = sessionManager.currentSession()
                 ?: when (val load = sessionManager.restoreFromStorage()) {
                     is SavedGameLoadResult.Success -> load.session
@@ -188,12 +195,41 @@ class GameViewModel(
 
     fun money(amount: Int): String = formatMoney(amount, definitions)
 
+    fun canAffordPurchase(purchasePrice: Int?): Boolean {
+        val price = purchasePrice ?: return false
+        val session = sessionManager.currentSession() ?: return false
+        val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return false
+        val balance = session.players[activePlayerId]?.balance ?: return false
+        return balance >= price
+    }
+
+    fun purchaseBlockedReason(purchasePrice: Int?): String? {
+        val price = purchasePrice ?: return null
+        if (canAffordPurchase(price)) return null
+        return "Insufficient funds for this purchase."
+    }
+
     fun playerDisplayName(playerId: String): String =
         PlayerDisplayNames.displayName(sessionManager.currentSession(), playerId, definitions)
 
     fun onCardScanned(cardId: String, cardType: CardType) {
         ScanPromptAudio.endPromptSession(scanPromptToken)
         val session = sessionManager.currentSession() ?: return
+        val clearScannerLaunch = _uiState.value.luckyDrawScannerLaunchInProgress
+        if (clearScannerLaunch) {
+            _uiState.update { state ->
+                state.copy(luckyDrawScannerLaunchInProgress = false).let { updated ->
+                    updated.copy(
+                        eventDraw = EventDrawUiMapper.map(
+                            session = session,
+                            definitions = definitions,
+                            commandInFlight = state.commandInFlight,
+                            scannerLaunchInProgress = false,
+                        ),
+                    )
+                }
+            }
+        }
         if (activePlayerJailBlocksCardScan(session, cardType)) {
             InvalidUserActionAudio.notifyInvalidUserAction(gameAudioFeedback)
             _uiState.update { it.copy(message = activePlayerJailBlockedMessage(session)) }
@@ -207,7 +243,9 @@ class GameViewModel(
             }
             return
         }
-        if (session.pendingEventDraw != null) {
+        if (session.pendingEventDraw != null ||
+            _uiState.value.scanRequest?.context == com.boardbanker.app.scanner.ScanContext.RESOLVE_PENDING_EVENT_DRAW
+        ) {
             when (cardType) {
                 CardType.EVENT -> handleWorkflowActions(
                     workflowController.onPendingEventDrawScanned(cardId, session),
@@ -326,18 +364,55 @@ class GameViewModel(
     }
 
     fun onScanLuckyDrawEventRequested() {
-        if (_uiState.value.commandInFlight) return
+        if (_uiState.value.commandInFlight || _uiState.value.luckyDrawScannerLaunchInProgress) return
         val session = sessionManager.currentSession() ?: return
-        if (session.pendingEventDraw == null) return
+        val pending = session.pendingEventDraw ?: return
+        val parentEvent = definitions.events[pending.parentEventId]
         scanPromptToken = ScanPromptAudio.beginPromptSession()
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
-        val request = ScanRequest.event()
-        transientWorkflow.enterEventIdentified()
-        _uiState.update { it.withScanRequest(request) }
-        _events.tryEmit(GameEvent.OpenScanner(request))
+        val request = ScanRequest.resolvePendingEventDraw(
+            parentEventId = pending.parentEventId,
+            parentEventName = parentEvent?.name,
+        )
+        _uiState.update { state ->
+            state.copy(luckyDrawScannerLaunchInProgress = true)
+                .withScanRequest(request)
+                .let { updated ->
+                    updated.copy(
+                        eventDraw = EventDrawUiMapper.map(
+                            session = session,
+                            definitions = definitions,
+                            commandInFlight = state.commandInFlight,
+                            scannerLaunchInProgress = true,
+                        ),
+                    )
+                }
+        }
+        _events.tryEmit(GameEvent.OpenScanner(request, onCancelled = ::onLuckyDrawScannerCancelled))
+    }
+
+    fun onLuckyDrawScannerCancelled() {
+        val session = sessionManager.currentSession()
+        _uiState.update { state ->
+            state.copy(luckyDrawScannerLaunchInProgress = false).let { updated ->
+                if (session == null) {
+                    updated
+                } else {
+                    updated.copy(
+                        eventDraw = EventDrawUiMapper.map(
+                            session = session,
+                            definitions = definitions,
+                            commandInFlight = state.commandInFlight,
+                            scannerLaunchInProgress = false,
+                        ),
+                    )
+                }
+            }
+        }
     }
 
     fun onRollLuckyBreakDice() {
+        if (_uiState.value.luckyBreakRollInProgress || _uiState.value.luckyBreakCompletedOutcome != null) return
         if (!commandLock.compareAndSet(false, true)) return
         val session = sessionManager.currentSession() ?: run {
             commandLock.set(false)
@@ -351,18 +426,20 @@ class GameViewModel(
             commandLock.set(false)
             return
         }
-        _uiState.update {
-            it.copy(
-                commandInFlight = true,
-                diceGamble = DiceGambleUiMapper.map(session, definitions, commandInFlight = true),
+        _uiState.update { state ->
+            state.copy(
+                luckyBreakRollInProgress = true,
+                diceGamble = DiceGambleUiMapper.map(
+                    session = session,
+                    definitions = definitions,
+                    rollInProgress = true,
+                ),
             )
         }
         viewModelScope.launch {
-            val diceResults = diceRoller.roll(pending.diceCount)
             val command = GameCommand.RollEventDice(
                 eventId = pending.eventId,
                 actingPlayerId = pending.actingPlayerId,
-                diceResults = diceResults,
             )
             when (val commit = sessionManager.processCommand(session, command)) {
                 is ProcessCommitResult.Committed -> {
@@ -370,8 +447,14 @@ class GameViewModel(
                         GameOutcome.DEBT_RESOLUTION_REQUIRED -> {
                             workflowController.reset()
                             transientWorkflow.resetToReady()
+                            _uiState.update {
+                                it.copy(
+                                    luckyBreakRollInProgress = false,
+                                    luckyBreakCompletedOutcome = null,
+                                    result = null,
+                                )
+                            }
                             updateFromSession(commit.session)
-                            _uiState.update { it.copy(commandInFlight = false, result = null) }
                             _events.emit(GameEvent.NavigateToDebt)
                         }
                         else -> {
@@ -383,24 +466,44 @@ class GameViewModel(
                                     WorkflowCommandContext.RollEventDice(pending.eventId),
                                 ),
                             )
-                            val resultUi = mapCommittedResult(
-                                commit.result,
-                                WorkflowCommandContext.RollEventDice(pending.eventId),
-                                session,
-                            )
-                            if (commit.session.pendingDiceGamble == null) {
-                                workflowController.reset()
-                                transientWorkflow.resetToReady()
+                            val dice = commit.result.rolledDice
+                            if (commit.session.pendingDiceGamble == null && dice.size >= 2) {
+                                val completed = DiceGambleUiMapper.buildCompletedOutcome(
+                                    session = commit.session,
+                                    definitions = definitions,
+                                    eventId = pending.eventId,
+                                    actingPlayerId = pending.actingPlayerId,
+                                    dieOne = dice[0],
+                                    dieTwo = dice[1],
+                                    transactions = commit.result.transactions,
+                                    jackpotAmount = pending.jackpotAmount,
+                                    penaltyAmount = pending.penaltyAmount,
+                                )
+                                updateFromSession(commit.session)
+                                _uiState.update {
+                                    it.copy(
+                                        luckyBreakRollInProgress = false,
+                                        luckyBreakCompletedOutcome = completed,
+                                        diceGamble = DiceGambleUiMapper.map(
+                                            session = commit.session,
+                                            definitions = definitions,
+                                            rollInProgress = false,
+                                            completedOutcome = completed,
+                                        ),
+                                        workflowState = workflowController.currentState(),
+                                        result = null,
+                                    )
+                                }
                             } else {
                                 handlePendingDiceGamble(commit.session)
-                            }
-                            updateFromSession(commit.session)
-                            _uiState.update {
-                                it.copy(
-                                    commandInFlight = false,
-                                    result = if (commit.session.pendingDiceGamble == null) resultUi else null,
-                                    workflowState = workflowController.currentState(),
-                                )
+                                completeCommandUiSync(commit.session) {
+                                    it.copy(
+                                        luckyBreakRollInProgress = false,
+                                        luckyBreakCompletedOutcome = null,
+                                        result = null,
+                                        workflowState = workflowController.currentState(),
+                                    )
+                                }
                             }
                         }
                     }
@@ -410,30 +513,45 @@ class GameViewModel(
                         gameAudioFeedback,
                         commit.result.error,
                     )
-                    updateFromSession(session)
                     _uiState.update {
                         it.copy(
-                            commandInFlight = false,
+                            luckyBreakRollInProgress = false,
                             message = commit.result.error?.let { resultMapper.errorResult(it).primaryMessage },
                         )
                     }
+                    updateFromSession(session)
                 }
                 is ProcessCommitResult.PersistenceFailed -> {
-                    updateFromSession(session)
                     _uiState.update {
                         it.copy(
-                            commandInFlight = false,
+                            luckyBreakRollInProgress = false,
                             message = "Unable to save the game.\nPlease try again.",
                         )
                     }
+                    updateFromSession(session)
                 }
                 else -> {
+                    _uiState.update { it.copy(luckyBreakRollInProgress = false) }
                     updateFromSession(session)
-                    _uiState.update { it.copy(commandInFlight = false) }
                 }
             }
             commandLock.set(false)
         }
+    }
+
+    fun onLuckyBreakContinue() {
+        workflowController.reset()
+        transientWorkflow.resetToReady()
+        _uiState.update {
+            it.copy(
+                luckyBreakCompletedOutcome = null,
+                luckyBreakRollInProgress = false,
+                workflowState = GameplayWorkflowState.Ready,
+                result = null,
+                diceGamble = null,
+            )
+        }
+        sessionManager.currentSession()?.let { updateFromSession(it) }
     }
 
     fun onEndTurn() {
@@ -470,10 +588,8 @@ class GameViewModel(
                     workflowController.reset()
                     transientWorkflow.resetToReady()
                     locationWorkflowHolder.clear()
-                    updateFromSession(commit.session)
-                    _uiState.update {
+                    completeCommandUiSync(commit.session) {
                         it.copy(
-                            commandInFlight = false,
                             workflowState = GameplayWorkflowState.Ready,
                             result = resultMapper.mapTurnTransitionResult(commit.result, commit.session),
                             cardPresentation = null,
@@ -538,7 +654,69 @@ class GameViewModel(
         }
     }
 
+    fun requestEndGame() {
+        if (!ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = _uiState.value.workflowState,
+                result = _uiState.value.result,
+                gameplayLocked = _uiState.value.gameplayLocked,
+            )
+        ) {
+            return
+        }
+        _uiState.update { it.copy(showEndGameConfirm = true) }
+    }
+
+    fun dismissEndGameConfirm() {
+        _uiState.update { it.copy(showEndGameConfirm = false) }
+    }
+
+    fun confirmEndGame() {
+        if (!commandLock.compareAndSet(false, true)) return
+        viewModelScope.launch {
+            val session = sessionManager.currentSession()
+            if (session == null) {
+                commandLock.set(false)
+                return@launch
+            }
+            when (val commit = sessionManager.processCommand(session, GameCommand.ConcludeGame)) {
+                is ProcessCommitResult.Committed -> {
+                    workflowController.reset()
+                    transientWorkflow.resetToReady()
+                    locationWorkflowHolder.clear()
+                    updateFromSession(commit.session)
+                    _uiState.update {
+                        it.copy(
+                            showEndGameConfirm = false,
+                            commandInFlight = false,
+                            gameplayLocked = true,
+                            status = commit.session.status,
+                        )
+                    }
+                    gameEndAudioCoordinator.onBankruptcyCommitted(gameAudioFeedback)
+                    _events.emit(GameEvent.NavigateToGameOver)
+                }
+                else -> {
+                    _uiState.update {
+                        it.copy(
+                            showEndGameConfirm = false,
+                            message = "Unable to end the game. Please try again.",
+                        )
+                    }
+                }
+            }
+            commandLock.set(false)
+        }
+    }
+
     fun requestAbandonGame() {
+        if (!ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = _uiState.value.workflowState,
+                result = _uiState.value.result,
+                gameplayLocked = _uiState.value.gameplayLocked,
+            )
+        ) {
+            return
+        }
         _uiState.update { it.copy(showAbandonConfirm = true) }
     }
 
@@ -655,6 +833,7 @@ class GameViewModel(
             }
             else -> Unit
         }
+        sessionManager.currentSession()?.let { refreshDashboardFromSession(it) }
     }
 
     private fun handlePendingEventExecution(session: GameSession, result: GameResult) {
@@ -674,6 +853,7 @@ class GameViewModel(
             return
         }
         _uiState.update { it.copy(commandInFlight = true) }
+        refreshDashboardFromSession(session)
         viewModelScope.launch {
             val sessionBefore = session
             when (val commit = sessionManager.processCommand(session, request.command)) {
@@ -711,10 +891,8 @@ class GameViewModel(
                             handlePendingEventDraw(commit.session)
                             handlePendingEventExecution(commit.session, commit.result)
                             handlePendingEnergyGridLanding(commit.session)
-                            updateFromSession(commit.session)
-                            _uiState.update {
+                            completeCommandUiSync(commit.session) {
                                 it.copy(
-                                    commandInFlight = false,
                                     result = if (
                                         commit.session.pendingDiceGamble != null ||
                                         commit.session.pendingEventDraw != null
@@ -736,9 +914,8 @@ class GameViewModel(
                         gameAudioFeedback,
                         commit.result.error,
                     )
-                    _uiState.update {
+                    completeCommandUiSync(session) {
                         it.copy(
-                            commandInFlight = false,
                             result = resultMapper.errorResult(commit.result.error),
                             message = commit.result.error?.let { resultMapper.errorResult(it).primaryMessage },
                         )
@@ -772,8 +949,6 @@ class GameViewModel(
                 workflowController.enterEventDrawScan(
                     parentEventId = pending.parentEventId,
                     actingPlayerId = pending.actingPlayerId,
-                    chainDepth = pending.chainDepth,
-                    maximumChainDepth = pending.maximumChainDepth,
                 ),
             )
         }
@@ -824,6 +999,11 @@ class GameViewModel(
         refreshDashboardFromSession(session)
     }
 
+    private fun completeCommandUiSync(session: GameSession, transform: (GameUiState) -> GameUiState) {
+        _uiState.update { transform(it.copy(commandInFlight = false)) }
+        refreshDashboardFromSession(session)
+    }
+
     private fun invalidateIncompatiblePropertyWorkflow(session: GameSession) {
         if (!workflowController.isIncompatiblePropertyWorkflowForJailedPlayer(
                 _uiState.value.workflowState,
@@ -848,11 +1028,6 @@ class GameViewModel(
         invalidateIncompatiblePropertyWorkflow(session)
         val commandInFlight = _uiState.value.commandInFlight
         val workflowState = _uiState.value.workflowState
-        val activeEvent = session.temporaryEffects.firstOrNull {
-            it.active && it.effectType == "FORCE_LEVEL_1_RENT"
-        }?.let { effect ->
-            "On The Run\n${effect.remainingUses} rent payment(s) remaining"
-        }
         val activePlayerId = session.turnState?.activePlayerId
         val activePlayerName = activePlayerId?.let {
             PlayerDisplayNames.displayName(session, it, definitions)
@@ -872,6 +1047,22 @@ class GameViewModel(
             hasPendingDiceGamble = session.pendingDiceGamble != null,
             hasPendingEventDraw = session.pendingEventDraw != null,
         )
+        val endTurnSubtitle = ActiveGameEndTurnPresentation.subtitle(activePlayerName)
+        val endTurnDisabledReason = ActiveGameEndTurnPresentation.disabledReason(
+            activePlayerName = activePlayerName,
+            actionAvailability = actionAvailability,
+            workflowState = workflowState,
+            hasPendingDiceGamble = session.pendingDiceGamble != null,
+            hasPendingEventDraw = session.pendingEventDraw != null,
+            commandInFlight = commandInFlight,
+            gameplayLocked = session.status == GameStatus.FINISHED,
+            luckyDrawEventName = session.pendingEventDraw?.let { pending ->
+                definitions.events[pending.parentEventId]?.name ?: "Lucky Draw"
+            } ?: "Lucky Draw",
+            luckyBreakEventName = session.pendingDiceGamble?.let { pending ->
+                definitions.events[pending.eventId]?.name ?: "Lucky Break"
+            } ?: "Lucky Break",
+        )
         _uiState.update {
             it.copy(
                 loading = false,
@@ -883,18 +1074,31 @@ class GameViewModel(
                 activePlayerInJail = activePlayerInJail,
                 jailResolutionMessage = jailResolutionMessage,
                 actionAvailability = actionAvailability,
+                endTurnSubtitle = endTurnSubtitle,
+                endTurnDisabledReason = endTurnDisabledReason,
+                endTurnContentDescription = ActiveGameEndTurnPresentation.contentDescription(activePlayerName),
                 turnKind = session.turnState?.turnKind,
-                diceGamble = DiceGambleUiMapper.map(
-                    session = session,
-                    definitions = definitions,
-                    commandInFlight = it.commandInFlight,
-                ),
+                diceGamble = when {
+                    it.luckyBreakCompletedOutcome != null -> DiceGambleUiMapper.map(
+                        session = session,
+                        definitions = definitions,
+                        rollInProgress = false,
+                        completedOutcome = it.luckyBreakCompletedOutcome,
+                    )
+                    session.pendingDiceGamble != null ||
+                        workflowState is GameplayWorkflowState.EventDiceGamble -> DiceGambleUiMapper.map(
+                        session = session,
+                        definitions = definitions,
+                        rollInProgress = it.luckyBreakRollInProgress,
+                    )
+                    else -> null
+                },
                 eventDraw = EventDrawUiMapper.map(
                     session = session,
                     definitions = definitions,
                     commandInFlight = it.commandInFlight,
+                    scannerLaunchInProgress = it.luckyDrawScannerLaunchInProgress,
                 ),
-                activeEventMessage = activeEvent,
                 gameplayLocked = session.status == GameStatus.FINISHED,
             )
         }
@@ -942,7 +1146,6 @@ class GameViewModelFactory(
     private val locationWorkflowHolder: LocationWorkflowHolder,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
-    private val diceRoller: DiceRoller = RandomDiceRoller(),
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -954,7 +1157,6 @@ class GameViewModelFactory(
                 locationWorkflowHolder,
                 gameAudioFeedback,
                 gameEndAudioCoordinator,
-                diceRoller,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

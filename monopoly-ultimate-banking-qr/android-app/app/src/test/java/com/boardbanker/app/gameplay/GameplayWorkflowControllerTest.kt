@@ -3,6 +3,7 @@ package com.boardbanker.app.gameplay.workflow
 import com.boardbanker.app.AppTestSupport
 import com.boardbanker.core.command.GameCommand
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -64,11 +65,24 @@ class GameplayWorkflowControllerTest {
 
     @Test
     fun buyRequiresPlayerScanWhenActivePlayerUnknown() {
-        val session = AppTestSupport.newGame()
+        val session = AppTestSupport.newGame().copy(
+            turnState = AppTestSupport.newGame().turnState?.copy(activePlayerId = ""),
+        )
         controller.onPropertyScanned("PRP_01", session)
-        val actions = controller.onBuySelected(session.copy(turnState = session.turnState?.copy(activePlayerId = "")))
+        val actions = controller.onBuySelected(session)
         assertTrue(actions.any { it is WorkflowAction.RequestScan })
         assertTrue(controller.currentState() is GameplayWorkflowState.WaitingForPurchasingPlayer)
+    }
+
+    @Test
+    fun buyUsesLandingPlayerCapturedAtScanWhenActivePlayerLaterCleared() {
+        val session = AppTestSupport.newGame()
+        controller.onPropertyScanned("PRP_01", session)
+        val actions = controller.onBuySelected(
+            session.copy(turnState = session.turnState?.copy(activePlayerId = "")),
+        )
+        assertTrue(actions.any { it is WorkflowAction.ExecuteCommand })
+        assertTrue(actions.none { it is WorkflowAction.RequestScan })
     }
 
     @Test
@@ -91,14 +105,47 @@ class GameplayWorkflowControllerTest {
     }
 
     @Test
-    fun ownedPropertyRequestsRentPayerWithoutAutoScan() {
+    fun ownedPropertyResolvesLandingWithActivePlayerWithoutScan() {
         var session = AppTestSupport.newGame()
         session = AppTestSupport.engine.process(
             session,
             GameCommand.PurchaseProperty("USR_01", "PRP_01"),
         ).session
         val actions = controller.onPropertyScanned("PRP_01", session)
-        assertTrue(controller.currentState() is GameplayWorkflowState.WaitingForRentPayer)
+        assertTrue(actions.any { it is WorkflowAction.ExecuteCommand })
+        assertTrue(actions.none { it is WorkflowAction.RequestScan })
+        assertFalse(controller.currentState() is GameplayWorkflowState.WaitingForRentPayer)
+    }
+
+    @Test
+    fun ownedPropertyRentUsesActivePlayerAsLandingPlayer() {
+        var session = AppTestSupport.newGame()
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.PurchaseProperty("USR_01", "PRP_01"),
+        ).session
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.EndTurn("USR_01"),
+        ).session
+        val actions = controller.onPropertyScanned("PRP_01", session)
+        val command = actions.filterIsInstance<WorkflowAction.ExecuteCommand>().single().request.command
+        assertTrue(command is GameCommand.ProcessPropertyLanding)
+        assertEquals("USR_02", (command as GameCommand.ProcessPropertyLanding).playerId)
+    }
+
+    @Test
+    fun ownedPropertyWithoutActivePlayerShowsError() {
+        var session = AppTestSupport.newGame()
+        session = AppTestSupport.engine.process(
+            session,
+            GameCommand.PurchaseProperty("USR_01", "PRP_01"),
+        ).session
+        val actions = controller.onPropertyScanned(
+            "PRP_01",
+            session.copy(turnState = session.turnState?.copy(activePlayerId = "")),
+        )
+        assertTrue(controller.currentState() is GameplayWorkflowState.Error)
         assertTrue(actions.none { it is WorkflowAction.RequestScan })
     }
 

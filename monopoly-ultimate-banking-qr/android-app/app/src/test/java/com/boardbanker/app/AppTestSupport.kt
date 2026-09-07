@@ -3,6 +3,8 @@ package com.boardbanker.app
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
+import com.boardbanker.core.dice.DiceRoller
+import com.boardbanker.core.dice.RandomDiceRoller
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.edition.EditionRepository
 import com.boardbanker.core.edition.FileEditionFileSource
@@ -42,18 +44,45 @@ object AppTestSupport {
         return result.session
     }
 
+    fun newGameForEdition(
+        editionId: String,
+        playerIds: List<String> = listOf("USR_01", "USR_02"),
+    ): GameSession {
+        val editionDefinitions = editionRepository.load(editionId)
+        val editionEngine = DefaultGameEngine(editionDefinitions)
+        var result = editionEngine.process(
+            GameSession(
+                gameId = "APP_TEST_GAME",
+                editionId = editionId,
+                editionDefinitionVersion = editionDefinitions.edition!!.definitionVersion,
+            ),
+            GameCommand.CreateGame("APP_TEST_GAME"),
+        )
+        for (playerId in playerIds) {
+            result = editionEngine.process(
+                result.session,
+                GameCommand.RegisterPlayer(playerId, defaultTestPlayerName(playerId)),
+            )
+        }
+        result = editionEngine.process(result.session, GameCommand.StartGame)
+        return result.session
+    }
+
     fun sessionManager(
         repository: FakeGameSessionRepository = FakeGameSessionRepository(),
-    ): ActiveGameSessionManager = sessionManagerWithStore(repository).first
+        diceRoller: DiceRoller = RandomDiceRoller(),
+    ): ActiveGameSessionManager = sessionManagerWithStore(repository, diceRoller).first
 
     fun sessionManagerWithStore(
         repository: FakeGameSessionRepository = FakeGameSessionRepository(),
+        diceRoller: DiceRoller = RandomDiceRoller(),
     ): Pair<ActiveGameSessionManager, CommittedGameSessionStore> {
         val store = CommittedGameSessionStore(repository)
         val manager = ActiveGameSessionManager(
             editionResolver = { editionId -> editionRepository.load(editionId) },
             committedStore = store,
             repository = repository,
+            diceRoller = diceRoller,
         )
         return manager to store
     }
@@ -74,6 +103,23 @@ object AppTestSupport {
                 )
             ),
         )
+    }
+
+    fun sessionWithActivePlayer(session: GameSession, playerId: String): GameSession {
+        var current = session
+        val activeEngine = if (session.editionId == EditionIds.INDIA) {
+            DefaultGameEngine(editionRepository.load(EditionIds.INDIA))
+        } else {
+            engine
+        }
+        repeat(session.players.size + 1) {
+            if (current.turnState?.activePlayerId == playerId) return current
+            current = activeEngine.process(
+                current,
+                GameCommand.EndTurn(current.turnState!!.activePlayerId),
+            ).session
+        }
+        error("Could not advance turn to $playerId")
     }
 
     private fun resolveDataDir(): Path = listOf(

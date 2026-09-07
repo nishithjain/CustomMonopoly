@@ -1,6 +1,7 @@
 package com.boardbanker.core
 
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.TransactionType
@@ -153,6 +154,7 @@ class IndiaEventTests {
     @Test fun evt10_rentRelief() {
         val result = apply("EVT_10")
         assertTrue(result.session.players["USR_01"]!!.pendingRentWaiver)
+        assertEquals("EVT_10", result.session.players["USR_01"]!!.rentWaiverSourceEventId)
     }
 
     @Test fun evt11_jailPass() {
@@ -202,21 +204,23 @@ class IndiaEventTests {
     }
 
     @Test fun evt17_luckyBreak_successOnDoubles() {
+        val engine = DefaultGameEngine(definitions, SequenceDiceRoller(3 to 3))
         val session = indiaGame()
         val started = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01"))
         val rolled = engine.process(
             started.session,
-            GameCommand.RollEventDice("EVT_17", "USR_01", listOf(3, 3)),
+            GameCommand.RollEventDice("EVT_17", "USR_01"),
         )
         assertEquals(session.players["USR_01"]!!.balance + 15000, rolled.session.players["USR_01"]!!.balance)
     }
 
     @Test fun evt17_luckyBreak_failureAfterThreeAttempts() {
+        val engine = DefaultGameEngine(definitions, SequenceDiceRoller(1 to 2, 2 to 3, 4 to 5))
         var session = indiaGame(balances = mapOf("USR_01" to 50000))
         session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
-        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(1, 2))).session
-        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(2, 3))).session
-        val final = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(4, 5)))
+        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
+        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
+        val final = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         assertEquals(45000, final.session.players["USR_01"]!!.balance)
     }
 
@@ -292,10 +296,16 @@ class IndiaEventTests {
                 editionDefinitionVersion = 2,
                 players = session.players,
             )
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_01", engine)
         val before = session.players["USR_01"]!!.balance
         val rent = engine.process(session, GameCommand.ProcessPropertyLanding("USR_01", "PRP_01"))
         assertEquals(before, rent.session.players["USR_01"]!!.balance)
         assertFalse(rent.session.players["USR_01"]!!.pendingRentWaiver)
+        val waivedTx = rent.transactions.single { it.transactionType == TransactionType.RENT_WAIVED }
+        assertEquals("USR_01", waivedTx.fromEntity)
+        assertEquals("USR_02", waivedTx.toEntity)
+        assertEquals("EVT_10", waivedTx.eventId)
+        assertTrue(waivedTx.amount!! > 0)
     }
 
     @Test fun allTwentyFiveIndiaEventsApplySuccessfully() {

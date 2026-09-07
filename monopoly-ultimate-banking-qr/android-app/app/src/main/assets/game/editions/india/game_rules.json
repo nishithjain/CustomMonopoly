@@ -25,7 +25,10 @@
     "undoDepth": 1,
     "eligibleTransactionTypes": [
       "RENT_PAYMENT",
+      "RENT_WAIVED",
       "PROPERTY_PURCHASE",
+      "ENERGY_GRID_PURCHASE",
+      "ENERGY_GRID_OWNERSHIP_CHANGE",
       "BANK_CREDIT",
       "BANK_DEBIT",
       "JAIL_STATUS_CHANGE",

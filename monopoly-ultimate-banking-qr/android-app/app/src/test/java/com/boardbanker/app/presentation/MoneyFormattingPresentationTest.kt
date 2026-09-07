@@ -79,6 +79,7 @@ class MoneyFormattingPresentationTest {
         val mapper = GameplayResultMapper(ukDefinitions)
         var session = AppTestSupport.newGame()
         session = ukEngine.process(session, GameCommand.PurchaseProperty("USR_01", "PRP_01")).session
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         val before = session
         val result = ukEngine.process(session, GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"))
         val rentTx = result.transactions.first { it.transactionType == TransactionType.RENT_PAYMENT }

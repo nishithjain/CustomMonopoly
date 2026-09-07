@@ -82,6 +82,7 @@ class GameplayOutcomeAudioTest {
     fun rentTransfer_playsRentTransfer_notRentLevelIncreased() {
         var session = AppTestSupport.newGame()
         session = engine.process(session, GameCommand.PurchaseProperty("USR_01", "PRP_01")).session
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         val before = session
         val result = engine.process(session, GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"))
         val context = WorkflowCommandContext.PropertyLanding("USR_02", "PRP_01")

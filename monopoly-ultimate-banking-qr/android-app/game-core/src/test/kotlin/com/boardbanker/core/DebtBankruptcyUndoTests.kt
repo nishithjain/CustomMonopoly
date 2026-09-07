@@ -30,6 +30,7 @@ class DebtBankruptcyUndoTests {
                 }
             },
         )
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         session = engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_12"),
@@ -229,6 +230,7 @@ class DebtBankruptcyUndoTests {
     @Test
     fun tsUndo001_undoLastRentPayment() {
         var session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 3)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         session = engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
@@ -265,6 +267,7 @@ class DebtBankruptcyUndoTests {
                 )
             ),
         )
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         session = engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_11"),

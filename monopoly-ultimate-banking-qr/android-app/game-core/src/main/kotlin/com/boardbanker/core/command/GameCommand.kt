@@ -65,17 +65,39 @@ sealed class GameCommand {
     data class PayLocationFee(
         val playerId: String,
         val targetPropertyId: String,
+        val restrictToActivePlayer: Boolean = false,
     ) : GameCommand()
 
-    data class SendPlayerToJail(val playerId: String) : GameCommand()
+    data class SendPlayerToJail(
+        val playerId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
 
-    data class PayJailFee(val playerId: String) : GameCommand()
+    data class PayJailFee(
+        val playerId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
 
-    data class ReleasePlayerFromJailByPayment(val playerId: String) : GameCommand()
+    data class ReleasePlayerFromJailByPayment(
+        val playerId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
 
-    data class ReleasePlayerFromJailByDoubles(val playerId: String) : GameCommand()
+    data class ReleasePlayerFromJailByDoubles(
+        val playerId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
 
-    data class UseGetOutOfJailPass(val playerId: String) : GameCommand()
+    data class UseGetOutOfJailPass(
+        val playerId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
+
+    data class GetOutOfJailWithPass(
+        val playerId: String,
+        val eventId: String,
+        val restrictToActivePlayer: Boolean = false,
+    ) : GameCommand()
 
     data class StartAuction(
         val propertyId: String? = null,
@@ -112,12 +134,13 @@ sealed class GameCommand {
 
     object UndoLastAction : GameCommand()
 
+    object ConcludeGame : GameCommand()
+
     data class EndTurn(val playerId: String) : GameCommand()
 
     data class RollEventDice(
         val eventId: String,
         val actingPlayerId: String,
-        val diceResults: List<Int>,
     ) : GameCommand()
 
     data class ResolvePendingEventDraw(

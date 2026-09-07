@@ -28,6 +28,7 @@ class TransactionHistoryEntriesTest {
         val rentLevel = session.properties["PRP_01"]!!.currentRentLevel
         val expectedRent = definitions.properties["PRP_01"]!!
             .rentLevels.first { it.level == rentLevel }.amount
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         session = AppTestSupport.engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
@@ -50,6 +51,7 @@ class TransactionHistoryEntriesTest {
             session,
             GameCommand.PurchaseProperty("USR_01", "PRP_01"),
         ).session
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         session = AppTestSupport.engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),
@@ -98,6 +100,7 @@ class TransactionHistoryEntriesTest {
             session,
             GameCommand.PurchaseProperty("USR_01", "PRP_01"),
         ).session
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
         session = AppTestSupport.engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),

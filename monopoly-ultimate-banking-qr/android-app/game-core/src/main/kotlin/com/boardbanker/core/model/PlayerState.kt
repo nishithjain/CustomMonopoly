@@ -11,6 +11,7 @@ data class PlayerState(
     val bankrupt: Boolean = false,
     val jailStatus: Boolean = false,
     val pendingRentWaiver: Boolean = false,
+    val rentWaiverSourceEventId: String? = null,
     val jailPassCount: Int = 0,
     val pendingSkipTurnCount: Int = 0,
     val pendingExtraTurn: Boolean = false,

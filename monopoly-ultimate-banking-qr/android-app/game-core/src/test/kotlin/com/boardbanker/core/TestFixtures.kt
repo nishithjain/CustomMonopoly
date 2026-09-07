@@ -170,6 +170,19 @@ object TestFixtures {
         return editionEngine.process(session, GameCommand.EndTurn(activePlayerId))
     }
 
+    fun sessionWithActivePlayer(
+        session: GameSession,
+        playerId: String,
+        engine: GameEngine = TestFixtures.engine,
+    ): GameSession {
+        var current = session
+        repeat(session.players.size + 1) {
+            if (current.turnState?.activePlayerId == playerId) return current
+            current = endTurn(current, engine = engine).session
+        }
+        error("Could not advance turn to $playerId")
+    }
+
     fun sessionWithTemporaryEffect(effect: TemporaryEffect): GameSession {
         val session = newGame()
         return session.copy(temporaryEffects = listOf(effect))

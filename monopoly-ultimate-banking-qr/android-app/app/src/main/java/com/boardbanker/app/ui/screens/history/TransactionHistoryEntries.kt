@@ -32,6 +32,16 @@ internal sealed interface HistoryDetail {
         val levelChangeText: String get() = RentLevelChangeSnapshot.levelChangeText(oldLevel, newLevel)
     }
 
+    data class RentWaived(
+        val landingPlayerId: String?,
+        val landingPlayerName: String,
+        val ownerPlayerId: String?,
+        val ownerPlayerName: String,
+        val propertyName: String,
+        val waivedAmount: String,
+        val reason: String,
+    ) : HistoryDetail
+
     data class Text(val value: String) : HistoryDetail
 }
 
@@ -85,6 +95,7 @@ internal object TransactionHistoryEntries {
         TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP,
         TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL,
         TransactionType.RENT_PAYMENT,
+        TransactionType.RENT_WAIVED,
         TransactionType.PROPERTY_PURCHASE,
         TransactionType.AUCTION_WIN,
         TransactionType.AUCTION_PURCHASE,
@@ -139,6 +150,7 @@ internal object TransactionHistoryEntries {
         TransactionType.GAME_START -> "Game started"
         TransactionType.PROPERTY_PURCHASE -> "Property purchase"
         TransactionType.RENT_PAYMENT -> "Rent payment"
+        TransactionType.RENT_WAIVED -> "Rent waived"
         TransactionType.BANK_CREDIT -> "Bank payout"
         TransactionType.BANK_DEBIT -> "Bank charge"
         TransactionType.PROPERTY_RENT_LEVEL_CHANGE -> "Property rent level change"
@@ -209,11 +221,23 @@ internal object TransactionHistoryEntries {
     ): List<HistoryEntry> {
         val time = formatTime(group.first().timestamp, zone)
         val rentTx = group.firstOrNull { it.transactionType == TransactionType.RENT_PAYMENT }
+        val waivedTx = group.firstOrNull { it.transactionType == TransactionType.RENT_WAIVED }
         val levelTx = group.firstOrNull { it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE }
         val eventTx = group.firstOrNull {
             it.transactionType == TransactionType.EVENT_APPLIED && it.eventId != null
         } ?: group.firstOrNull { it.eventId != null }
         val event = eventTx?.eventId?.let { definitions.events[it] }
+
+        if (waivedTx != null) {
+            return listOf(
+                HistoryEntry(
+                    title = label(TransactionType.RENT_WAIVED),
+                    time = time,
+                    detail = buildRentWaivedDetail(waivedTx, session, definitions),
+                    undone = undone,
+                ),
+            )
+        }
 
         if (rentTx != null) {
             val entries = mutableListOf(
@@ -271,6 +295,25 @@ internal object TransactionHistoryEntries {
             return entries
         }
 
+        val scannedJailPassTx = group.firstOrNull {
+            it.transactionType == TransactionType.JAIL_PASS_USED && it.eventId != null
+        }
+        if (scannedJailPassTx != null &&
+            group.any { it.transactionType == TransactionType.JAIL_STATUS_CHANGE }
+        ) {
+            val playerId = scannedJailPassTx.playerId
+            val playerName = playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) } ?: "Player"
+            return listOf(
+                HistoryEntry(
+                    title = "$playerName got out of Jail",
+                    time = time,
+                    subtitle = "Get out of Jail Pass used • No fee charged",
+                    detail = HistoryDetail.Text("Get out of Jail Pass used • No fee charged"),
+                    undone = undone,
+                ),
+            )
+        }
+
         val title = if (event != null) {
             "Event: ${event.name}"
         } else {
@@ -304,6 +347,32 @@ internal object TransactionHistoryEntries {
                 detail = detail,
                 undone = undone,
             ),
+        )
+    }
+
+    private fun buildRentWaivedDetail(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail.RentWaived {
+        val propertyName = tx.propertyId
+            ?.let { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
+            ?: "Property"
+        val landingPlayerId = tx.playerId ?: tx.fromEntity
+        val ownerPlayerId = tx.toEntity
+        val reason = tx.eventId?.let { definitions.events[it]?.name } ?: "Rent Relief"
+        return HistoryDetail.RentWaived(
+            landingPlayerId = landingPlayerId,
+            landingPlayerName = landingPlayerId?.let {
+                PlayerDisplayNames.displayName(session, it, definitions)
+            } ?: "",
+            ownerPlayerId = ownerPlayerId,
+            ownerPlayerName = ownerPlayerId?.let {
+                PlayerDisplayNames.displayName(session, it, definitions)
+            } ?: "",
+            propertyName = propertyName,
+            waivedAmount = tx.amount?.let { formatMoney(it, definitions) } ?: "",
+            reason = reason,
         )
     }
 
@@ -354,6 +423,8 @@ internal object TransactionHistoryEntries {
                     "${detail.fromPlayerName} → ${detail.toPlayerName} ${detail.amount}".trim()
                 is HistoryDetail.RentLevelChange ->
                     "${detail.playerName}: ${detail.propertyName} ${detail.levelChangeText}"
+                is HistoryDetail.RentWaived ->
+                    "${detail.landingPlayerName} • ${detail.propertyName} • ${detail.reason}"
                 is HistoryDetail.Text -> detail.value.takeIf { it.isNotBlank() }
             }
         }
@@ -365,6 +436,9 @@ internal object TransactionHistoryEntries {
         session: GameSession,
         definitions: GameDefinitions,
     ): HistoryDetail {
+        if (tx.transactionType == TransactionType.RENT_WAIVED) {
+            return buildRentWaivedDetail(tx, session, definitions)
+        }
         if (tx.fromEntity != null && tx.toEntity != null &&
             tx.transactionType in moneyTypes &&
             tx.amount != null

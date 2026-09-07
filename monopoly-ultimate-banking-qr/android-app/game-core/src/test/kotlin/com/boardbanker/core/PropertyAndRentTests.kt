@@ -28,6 +28,7 @@ class PropertyAndRentTests {
     @Test
     fun tsRent001_visitorPaysThenLevelIncreases() {
         var session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 3)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         val rent = TestFixtures.rentAmount("PRP_01", 3)
         val result = engine.process(
             session,
@@ -53,6 +54,7 @@ class PropertyAndRentTests {
     @Test
     fun tsRent003_jailedOwnerNoRentCollected() {
         var session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 3)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         session = session.copy(
             players = session.players + (
                 "USR_01" to session.players["USR_01"]!!.copy(jailStatus = true)
@@ -68,6 +70,17 @@ class PropertyAndRentTests {
     }
 
     @Test
+    fun tsRent005_nonActivePlayerLandingRejected() {
+        var session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 3)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
+        val result = engine.process(
+            session,
+            GameCommand.ProcessPropertyLanding("USR_01", "PRP_01"),
+        )
+        assertEquals(GameOutcome.REJECTED, result.outcome)
+    }
+
+    @Test
     fun tsRent004_maximumLevelClamp() {
         var session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 5)
         val ownerResult = engine.process(
@@ -77,6 +90,7 @@ class PropertyAndRentTests {
         assertEquals(5, ownerResult.session.properties["PRP_01"]!!.currentRentLevel)
 
         session = TestFixtures.sessionWithProperty("PRP_01", "USR_01", 5)
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02")
         val visitorResult = engine.process(
             session,
             GameCommand.ProcessPropertyLanding("USR_02", "PRP_01"),

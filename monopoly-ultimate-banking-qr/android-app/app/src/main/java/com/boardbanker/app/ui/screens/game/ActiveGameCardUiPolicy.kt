@@ -12,9 +12,21 @@ data class ActiveGameActionVisibility(
     val showScanProperty: Boolean = false,
     val showDone: Boolean = false,
     val showCancel: Boolean = false,
+    val buyEnabled: Boolean = true,
+    val auctionEnabled: Boolean = true,
+    val buyDisabledReason: String? = null,
 )
 
 object ActiveGameCardUiPolicy {
+    fun showGameTerminationActions(
+        workflowState: GameplayWorkflowState,
+        result: GameplayResultUiModel?,
+        gameplayLocked: Boolean,
+    ): Boolean =
+        workflowState is GameplayWorkflowState.Ready &&
+            result == null &&
+            !gameplayLocked
+
     fun displayCardId(
         workflowState: GameplayWorkflowState,
         result: GameplayResultUiModel?,
@@ -56,19 +68,17 @@ object ActiveGameCardUiPolicy {
             return ActiveGameActionVisibility(showDone = true)
         }
         if (activePlayerInJail) {
-            return ActiveGameActionVisibility(showCancel = workflowState !is GameplayWorkflowState.Ready)
+            return when (workflowState) {
+                is GameplayWorkflowState.UnownedPropertyDecision,
+                is GameplayWorkflowState.UnownedEnergyGridDecision,
+                -> unownedPurchaseVisibility(activePlayerInJail = true)
+                else -> ActiveGameActionVisibility(showCancel = workflowState !is GameplayWorkflowState.Ready)
+            }
         }
         return when (workflowState) {
-            is GameplayWorkflowState.UnownedPropertyDecision -> ActiveGameActionVisibility(
-                showBuy = true,
-                showAuction = true,
-                showCancel = true,
-            )
-            is GameplayWorkflowState.UnownedEnergyGridDecision -> ActiveGameActionVisibility(
-                showBuy = true,
-                showAuction = true,
-                showCancel = true,
-            )
+            is GameplayWorkflowState.UnownedPropertyDecision,
+            is GameplayWorkflowState.UnownedEnergyGridDecision,
+            -> unownedPurchaseVisibility(activePlayerInJail = false)
             is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> ActiveGameActionVisibility(
                 showScanPlayer = true,
                 showCancel = true,
@@ -148,4 +158,22 @@ object ActiveGameCardUiPolicy {
         workflowState: GameplayWorkflowState,
         result: GameplayResultUiModel?,
     ): Boolean = displayCardId(workflowState, result) != null
+
+    private fun unownedPurchaseVisibility(activePlayerInJail: Boolean): ActiveGameActionVisibility {
+        if (activePlayerInJail) {
+            return ActiveGameActionVisibility(
+                showBuy = true,
+                showAuction = false,
+                showCancel = true,
+                buyEnabled = false,
+                auctionEnabled = false,
+                buyDisabledReason = "Get out of Jail before purchasing.",
+            )
+        }
+        return ActiveGameActionVisibility(
+            showBuy = true,
+            showAuction = true,
+            showCancel = true,
+        )
+    }
 }

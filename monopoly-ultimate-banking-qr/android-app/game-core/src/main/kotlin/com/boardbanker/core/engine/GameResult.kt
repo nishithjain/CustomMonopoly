@@ -15,6 +15,7 @@ data class GameResult(
     val extraTurnStartedPlayerId: String? = null,
     val extraTurnCancelledBySkipPlayerId: String? = null,
     val extraTurnCancelledByJailPlayerIds: List<String> = emptyList(),
+    val rolledDice: List<Int> = emptyList(),
 ) {
     val isSuccess: Boolean get() = error == null && outcome != GameOutcome.REJECTED
 }

@@ -4,7 +4,19 @@ enum class DiceGambleStatus {
     WAITING_TO_ROLL,
     ROLLING,
     AWAITING_DEBT_RESOLUTION,
+    COMPLETED,
 }
+
+data class LuckyBreakCompletedOutcome(
+    val eventId: String,
+    val actingPlayerId: String,
+    val dieOne: Int,
+    val dieTwo: Int,
+    val headline: String,
+    val outcomeMessage: String,
+    val jackpotText: String,
+    val penaltyText: String,
+)
 
 data class DiceGambleUiState(
     val eventId: String,
@@ -20,4 +32,8 @@ data class DiceGambleUiState(
     val instruction: String,
     val status: DiceGambleStatus,
     val rollEnabled: Boolean,
+    val rollButtonLabel: String = "Roll Dice",
+    val showContinue: Boolean = false,
+    val outcomeHeadline: String? = null,
+    val outcomeMessage: String? = null,
 )

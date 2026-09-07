@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Printer - Front &amp; Back (One Card Per Page)</title>
+    <style>
+        /* =========================================================
+           GENERAL
+        ========================================================= */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #e9e9e9;
+            color: #222;
+        }
+        /* =========================================================
+           TOOLBAR
+        ========================================================= */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #222;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 9px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            background: #1976d2;
+        }
+        button:hover { opacity: 0.85; }
+        .btn-green { background: #2e7d32; }
+        .btn-gray { background: #555; }
+        .btn-red { background: #c62828; }
+        .orientation-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            background: #333;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+        }
+        .orientation-toggle input {
+            width: 17px;
+            height: 17px;
+            margin: 0;
+            cursor: pointer;
+        }
+        #status { margin-left: auto; font-size: 13px; }
+        /* =========================================================
+           MAIN
+        ========================================================= */
+        .main { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        /* =========================================================
+           INFORMATION PANEL
+        ========================================================= */
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .panel h2 { margin-top: 0; }
+        .help { color: #555; font-size: 14px; line-height: 1.6; }
+        /* =========================================================
+           CARD BROWSER
+        ========================================================= */
+        .card-browser {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .card-browser h2 { margin-top: 0; }
+        .card-browser-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card-pair {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+        .card-pair-header {
+            background: #333;
+            color: white;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .card-pair-sides {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            padding: 8px;
+        }
+        .card-pair-side {
+            text-align: center;
+        }
+        .card-pair-side-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-pair-side img {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .card-pair-name {
+            padding: 6px 8px 8px;
+            font-size: 11px;
+            color: #444;
+            word-break: break-all;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        .card-pair-missing {
+            border-color: #ef9a9a;
+        }
+        .card-pair-missing .card-pair-header {
+            background: #c62828;
+        }
+        .missing-placeholder {
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffebee;
+            border: 1px dashed #c62828;
+            border-radius: 3px;
+            color: #c62828;
+            font-size: 11px;
+        }
+        /* =========================================================
+           FILE TABLE
+        ========================================================= */
+        .file-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+        .file-table th {
+            background: #333;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        .file-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        .file-table tr:hover { background: #f5f5f5; }
+        .number-cell {
+            width: 60px;
+            font-weight: bold;
+            text-align: center;
+        }
+        /* =========================================================
+           IMAGE / FILENAME CELL
+        ========================================================= */
+        .file-cell {
+            display: flex;
+            align-items: center;
+            min-width: 280px;
+        }
+        .thumb {
+            width: 100px;
+            height: 60px;
+            object-fit: contain;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .filename-container { min-width: 0; }
+        .filename {
+            font-size: 13px;
+            word-break: break-all;
+            display: block;
+        }
+        .file-type {
+            font-size: 11px;
+            color: #777;
+            margin-top: 3px;
+            display: block;
+        }
+        /* =========================================================
+           STATUS
+        ========================================================= */
+        .status-ok { color: #2e7d32; font-weight: bold; }
+        .status-warn { color: #c62828; font-weight: bold; }
+        /* =========================================================
+           REMOVE BUTTON
+        ========================================================= */
+        .remove-btn { background: #c62828; padding: 5px 9px; font-size: 12px; }
+        /* =========================================================
+           EMPTY MESSAGE
+        ========================================================= */
+        .empty-message { padding: 30px; text-align: center; color: #777; }
+        /* =========================================================
+           PREVIEW
+        ========================================================= */
+        #preview {
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sheet {
+            width: 54mm;
+            height: 86mm;
+            box-sizing: border-box;
+            background: white;
+            margin: 0 auto 30px auto;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+            flex-shrink: 0;
+        }
+        .sheet + .sheet {
+            page-break-before: always;
+            break-before: page;
+        }
+        .sheet-label {
+            position: absolute;
+            top: 2mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8px;
+            color: #999;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .card {
+            width: 54mm;
+            height: 86mm;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+        .image-frame {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .image-frame img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            transform-origin: center;
+        }
+        .cut-line {
+            position: absolute;
+            inset: 0;
+            border: 0.25mm dashed #777;
+            pointer-events: none;
+        }
+        /* =========================================================
+           PRINT
+        ========================================================= */
+        @media print {
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white;
+            }
+            .toolbar,
+            .main > .panel,
+            .card-browser,
+            .file-table-container { display: none !important; }
+            .main {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+            #preview {
+                padding: 0;
+                margin: 0;
+                display: block;
+            }
+            .sheet {
+                margin: 0;
+                box-shadow: none;
+                width: 54mm;
+                height: 86mm;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            .sheet-label { display: none; }
+            .image-frame img {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        @page {
+            size: 54mm 86mm;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =======================================================
+     TOOLBAR
+======================================================= -->
+<div class="toolbar">
+    <button onclick="selectImages()">Load Images</button>
+    <button class="btn-green" onclick="generateSheets()">Generate Preview</button>
+    <button class="btn-gray" onclick="savePdf()">Save PDF</button>
+    <button class="btn-red" onclick="clearAll()">Clear All</button>
+    <label class="orientation-toggle">
+        <input id="orientationToggle" type="checkbox">
+        <span>Change orientation</span>
+    </label>
+    <span id="status">No images loaded</span>
+</div>
+
+<!-- =======================================================
+     FILE INPUTS
+======================================================= -->
+<input id="imageInput" type="file" accept="image/*" multiple style="display:none">
+
+<!-- =======================================================
+     MAIN
+======================================================= -->
+<div class="main">
+    <!-- INFORMATION -->
+    <div class="panel">
+        <h2>Card Printer — Front &amp; Back</h2>
+        <div class="help">
+            <p>Load front and back images together. Files are paired automatically by filename
+               (<strong>_Front</strong> with <strong>_Back</strong> or <strong>_Back_QR</strong>).</p>
+            <p>Cards are sorted in <strong>lexicographic front-filename order</strong>.</p>
+            <p>Each card prints on its own page pair: <strong>Page 1 = Front</strong>, <strong>Page 2 = Back</strong>,
+               then the next card follows the same pattern. One card per page — never combined on a sheet.</p>
+            <p>Click <strong>Save PDF</strong> to download a PDF where every page is exactly
+               <strong>54 × 86 mm</strong>. PDF generation runs locally in your browser (no internet required).</p>
+            <p>JPG, JPEG, PNG, WEBP and other browser-supported image formats are supported.</p>
+            <p>The browser reads each image's pixel dimensions first and chooses the matching physical card orientation automatically.</p>
+            <p>Select <strong>Change orientation</strong> to rotate every image 90° and switch it to the opposite print layout.</p>
+        </div>
+    </div>
+
+    <!-- CARD BROWSER -->
+    <div class="card-browser" id="cardBrowser" style="display:none">
+        <h2>All Cards</h2>
+        <div class="card-browser-grid" id="cardBrowserGrid"></div>
+    </div>
+
+    <!-- FILE TABLE -->
+    <div class="file-table-container">
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th class="number-cell">#</th>
+                    <th>FRONT</th>
+                    <th>BACK</th>
+                    <th>PIXEL DIMENSIONS</th>
+                    <th>PRINT LAYOUT</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="fileTableBody">
+                <tr><td colspan="7" class="empty-message">Load front and back images to see them here.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PRINT PREVIEW -->
+    <div id="preview"></div>
+</div>
+
+<script src="jspdf.umd.min.js"></script>
+<script>
+    /* =========================================================
+       DATA
+    ========================================================= */
+    let cardPairs = [];
+    let unreadableImageCount = 0;
+    let unpairedBackCount = 0;
+
+    const PAGE_WIDTH = 54;
+    const PAGE_HEIGHT = 86;
+
+    const LAYOUTS = {
+        landscape: {
+            label: "86 × 54 mm (landscape, rotated to 54 × 86 mm page)"
+        },
+        portrait: {
+            label: "54 × 86 mm (portrait)"
+        }
+    };
+
+    /* =========================================================
+       FILE SELECT
+    ========================================================= */
+    function selectImages() {
+        document.getElementById("imageInput").click();
+    }
+
+    /* =========================================================
+       READ IMAGE DIMENSIONS
+    ========================================================= */
+    function readImageDimensions(file) {
+        return new Promise(function(resolve, reject) {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+
+            img.onload = function() {
+                const orientation = img.naturalWidth >= img.naturalHeight
+                    ? "landscape"
+                    : "portrait";
+
+                resolve({
+                    file: file,
+                    url: url,
+                    pixelWidth: img.naturalWidth,
+                    pixelHeight: img.naturalHeight,
+                    orientation: orientation
+                });
+            };
+
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                reject(new Error("Could not read " + file.name));
+            };
+
+            img.src = url;
+        });
+    }
+
+    /* =========================================================
+       FILENAME HELPERS
+    ========================================================= */
+    function getBaseName(filename) {
+        const dot = filename.lastIndexOf(".");
+        return dot === -1 ? filename : filename.substring(0, dot);
+    }
+
+    function getCardStem(filename) {
+        return getBaseName(filename)
+            .replace(/_Front$/i, "")
+            .replace(/_Back_QR$/i, "")
+            .replace(/_Back$/i, "");
+    }
+
+    function isFrontFile(filename) {
+        return /_Front$/i.test(getBaseName(filename));
+    }
+
+    function isBackFile(filename) {
+        const base = getBaseName(filename);
+        return /_Back_QR$/i.test(base) || /_Back$/i.test(base);
+    }
+
+    /* =========================================================
+       PAIR FRONTS WITH BACKS
+    ========================================================= */
+    function pairFrontAndBack(frontItems, backItems) {
+        const pairs = [];
+        const usedBacks = new Set();
+
+        frontItems.forEach(function(front) {
+            const frontStem = getCardStem(front.file.name);
+            let back = null;
+
+            back = backItems.find(function(candidate) {
+                if (usedBacks.has(candidate)) return false;
+                return getCardStem(candidate.file.name) === frontStem;
+            });
+
+            if (!back) {
+                back = backItems.find(function(candidate) {
+                    if (usedBacks.has(candidate)) return false;
+                    return getCardStem(candidate.file.name).includes(frontStem)
+                        || frontStem.includes(getCardStem(candidate.file.name));
+                });
+            }
+
+            if (!back) {
+                back = backItems.find(function(candidate) {
+                    if (usedBacks.has(candidate)) return false;
+                    return getBaseName(candidate.file.name).includes(frontStem);
+                });
+            }
+
+            if (back) usedBacks.add(back);
+            pairs.push({ front: front, back: back, stem: frontStem });
+        });
+
+        unpairedBackCount = backItems.filter(function(back) {
+            return !usedBacks.has(back);
+        }).length;
+
+        return pairs;
+    }
+
+    /* =========================================================
+       LOAD IMAGES
+    ========================================================= */
+    document.getElementById("imageInput").addEventListener("change", async function(event) {
+        const selectedFiles = Array.from(event.target.files);
+        if (!selectedFiles.length) return;
+
+        releaseImageURLs();
+        cardPairs = [];
+        unreadableImageCount = 0;
+        unpairedBackCount = 0;
+        document.getElementById("fileTableBody").innerHTML = `<tr><td colspan="7" class="empty-message">Reading image dimensions...</td></tr>`;
+        document.getElementById("cardBrowserGrid").innerHTML = "";
+        document.getElementById("cardBrowser").style.display = "none";
+        document.getElementById("preview").innerHTML = "";
+        document.getElementById("status").textContent = "Reading dimensions for " + selectedFiles.length + " image(s)...";
+
+        const results = await Promise.allSettled(selectedFiles.map(readImageDimensions));
+        const imageItems = results
+            .filter(function(result) { return result.status === "fulfilled"; })
+            .map(function(result) { return result.value; });
+
+        unreadableImageCount = results.length - imageItems.length;
+
+        const frontItems = imageItems
+            .filter(function(item) { return isFrontFile(item.file.name); })
+            .sort(compareImageItems);
+        const backItems = imageItems
+            .filter(function(item) { return isBackFile(item.file.name); })
+            .sort(compareImageItems);
+
+        cardPairs = pairFrontAndBack(frontItems, backItems);
+
+        event.target.value = "";
+        updateEverything();
+    });
+
+    /* =========================================================
+       LEXICOGRAPHIC FILENAME SORT
+    ========================================================= */
+    function compareImageItems(a, b) {
+        const primary = a.file.name.localeCompare(
+            b.file.name,
+            undefined,
+            { numeric: false, sensitivity: "base" }
+        );
+        if (primary !== 0) return primary;
+
+        return a.file.name.localeCompare(
+            b.file.name,
+            undefined,
+            { numeric: false, sensitivity: "variant" }
+        );
+    }
+
+    /* =========================================================
+       EFFECTIVE ORIENTATION
+    ========================================================= */
+    function isOrientationChanged() {
+        return document.getElementById("orientationToggle").checked;
+    }
+
+    function getEffectiveOrientation(item) {
+        if (!item) return "landscape";
+        if (!isOrientationChanged()) return item.orientation;
+        return item.orientation === "landscape" ? "portrait" : "landscape";
+    }
+
+    function getPairOrientation(pair) {
+        return getEffectiveOrientation(pair.front);
+    }
+
+    /* =========================================================
+       GET FILE TYPE
+    ========================================================= */
+    function getFileType(file) {
+        if (!file) return "";
+        const name = file.name;
+        const dot = name.lastIndexOf(".");
+        if (dot !== -1) {
+            return name.substring(dot + 1).toUpperCase();
+        }
+        return file.type || "IMAGE";
+    }
+
+    /* =========================================================
+       UPDATE EVERYTHING
+    ========================================================= */
+    function updateEverything() {
+        updateStatus();
+        updateFileTable();
+        updateCardBrowser();
+        generateSheets();
+    }
+
+    /* =========================================================
+       UPDATE STATUS
+    ========================================================= */
+    function updateStatus() {
+        if (!cardPairs.length) {
+            document.getElementById("status").textContent = unreadableImageCount
+                ? "No readable card pairs | Skipped: " + unreadableImageCount
+                : "No images loaded";
+            return;
+        }
+
+        const completeCount = cardPairs.filter(function(pair) { return pair.back; }).length;
+        const missingBackCount = cardPairs.length - completeCount;
+        let status = "Cards: " + cardPairs.length
+            + " | Complete pairs: " + completeCount;
+        if (missingBackCount) status += " | Missing back: " + missingBackCount;
+        if (unpairedBackCount) status += " | Unpaired backs: " + unpairedBackCount;
+        if (isOrientationChanged()) status += " | Orientation changed";
+        if (unreadableImageCount) status += " | Skipped: " + unreadableImageCount;
+        document.getElementById("status").textContent = status;
+    }
+
+    /* =========================================================
+       UPDATE FILE TABLE
+    ========================================================= */
+    function updateFileTable() {
+        const tbody = document.getElementById("fileTableBody");
+        tbody.innerHTML = "";
+
+        if (!cardPairs.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-message">Load front and back images to see them here.</td></tr>`;
+            return;
+        }
+
+        cardPairs.forEach(function(pair, index) {
+            const row = document.createElement("tr");
+
+            const numberCell = document.createElement("td");
+            numberCell.className = "number-cell";
+            numberCell.textContent = String(index + 1);
+            row.appendChild(numberCell);
+
+            row.appendChild(createFileCell(pair.front, "Front"));
+
+            if (pair.back) {
+                row.appendChild(createFileCell(pair.back, "Back"));
+            } else {
+                const missingCell = document.createElement("td");
+                missingCell.innerHTML = `<span class="status-warn">No matching back found</span>`;
+                row.appendChild(missingCell);
+            }
+
+            const dimensionsCell = document.createElement("td");
+            dimensionsCell.textContent = pair.front.pixelWidth + " × " + pair.front.pixelHeight + " px"
+                + (pair.back ? " / " + pair.back.pixelWidth + " × " + pair.back.pixelHeight + " px" : "");
+            row.appendChild(dimensionsCell);
+
+            const layoutCell = document.createElement("td");
+            const effectiveOrientation = getPairOrientation(pair);
+            layoutCell.textContent = LAYOUTS[effectiveOrientation].label
+                + (isOrientationChanged() ? " — changed" : "");
+            layoutCell.className = pair.back ? "status-ok" : "status-warn";
+            row.appendChild(layoutCell);
+
+            const statusCell = document.createElement("td");
+            statusCell.textContent = pair.back ? "Ready" : "Missing back";
+            statusCell.className = pair.back ? "status-ok" : "status-warn";
+            row.appendChild(statusCell);
+
+            const actionCell = document.createElement("td");
+            const removeButton = document.createElement("button");
+            removeButton.className = "remove-btn";
+            removeButton.textContent = "Remove";
+            removeButton.onclick = function() { removePair(pair); };
+            actionCell.appendChild(removeButton);
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    /* =========================================================
+       UPDATE CARD BROWSER
+    ========================================================= */
+    function updateCardBrowser() {
+        const browser = document.getElementById("cardBrowser");
+        const grid = document.getElementById("cardBrowserGrid");
+        grid.innerHTML = "";
+
+        if (!cardPairs.length) {
+            browser.style.display = "none";
+            return;
+        }
+
+        browser.style.display = "block";
+
+        cardPairs.forEach(function(pair, index) {
+            const card = document.createElement("div");
+            card.className = "card-pair" + (pair.back ? "" : " card-pair-missing");
+
+            const header = document.createElement("div");
+            header.className = "card-pair-header";
+            header.textContent = "Card " + (index + 1);
+            card.appendChild(header);
+
+            const sides = document.createElement("div");
+            sides.className = "card-pair-sides";
+
+            sides.appendChild(createBrowserSide("Front", pair.front));
+
+            if (pair.back) {
+                sides.appendChild(createBrowserSide("Back", pair.back));
+            } else {
+                const side = document.createElement("div");
+                side.className = "card-pair-side";
+                const label = document.createElement("div");
+                label.className = "card-pair-side-label";
+                label.textContent = "Back";
+                side.appendChild(label);
+                const placeholder = document.createElement("div");
+                placeholder.className = "missing-placeholder";
+                placeholder.textContent = "Missing";
+                side.appendChild(placeholder);
+                sides.appendChild(side);
+            }
+
+            card.appendChild(sides);
+
+            const name = document.createElement("div");
+            name.className = "card-pair-name";
+            name.textContent = pair.front.file.name;
+            card.appendChild(name);
+
+            grid.appendChild(card);
+        });
+    }
+
+    function createBrowserSide(label, item) {
+        const side = document.createElement("div");
+        side.className = "card-pair-side";
+
+        const sideLabel = document.createElement("div");
+        sideLabel.className = "card-pair-side-label";
+        sideLabel.textContent = label;
+        side.appendChild(sideLabel);
+
+        const img = document.createElement("img");
+        img.src = item.url;
+        img.alt = item.file.name;
+        side.appendChild(img);
+
+        return side;
+    }
+
+    /* =========================================================
+       CREATE FILE CELL
+    ========================================================= */
+    function createFileCell(item, sideLabel) {
+        const cell = document.createElement("td");
+        const container = document.createElement("div");
+        container.className = "file-cell";
+
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.src = item.url;
+        img.alt = item.file.name;
+        container.appendChild(img);
+
+        const filenameContainer = document.createElement("div");
+        filenameContainer.className = "filename-container";
+
+        const side = document.createElement("span");
+        side.className = "file-type";
+        side.textContent = sideLabel;
+        filenameContainer.appendChild(side);
+
+        const filename = document.createElement("span");
+        filename.className = "filename";
+        filename.textContent = item.file.name;
+        filenameContainer.appendChild(filename);
+
+        const fileType = document.createElement("span");
+        fileType.className = "file-type";
+        fileType.textContent = getFileType(item.file) + " | " + Math.round(item.file.size / 1024) + " KB";
+        filenameContainer.appendChild(fileType);
+
+        container.appendChild(filenameContainer);
+        cell.appendChild(container);
+        return cell;
+    }
+
+    /* =========================================================
+       REMOVE PAIR
+    ========================================================= */
+    function removePair(pairToRemove) {
+        URL.revokeObjectURL(pairToRemove.front.url);
+        if (pairToRemove.back) URL.revokeObjectURL(pairToRemove.back.url);
+        cardPairs = cardPairs.filter(function(pair) {
+            return pair !== pairToRemove;
+        });
+        updateEverything();
+    }
+
+    /* =========================================================
+       RELEASE IMAGE URLS
+    ========================================================= */
+    function releaseImageURLs() {
+        cardPairs.forEach(function(pair) {
+            URL.revokeObjectURL(pair.front.url);
+            if (pair.back) URL.revokeObjectURL(pair.back.url);
+        });
+    }
+
+    function shouldRotateImage(item) {
+        return isOrientationChanged() || getEffectiveOrientation(item) === "landscape";
+    }
+
+    /* =========================================================
+       PDF RENDERING
+    ========================================================= */
+    function loadImageElement(url) {
+        return new Promise(function(resolve, reject) {
+            const img = new Image();
+            img.onload = function() { resolve(img); };
+            img.onerror = function() { reject(new Error("Could not load image")); };
+            img.src = url;
+        });
+    }
+
+    function drawImageContain(ctx, img, x, y, w, h) {
+        const scale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+        const drawW = img.naturalWidth * scale;
+        const drawH = img.naturalHeight * scale;
+        ctx.drawImage(
+            img,
+            x + (w - drawW) / 2,
+            y + (h - drawH) / 2,
+            drawW,
+            drawH
+        );
+    }
+
+    function renderCardToDataUrl(item) {
+        const pxPerMm = 12;
+        const pageW = Math.round(PAGE_WIDTH * pxPerMm);
+        const pageH = Math.round(PAGE_HEIGHT * pxPerMm);
+
+        return loadImageElement(item.url).then(function(img) {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = pageW;
+            canvas.height = pageH;
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, pageW, pageH);
+
+            if (shouldRotateImage(item)) {
+                ctx.save();
+                ctx.translate(pageW / 2, pageH / 2);
+                ctx.rotate(Math.PI / 2);
+                drawImageContain(ctx, img, -pageH / 2, -pageW / 2, pageH, pageW);
+                ctx.restore();
+            } else {
+                drawImageContain(ctx, img, 0, 0, pageW, pageH);
+            }
+
+            ctx.strokeStyle = "#777777";
+            ctx.lineWidth = Math.max(1, Math.round(0.25 * pxPerMm));
+            ctx.setLineDash([Math.round(pxPerMm * 0.5), Math.round(pxPerMm * 0.5)]);
+            ctx.strokeRect(
+                ctx.lineWidth / 2,
+                ctx.lineWidth / 2,
+                pageW - ctx.lineWidth,
+                pageH - ctx.lineWidth
+            );
+
+            const usePng = /\.png$/i.test(item.file.name);
+            return {
+                dataUrl: canvas.toDataURL(usePng ? "image/png" : "image/jpeg", 0.92),
+                format: usePng ? "PNG" : "JPEG"
+            };
+        });
+    }
+
+    async function savePdf() {
+        if (!window.jspdf) {
+            alert("PDF library (jspdf.umd.min.js) failed to load. Make sure jspdf.umd.min.js is in the same folder as this HTML file.");
+            return;
+        }
+
+        const completePairs = cardPairs.filter(function(pair) { return pair.back; });
+        if (!completePairs.length) {
+            alert("Load complete front/back pairs first.");
+            return;
+        }
+
+        const statusEl = document.getElementById("status");
+        const previousStatus = statusEl.textContent;
+        statusEl.textContent = "Generating PDF...";
+
+        try {
+            const jsPDF = window.jspdf.jsPDF;
+            let doc = null;
+
+            for (let pairIndex = 0; pairIndex < completePairs.length; pairIndex++) {
+                const pair = completePairs[pairIndex];
+                const sides = [pair.front, pair.back];
+
+                for (let sideIndex = 0; sideIndex < sides.length; sideIndex++) {
+                    const rendered = await renderCardToDataUrl(sides[sideIndex]);
+
+                    if (!doc) {
+                        doc = new jsPDF({
+                            orientation: "portrait",
+                            unit: "mm",
+                            format: [PAGE_WIDTH, PAGE_HEIGHT],
+                            compress: true
+                        });
+                    } else {
+                        doc.addPage([PAGE_WIDTH, PAGE_HEIGHT], "portrait");
+                    }
+
+                    doc.addImage(
+                        rendered.dataUrl,
+                        rendered.format,
+                        0,
+                        0,
+                        PAGE_WIDTH,
+                        PAGE_HEIGHT,
+                        undefined,
+                        "FAST"
+                    );
+                }
+            }
+
+            doc.save("cards-front-back.pdf");
+            statusEl.textContent = previousStatus;
+        } catch (error) {
+            statusEl.textContent = previousStatus;
+            alert("PDF generation failed: " + error.message);
+        }
+    }
+
+    /* =========================================================
+       CREATE PRINT CARD
+    ========================================================= */
+    function createPrintCard(item) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const imageFrame = document.createElement("div");
+        imageFrame.className = "image-frame";
+
+        const img = document.createElement("img");
+        img.src = item.url;
+        img.alt = item.file.name;
+        if (shouldRotateImage(item)) {
+            img.style.width = PAGE_HEIGHT + "mm";
+            img.style.height = PAGE_WIDTH + "mm";
+            img.style.transform = "rotate(90deg)";
+        }
+        imageFrame.appendChild(img);
+        card.appendChild(imageFrame);
+
+        const cutLine = document.createElement("div");
+        cutLine.className = "cut-line";
+        card.appendChild(cutLine);
+
+        return card;
+    }
+
+    /* =========================================================
+       CREATE SINGLE-CARD SHEET
+    ========================================================= */
+    function createSingleCardSheet(item, sideLabel, cardNumber) {
+        const sheet = document.createElement("div");
+        sheet.className = "sheet";
+
+        const label = document.createElement("div");
+        label.className = "sheet-label";
+        label.textContent = "Card " + cardNumber + " — " + sideLabel;
+        sheet.appendChild(label);
+
+        sheet.appendChild(createPrintCard(item));
+        return sheet;
+    }
+
+    /* =========================================================
+       GENERATE PRINT PREVIEW
+    ========================================================= */
+    function generateSheets() {
+        const preview = document.getElementById("preview");
+        preview.innerHTML = "";
+
+        if (!cardPairs.length) return;
+
+        cardPairs.forEach(function(pair, index) {
+            if (!pair.back) return;
+
+            const cardNumber = index + 1;
+
+            preview.appendChild(createSingleCardSheet(
+                pair.front, "Front", cardNumber
+            ));
+            preview.appendChild(createSingleCardSheet(
+                pair.back, "Back", cardNumber
+            ));
+        });
+    }
+
+    /* =========================================================
+       CLEAR ALL
+    ========================================================= */
+    function clearAll() {
+        releaseImageURLs();
+        cardPairs = [];
+        unreadableImageCount = 0;
+        unpairedBackCount = 0;
+        document.getElementById("imageInput").value = "";
+        document.getElementById("orientationToggle").checked = false;
+        document.getElementById("fileTableBody").innerHTML = `<tr><td colspan="7" class="empty-message">Load front and back images to see them here.</td></tr>`;
+        document.getElementById("cardBrowserGrid").innerHTML = "";
+        document.getElementById("cardBrowser").style.display = "none";
+        document.getElementById("preview").innerHTML = "";
+        updateStatus();
+    }
+
+    /* =========================================================
+       AUTOMATIC PREVIEW UPDATE
+    ========================================================= */
+    document.getElementById("orientationToggle").addEventListener("change", updateEverything);
+
+    /* =========================================================
+       CLEAN UP OBJECT URLS
+    ========================================================= */
+    window.addEventListener("beforeunload", releaseImageURLs);
+</script>
+</body>
+</html>

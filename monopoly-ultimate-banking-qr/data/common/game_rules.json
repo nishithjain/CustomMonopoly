@@ -262,6 +262,7 @@
     "undoDepth": 1,
     "eligibleTransactionTypes": [
       "RENT_PAYMENT",
+      "RENT_WAIVED",
       "PROPERTY_PURCHASE",
       "BANK_CREDIT",
       "BANK_DEBIT",

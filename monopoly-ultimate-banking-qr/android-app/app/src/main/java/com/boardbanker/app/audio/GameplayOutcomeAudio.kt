@@ -111,6 +111,7 @@ object GameplayOutcomeAudio {
         is GameCommand.SendPlayerToJail -> GameplayAudioCue.GO_TO_JAIL
         is GameCommand.PayJailFee -> GameplayAudioCue.KA_CHING
         is GameCommand.UseGetOutOfJailPass -> GameplayAudioCue.JAIL_WORKFLOW
+        is GameCommand.GetOutOfJailWithPass -> GameplayAudioCue.JAIL_WORKFLOW
         is GameCommand.UndoLastAction ->
             if (result.transactions.any { it.transactionType == TransactionType.UNDO }) {
                 GameplayAudioCue.UNDO_LAST_ACTION
@@ -183,6 +184,9 @@ object GameplayOutcomeAudio {
     ): GameplayAudioCue? {
         if (result.transactions.any { it.transactionType == TransactionType.RENT_PAYMENT }) {
             return GameplayAudioCue.RENT_TRANSFER
+        }
+        if (result.transactions.any { it.transactionType == TransactionType.RENT_WAIVED }) {
+            return null
         }
         val ownerId = sessionBefore.properties[context.propertyId]?.ownerPlayerId
         if (ownerId == context.playerId && rentLevelsIncreased(sessionBefore, result)) {

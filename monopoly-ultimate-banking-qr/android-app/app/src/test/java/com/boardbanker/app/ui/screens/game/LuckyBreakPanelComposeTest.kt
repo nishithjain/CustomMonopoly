@@ -26,7 +26,11 @@ class LuckyBreakPanelComposeTest {
         dieTwo: Int? = null,
         attemptLabel: String = "Attempt 1 of 3",
         rollEnabled: Boolean = true,
+        rollButtonLabel: String = "Roll Dice",
         status: DiceGambleStatus = DiceGambleStatus.WAITING_TO_ROLL,
+        showContinue: Boolean = false,
+        outcomeHeadline: String? = null,
+        outcomeMessage: String? = null,
     ) = DiceGambleUiState(
         eventId = "EVT_17",
         eventName = "Lucky Break",
@@ -41,6 +45,10 @@ class LuckyBreakPanelComposeTest {
         instruction = "Roll both dice up to three times.",
         status = status,
         rollEnabled = rollEnabled,
+        rollButtonLabel = rollButtonLabel,
+        showContinue = showContinue,
+        outcomeHeadline = outcomeHeadline,
+        outcomeMessage = outcomeMessage,
     )
 
     private fun render(state: DiceGambleUiState) {
@@ -49,6 +57,7 @@ class LuckyBreakPanelComposeTest {
                 LuckyBreakContent(
                     state = state,
                     onRollDice = {},
+                    onContinue = {},
                 )
             }
         }
@@ -67,7 +76,7 @@ class LuckyBreakPanelComposeTest {
 
     @Test
     fun rollButtonDisabledWhenRolling() {
-        render(sampleState(rollEnabled = false, status = DiceGambleStatus.ROLLING))
+        render(sampleState(rollEnabled = false, status = DiceGambleStatus.ROLLING, rollButtonLabel = "Rolling..."))
 
         composeRule.onNodeWithText("Rolling...").assertIsDisplayed().assertIsNotEnabled()
     }
@@ -79,9 +88,30 @@ class LuckyBreakPanelComposeTest {
                 dieOne = 1,
                 dieTwo = 3,
                 attemptLabel = "No doubles — 2 attempts remaining",
+                rollButtonLabel = "Roll Again",
             ),
         )
 
         composeRule.onNodeWithText("No doubles — 2 attempts remaining").assertIsDisplayed()
+        composeRule.onNodeWithText("Roll Again").assertIsDisplayed().assertIsEnabled()
+    }
+
+    @Test
+    fun completedDoublesShowsContinue() {
+        render(
+            sampleState(
+                dieOne = 6,
+                dieTwo = 6,
+                showContinue = true,
+                outcomeHeadline = "Doubles!",
+                outcomeMessage = "Player B collected ₹15,000.",
+            ),
+        )
+
+        composeRule.onNodeWithText("Doubles!").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Die one: 6").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Die two: 6").assertIsDisplayed()
+        composeRule.onNodeWithText("Player B collected ₹15,000.").assertIsDisplayed()
+        composeRule.onNodeWithText("Continue").assertIsDisplayed().assertIsEnabled()
     }
 }

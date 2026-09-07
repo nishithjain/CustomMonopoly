@@ -39,8 +39,39 @@ class EventDrawUiMapperTest {
         assertEquals("EVT_15", ui.parentEventId)
         assertEquals("Lucky Draw", ui.parentEventName)
         assertEquals(EventDrawUiMapper.INSTRUCTION, ui.instruction)
-        assertEquals("Additional draw 1 of 3", ui.chainProgressText)
+        assertEquals(EventDrawUiMapper.REQUIRED_DRAWS_TEXT, ui.requiredDrawsText)
+        assertEquals(EventDrawUiMapper.SCAN_BUTTON_LABEL, ui.scanButtonLabel)
         assertTrue(ui.scanEnabled)
+    }
+
+    @Test
+    fun canScanWhenPendingDrawMatchesActivePlayer() {
+        val session = sessionWithPendingDraw()
+        assertTrue(
+            EventDrawUiMapper.canScanAdditionalEvent(
+                session = session,
+                commandInFlight = false,
+                scannerLaunchInProgress = false,
+            ),
+        )
+    }
+
+    @Test
+    fun scanDisabledWhenActingPlayerDoesNotMatchActivePlayer() {
+        val session = sessionWithPendingDraw().copy(
+            turnState = sessionWithPendingDraw().turnState?.copy(activePlayerId = "USR_02"),
+        )
+        val ui = EventDrawUiMapper.map(session, definitions, commandInFlight = false)!!
+        assertFalse(ui.scanEnabled)
+    }
+
+    @Test
+    fun scanDisabledWhenNoRemainingDraws() {
+        val session = sessionWithPendingDraw().copy(
+            pendingEventDraw = sessionWithPendingDraw().pendingEventDraw!!.copy(remainingDraws = 0),
+        )
+        val ui = EventDrawUiMapper.map(session, definitions, commandInFlight = false)!!
+        assertFalse(ui.scanEnabled)
     }
 
     @Test
@@ -48,5 +79,18 @@ class EventDrawUiMapperTest {
         val session = sessionWithPendingDraw()
         val ui = EventDrawUiMapper.map(session, definitions, commandInFlight = true)!!
         assertFalse(ui.scanEnabled)
+    }
+
+    @Test
+    fun scanDisabledWhileScannerLaunchInProgress() {
+        val session = sessionWithPendingDraw()
+        val ui = EventDrawUiMapper.map(
+            session,
+            definitions,
+            commandInFlight = false,
+            scannerLaunchInProgress = true,
+        )!!
+        assertFalse(ui.scanEnabled)
+        assertEquals(EventDrawUiMapper.OPENING_SCANNER_LABEL, ui.scanButtonLabel)
     }
 }

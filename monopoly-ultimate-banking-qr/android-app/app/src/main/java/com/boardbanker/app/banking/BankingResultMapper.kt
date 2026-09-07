@@ -171,6 +171,20 @@ class BankingResultMapper(
         )
     }
 
+    fun mapJailPassScannedResult(playerId: String, session: GameSession): GameplayResultUiModel {
+        val playerName = resolvePlayerName(playerId, session)
+        return GameplayResultUiModel(
+            title = "$playerName is out of Jail",
+            primaryPlayerId = playerId,
+            primaryPlayerName = playerName,
+            primaryMessage = buildString {
+                append("$playerName used the Get out of Jail Pass.\n\n")
+                append("No Jail fee was charged.")
+            },
+            physicalInstructions = listOf("Released from Jail."),
+        )
+    }
+
     fun mapJailDoublesRelease(playerId: String, session: GameSession): GameplayResultUiModel {
         val playerName = resolvePlayerName(playerId, session)
         return GameplayResultUiModel(

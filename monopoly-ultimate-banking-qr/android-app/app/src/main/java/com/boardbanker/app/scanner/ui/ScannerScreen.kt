@@ -206,6 +206,7 @@ fun ScannerScreen(
                         ScannerUiState.PROCESSING -> "Processing scan..."
                         else -> scanRequest.overlayInstruction
                     },
+                    supportingText = scanRequest.supportingInstruction,
                     expectedCardType = scanRequest.singleExpectedType?.let { expectedTypeLabel(it) },
                     editionName = definitions?.edition?.name,
                 )
@@ -231,6 +232,7 @@ private fun ScanningContent(
     onCameraReady: () -> Unit,
     onCameraError: (String) -> Unit,
     statusText: String,
+    supportingText: String? = null,
     expectedCardType: String? = null,
     editionName: String? = null,
 ) {
@@ -264,6 +266,14 @@ private fun ScanningContent(
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
     )
+    if (supportingText != null) {
+        Text(
+            text = supportingText,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
     if (expectedCardType != null) {
         Text(
             text = expectedCardType,

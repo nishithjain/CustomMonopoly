@@ -1,6 +1,7 @@
 package com.boardbanker.core
 
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.model.EditionIds
@@ -65,29 +66,32 @@ class IndiaSpecialWorkflowIntegrationTest {
 
     @Test
     fun luckyBreak_successAndFailurePaths() {
+        val successEngine = DefaultGameEngine(definitions, SequenceDiceRoller(6 to 6))
         var session = TestFixtures.newGameForEdition(
             EditionIds.INDIA,
             balances = mapOf("USR_01" to 50000, "USR_02" to 150000),
         )
-        session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
-        val success = engine.process(
+        session = successEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        val success = successEngine.process(
             session,
-            GameCommand.RollEventDice("EVT_17", "USR_01", listOf(6, 6)),
+            GameCommand.RollEventDice("EVT_17", "USR_01"),
         )
         assertNull(success.session.pendingDiceGamble)
         assertTrue(success.session.players["USR_01"]!!.balance > 50000)
 
-        session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
-        val failure = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(1, 2)))
+        val failureEngine = DefaultGameEngine(definitions, SequenceDiceRoller(1 to 2, 2 to 3, 4 to 5))
+        session = failureEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        val failure = failureEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         session = failure.session
-        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(2, 3))).session
-        val completed = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01", listOf(4, 5)))
+        session = failureEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
+        val completed = failureEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         assertNull(completed.session.pendingDiceGamble)
         assertTrue(completed.session.players["USR_01"]!!.balance < 50000)
     }
 
     @Test
     fun luckyDraw_chainToLuckyBreak_thenNormalEvent() {
+        val luckyBreakEngine = DefaultGameEngine(definitions, SequenceDiceRoller(3 to 3))
         var session = TestFixtures.newGameForEdition(EditionIds.INDIA)
         session = engine.process(session, GameCommand.ApplyEvent("EVT_15", "USR_01")).session
         assertNotNull(session.pendingEventDraw)
@@ -99,9 +103,9 @@ class IndiaSpecialWorkflowIntegrationTest {
         assertNull(luckyBreak.session.pendingEventDraw)
         assertNotNull(luckyBreak.session.pendingDiceGamble)
 
-        val rolled = engine.process(
+        val rolled = luckyBreakEngine.process(
             luckyBreak.session,
-            GameCommand.RollEventDice("EVT_17", "USR_01", listOf(3, 3)),
+            GameCommand.RollEventDice("EVT_17", "USR_01"),
         )
         assertNull(rolled.session.pendingDiceGamble)
 
@@ -112,15 +116,13 @@ class IndiaSpecialWorkflowIntegrationTest {
     }
 
     @Test
-    fun luckyDraw_nestedChainRespectsMaximumDepth() {
+    fun luckyDraw_nestedLuckyDrawRejectedWithoutConsumingPendingDraw() {
         var session = TestFixtures.newGameForEdition(EditionIds.INDIA)
         session = engine.process(session, GameCommand.ApplyEvent("EVT_15", "USR_01")).session
-        session = engine.process(session, GameCommand.ResolvePendingEventDraw("EVT_15", "USR_01")).session
-        session = engine.process(session, GameCommand.ResolvePendingEventDraw("EVT_15", "USR_01")).session
-        val rejectedFourth = engine.process(session, GameCommand.ResolvePendingEventDraw("EVT_15", "USR_01"))
-        assertEquals(GameOutcome.REJECTED, rejectedFourth.outcome)
-        assertNotNull(rejectedFourth.session.pendingEventDraw)
-        val completed = engine.process(rejectedFourth.session, GameCommand.ResolvePendingEventDraw("EVT_03", "USR_01"))
+        val rejected = engine.process(session, GameCommand.ResolvePendingEventDraw("EVT_15", "USR_01"))
+        assertEquals(GameOutcome.REJECTED, rejected.outcome)
+        assertNotNull(rejected.session.pendingEventDraw)
+        val completed = engine.process(rejected.session, GameCommand.ResolvePendingEventDraw("EVT_03", "USR_01"))
         assertNull(completed.session.pendingEventDraw)
         assertEquals(0, completed.session.eventChainDepth)
     }

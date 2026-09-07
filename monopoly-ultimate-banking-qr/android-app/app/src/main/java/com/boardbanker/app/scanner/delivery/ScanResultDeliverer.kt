@@ -56,6 +56,7 @@ class ScanResultDeliverer {
     private var nextAttemptId: Long = 1L
     private var preparedConsumer: ScanResultConsumer? = null
     private var pendingScanRequest: ScanRequest? = null
+    private var pendingScanCancelled: (() -> Unit)? = null
     private var lastConsumedAttemptId: Long = -1L
     private var lastStagedAttemptId: Long = -1L
 
@@ -73,10 +74,12 @@ class ScanResultDeliverer {
     fun prepareConsumer(
         consumer: ScanResultConsumer,
         request: ScanRequest = ScanRequest.gameCard(),
+        onCancelled: (() -> Unit)? = null,
     ) {
         synchronized(lock) {
             preparedConsumer = consumer
             pendingScanRequest = request
+            pendingScanCancelled = onCancelled
         }
     }
 
@@ -84,6 +87,8 @@ class ScanResultDeliverer {
 
     fun clearPendingScanRequest() {
         synchronized(lock) {
+            pendingScanCancelled?.invoke()
+            pendingScanCancelled = null
             pendingScanRequest = null
         }
     }
@@ -116,6 +121,7 @@ class ScanResultDeliverer {
             lastConsumedAttemptId = scanAttemptId
             preparedConsumer = null
             pendingScanRequest = null
+            pendingScanCancelled = null
             return replay.card
         }
     }
@@ -134,6 +140,7 @@ class ScanResultDeliverer {
             nextAttemptId = 1L
             preparedConsumer = null
             pendingScanRequest = null
+            pendingScanCancelled = null
             lastConsumedAttemptId = -1L
             lastStagedAttemptId = -1L
         }

@@ -5,6 +5,9 @@ import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.isJailPassEvent
+import com.boardbanker.core.model.jailPassEventIds
+import com.boardbanker.core.model.supportsJailPassScan
 import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -150,5 +153,99 @@ class JailPassTests {
         val result = ukEngine.process(session, GameCommand.UseGetOutOfJailPass("USR_01"))
         assertEquals(GameOutcome.REJECTED, result.outcome)
         assertNotEquals(GameOutcome.REJECTED, ukEngine.process(session, GameCommand.PayJailFee("USR_01")).outcome)
+    }
+
+    @Test
+    fun scannedJailPass_releasesFromJailWithoutFee() {
+        val session = TestFixtures.sessionWithJail("USR_01")
+        val balanceBefore = session.players["USR_01"]!!.balance
+        val result = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"),
+        )
+        assertFalse(result.session.players["USR_01"]!!.jailStatus)
+        assertEquals(balanceBefore, result.session.players["USR_01"]!!.balance)
+        assertEquals(0, result.session.players["USR_01"]!!.jailPassCount)
+        assertTrue(result.transactions.any { it.transactionType == TransactionType.JAIL_PASS_USED && it.eventId == "EVT_11" })
+        assertTrue(result.transactions.any { it.transactionType == TransactionType.JAIL_STATUS_CHANGE })
+        assertFalse(result.transactions.any { it.transactionType == TransactionType.BANK_DEBIT })
+    }
+
+    @Test
+    fun scannedJailPass_doesNotConsumeStoredInventoryPass() {
+        val session = TestFixtures.sessionWithJailAndPass("USR_01")
+        val result = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"),
+        )
+        assertFalse(result.session.players["USR_01"]!!.jailStatus)
+        assertEquals(1, result.session.players["USR_01"]!!.jailPassCount)
+    }
+
+    @Test
+    fun scannedJailPass_rejectsWrongEventId() {
+        val session = TestFixtures.sessionWithJail("USR_01")
+        val result = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_01"),
+        )
+        assertEquals(GameOutcome.REJECTED, result.outcome)
+        assertTrue(result.session.players["USR_01"]!!.jailStatus)
+    }
+
+    @Test
+    fun scannedJailPass_rejectsWhenNotJailed() {
+        val session = TestFixtures.newGameForEdition(EditionIds.INDIA)
+        val result = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"),
+        )
+        assertEquals(GameOutcome.REJECTED, result.outcome)
+    }
+
+    @Test
+    fun scannedJailPass_doubleSubmission_secondRejected() {
+        val session = TestFixtures.sessionWithJail("USR_01")
+        val first = indiaEngine.process(session, GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"))
+        val second = indiaEngine.process(first.session, GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"))
+        assertEquals(GameOutcome.REJECTED, second.outcome)
+    }
+
+    @Test
+    fun scannedJailPass_undo_restoresJailWithoutConsumingInventory() {
+        val session = TestFixtures.sessionWithJailAndPass("USR_01")
+        val afterRelease = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"),
+        ).session
+        val undone = indiaEngine.process(afterRelease, GameCommand.UndoLastAction).session
+        assertTrue(undone.players["USR_01"]!!.jailStatus)
+        assertEquals(1, undone.players["USR_01"]!!.jailPassCount)
+        assertEquals(session.players["USR_01"]!!.balance, undone.players["USR_01"]!!.balance)
+    }
+
+    @Test
+    fun scannedJailPass_saveRestore_preservesRelease() {
+        val session = TestFixtures.sessionWithJail("USR_01")
+        val afterRelease = indiaEngine.process(
+            session,
+            GameCommand.GetOutOfJailWithPass("USR_01", "EVT_11"),
+        ).session
+        val restored = serializer.deserialize(serializer.serialize(afterRelease))
+        assertEquals(afterRelease, restored)
+        assertFalse(restored.players["USR_01"]!!.jailStatus)
+    }
+
+    @Test
+    fun indiaEdition_exposesJailPassEventByActionType() {
+        assertTrue(indiaDefinitions.isJailPassEvent("EVT_11"))
+        assertEquals(setOf("EVT_11"), indiaDefinitions.jailPassEventIds())
+        assertTrue(indiaDefinitions.supportsJailPassScan())
+    }
+
+    @Test
+    fun ukEdition_doesNotSupportJailPassScan() {
+        assertFalse(TestFixtures.definitions.supportsJailPassScan())
+        assertTrue(TestFixtures.definitions.jailPassEventIds().isEmpty())
     }
 }

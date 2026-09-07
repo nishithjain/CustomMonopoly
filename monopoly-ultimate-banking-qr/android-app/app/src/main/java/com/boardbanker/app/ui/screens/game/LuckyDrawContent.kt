@@ -31,21 +31,15 @@ fun LuckyDrawContent(
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(
-            text = state.actingPlayerName,
-            style = MaterialTheme.typography.titleMedium,
+            text = state.requiredDrawsText,
+            style = MaterialTheme.typography.bodyMedium,
         )
-        state.chainProgressText?.let { progress ->
-            Text(
-                text = progress,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
         Button(
             onClick = onScanEventCard,
             enabled = state.scanEnabled,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (state.scanEnabled) "Scan Event Card" else "Scanning...")
+            Text(state.scanButtonLabel)
         }
     }
 }

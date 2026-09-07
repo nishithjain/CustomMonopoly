@@ -169,8 +169,12 @@ fun AppNavigation(
                 onNavigateHome = {
                     navController.popBackStack(AppDestination.Home.route, inclusive = false)
                 },
-                onOpenScanner = { request ->
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.GAME, request)
+                onOpenScanner = { request, onCancelled ->
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.GAME,
+                        request,
+                        onCancelled = onCancelled,
+                    )
                     navController.navigate(AppDestination.GameScanner.route)
                 },
                 onNavigateToBanking = {
@@ -214,8 +218,11 @@ fun AppNavigation(
                 deliverer = app.scanResultDeliverer,
                 consumer = ScanResultConsumer.PLAYER_DETAILS,
             ) { card ->
-                if (card.cardType == com.boardbanker.core.card.CardType.PROPERTY) {
-                    playerDetailsViewModel.onPropertyScanned(card.cardId)
+                when (card.cardType) {
+                    com.boardbanker.core.card.CardType.PROPERTY ->
+                        playerDetailsViewModel.onPropertyScanned(card.cardId)
+                    else ->
+                        playerDetailsViewModel.onJailPassScanned(card.cardId, card.cardType)
                 }
             }
 
@@ -226,6 +233,14 @@ fun AppNavigation(
                     app.scanResultDeliverer.prepareConsumer(
                         ScanResultConsumer.PLAYER_DETAILS,
                         ScanRequest.property(),
+                    )
+                    navController.navigate(AppDestination.BankingScanner.route)
+                },
+                onOpenJailPassScanner = { request ->
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.PLAYER_DETAILS,
+                        request,
+                        onCancelled = playerDetailsViewModel::onJailPassScannerCancelled,
                     )
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
@@ -262,8 +277,12 @@ fun AppNavigation(
             AdvancedBankingScreen(
                 viewModel = bankingViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onOpenScanner = { request ->
-                    app.scanResultDeliverer.prepareConsumer(ScanResultConsumer.BANKING, request)
+                onOpenScanner = { request, onCancelled ->
+                    app.scanResultDeliverer.prepareConsumer(
+                        ScanResultConsumer.BANKING,
+                        request,
+                        onCancelled = onCancelled,
+                    )
                     navController.navigate(AppDestination.BankingScanner.route)
                 },
                 onNavigateToDebt = {

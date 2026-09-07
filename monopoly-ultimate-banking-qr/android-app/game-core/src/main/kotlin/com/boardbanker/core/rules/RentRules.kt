@@ -52,12 +52,27 @@ class RentRules(
         )
 
         if (rentAmount > 0 && visitor.pendingRentWaiver) {
-            val updatedVisitor = visitor.copy(pendingRentWaiver = false)
-            val updatedSession = session.copy(
-                players = session.players + (visitorId to updatedVisitor),
-                undoSnapshot = session.snapshot(),
+            val updatedVisitor = visitor.copy(
+                pendingRentWaiver = false,
+                rentWaiverSourceEventId = null,
             )
-            return RentResult.success(updatedSession, emptyList(), 0)
+            var updatedSession = session.copy(
+                players = session.players + (visitorId to updatedVisitor),
+            )
+            val (waivedTx, sessionAfterTx) = transactionFactory.create(
+                session = updatedSession,
+                type = TransactionType.RENT_WAIVED,
+                timestamp = timestamp,
+                fromEntity = visitorId,
+                toEntity = ownerId,
+                playerId = visitorId,
+                propertyId = propertyId,
+                amount = rentAmount,
+                eventId = visitor.rentWaiverSourceEventId,
+                reversible = true,
+            )
+            updatedSession = sessionAfterTx.copy(undoSnapshot = session.snapshot())
+            return RentResult.success(updatedSession, listOf(waivedTx), rentAmount)
         }
 
         if (visitor.balance < rentAmount) {

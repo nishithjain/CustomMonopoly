@@ -20,6 +20,7 @@ import com.boardbanker.app.ui.components.DieFace
 fun LuckyBreakContent(
     state: DiceGambleUiState,
     onRollDice: () -> Unit,
+    onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -30,18 +31,22 @@ fun LuckyBreakContent(
             text = state.eventName,
             style = MaterialTheme.typography.titleLarge,
         )
-        Text(
-            text = state.instruction,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Text(
-            text = state.playerName,
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = state.attemptLabel,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        if (!state.showContinue) {
+            Text(
+                text = state.instruction,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = state.playerName,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (state.attemptLabel.isNotBlank()) {
+                Text(
+                    text = state.attemptLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
@@ -50,15 +55,36 @@ fun LuckyBreakContent(
             DieFace(value = state.dieOne, label = "Die one")
             DieFace(value = state.dieTwo, label = "Die two")
         }
-        Text(
-            text = "Jackpot: ${state.jackpotText}",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            text = "Penalty: ${state.penaltyText}",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        if (state.status == DiceGambleStatus.AWAITING_DEBT_RESOLUTION) {
+        if (!state.showContinue) {
+            Text(
+                text = "Jackpot: ${state.jackpotText}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = "Penalty: ${state.penaltyText}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (state.showContinue) {
+            state.outcomeHeadline?.let { headline ->
+                Text(
+                    text = headline,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            state.outcomeMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            Button(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Continue")
+            }
+        } else if (state.status == DiceGambleStatus.AWAITING_DEBT_RESOLUTION) {
             Text(
                 text = "Insufficient funds. Resolve the debt to continue.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -69,12 +95,7 @@ fun LuckyBreakContent(
                 enabled = state.rollEnabled,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    when (state.status) {
-                        DiceGambleStatus.ROLLING -> "Rolling..."
-                        else -> "Roll Dice"
-                    },
-                )
+                Text(state.rollButtonLabel)
             }
         }
     }

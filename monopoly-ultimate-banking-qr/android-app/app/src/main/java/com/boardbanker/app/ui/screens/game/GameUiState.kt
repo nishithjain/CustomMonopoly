@@ -14,9 +14,15 @@ data class PlayerDashboardUi(
     val playerName: String,
     val balanceText: String,
     val propertyCount: Int = 0,
+    val energyGridCount: Int = 0,
+    val hasEnergyGridsInEdition: Boolean = false,
     val inJail: Boolean = false,
+    val isBankrupt: Boolean = false,
     val isActiveTurn: Boolean = false,
+    val statusText: String = "Active",
+    val assetsSummaryLine: String = "",
     val summaryLine: String = "",
+    val activeEventLines: List<String> = emptyList(),
 )
 
 data class CardPresentationUi(
@@ -40,14 +46,17 @@ data class GameUiState(
     val result: GameplayResultUiModel? = null,
     val message: String? = null,
     val showAbandonConfirm: Boolean = false,
+    val showEndGameConfirm: Boolean = false,
     val commandInFlight: Boolean = false,
-    val activeEventMessage: String? = null,
     val gameplayLocked: Boolean = false,
     val activePlayerId: String? = null,
     val activePlayerName: String? = null,
     val turnKind: TurnKind? = null,
     val diceGamble: DiceGambleUiState? = null,
+    val luckyBreakRollInProgress: Boolean = false,
+    val luckyBreakCompletedOutcome: com.boardbanker.app.gameplay.presentation.LuckyBreakCompletedOutcome? = null,
     val eventDraw: EventDrawUiState? = null,
+    val luckyDrawScannerLaunchInProgress: Boolean = false,
     val cardPresentation: CardPresentationUi? = null,
     val activePlayerInJail: Boolean = false,
     val jailResolutionMessage: String? = null,
@@ -57,11 +66,17 @@ data class GameUiState(
         bankActionsEnabled = false,
         getOutOfJailEnabled = false,
     ),
+    val endTurnSubtitle: String? = null,
+    val endTurnDisabledReason: String? = null,
+    val endTurnContentDescription: String = "End active player's turn",
 )
 
 sealed class GameEvent {
     data object NavigateHome : GameEvent()
-    data class OpenScanner(val request: ScanRequest) : GameEvent()
+    data class OpenScanner(
+        val request: ScanRequest,
+        val onCancelled: (() -> Unit)? = null,
+    ) : GameEvent()
     data object NavigateToBanking : GameEvent()
     data class NavigateToAuction(
         val propertyId: String? = null,

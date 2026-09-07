@@ -5,6 +5,8 @@ import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.repository.GameSessionRepository
 import com.boardbanker.app.util.GameIdProvider
 import com.boardbanker.core.command.GameCommand
+import com.boardbanker.core.dice.DiceRoller
+import com.boardbanker.core.dice.RandomDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameEngine
 import com.boardbanker.core.engine.GameResult
@@ -22,6 +24,7 @@ class ActiveGameSessionManager(
     private val editionResolver: (String) -> GameDefinitions,
     private val committedStore: CommittedGameSessionStore,
     private val repository: GameSessionRepository,
+    private val diceRoller: DiceRoller = RandomDiceRoller(),
 ) {
     private var definitions: GameDefinitions? = null
     private var engine: GameEngine? = null
@@ -90,7 +93,7 @@ class ActiveGameSessionManager(
         if (definitions?.editionId == id) return
         val resolved = editionResolver(id)
         definitions = resolved
-        engine = DefaultGameEngine(resolved)
+        engine = DefaultGameEngine(resolved, diceRoller)
     }
 
     private fun requireEngine(): GameEngine =

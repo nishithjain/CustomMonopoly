@@ -29,9 +29,8 @@ class LuckyDrawTests {
     private fun startLuckyDraw(session: com.boardbanker.core.model.GameSession = indiaSession()): com.boardbanker.core.model.GameSession {
         val started = engine.process(session, GameCommand.ApplyEvent("EVT_15", "USR_01"))
         assertNotNull(started.session.pendingEventDraw)
-        assertEquals(1, started.session.eventChainDepth)
-        assertEquals(1, started.session.pendingEventDraw!!.chainDepth)
-        assertEquals(3, started.session.pendingEventDraw!!.maximumChainDepth)
+        assertEquals(0, started.session.eventChainDepth)
+        assertEquals(1, started.session.pendingEventDraw!!.remainingDraws)
         return started.session
     }
 
@@ -49,6 +48,7 @@ class LuckyDrawTests {
         val session = startLuckyDraw()
         assertEquals("EVT_15", session.pendingEventDraw!!.parentEventId)
         assertEquals("USR_01", session.pendingEventDraw!!.actingPlayerId)
+        assertEquals(1, session.pendingEventDraw!!.remainingDraws)
     }
 
     @Test
@@ -69,32 +69,12 @@ class LuckyDrawTests {
     }
 
     @Test
-    fun secondEvt15ContinuesChain() {
-        var session = startLuckyDraw()
-        session = resolveDraw(session, "EVT_15").session
-        assertNotNull(session.pendingEventDraw)
-        assertEquals(2, session.eventChainDepth)
-        assertEquals(2, session.pendingEventDraw!!.chainDepth)
-    }
-
-    @Test
-    fun thirdEvt15ReachesConfiguredMaximumDepth() {
-        var session = startLuckyDraw()
-        session = resolveDraw(session, "EVT_15").session
-        session = resolveDraw(session, "EVT_15").session
-        assertEquals(3, session.eventChainDepth)
-        assertEquals(3, session.pendingEventDraw!!.chainDepth)
-    }
-
-    @Test
-    fun fourthEvt15InChainRejectedWithoutConsumingPendingDraw() {
-        var session = startLuckyDraw()
-        session = resolveDraw(session, "EVT_15").session
-        session = resolveDraw(session, "EVT_15").session
-        val fourth = resolveDraw(session, "EVT_15")
-        assertEquals(GameOutcome.REJECTED, fourth.outcome)
-        assertNotNull(fourth.session.pendingEventDraw)
-        assertEquals(3, fourth.session.eventChainDepth)
+    fun nestedLuckyDrawRejectedWithoutConsumingPendingDraw() {
+        val session = startLuckyDraw()
+        val rejected = resolveDraw(session, "EVT_15")
+        assertEquals(GameOutcome.REJECTED, rejected.outcome)
+        assertNotNull(rejected.session.pendingEventDraw)
+        assertEquals(1, rejected.session.pendingEventDraw!!.remainingDraws)
     }
 
     @Test
@@ -106,12 +86,12 @@ class LuckyDrawTests {
     }
 
     @Test
-    fun laterIndependentEvt15StartsWithCleanDepth() {
+    fun laterIndependentEvt15StartsFreshPendingDraw() {
         var session = startLuckyDraw()
         session = resolveDraw(session, "EVT_11").session
         session = engine.process(session, GameCommand.ApplyEvent("EVT_15", "USR_01")).session
-        assertEquals(1, session.eventChainDepth)
-        assertEquals(1, session.pendingEventDraw!!.chainDepth)
+        assertEquals(0, session.eventChainDepth)
+        assertEquals(1, session.pendingEventDraw!!.remainingDraws)
     }
 
     @Test
@@ -159,6 +139,18 @@ class LuckyDrawTests {
         val session = startLuckyDraw()
         val result = engine.process(session, GameCommand.EndTurn("USR_01"))
         assertEquals(GameOutcome.REJECTED, result.outcome)
+        val message = (result.error as? com.boardbanker.core.error.GameError.Validation)?.message
+        assertEquals(
+            "Complete Lucky Draw by scanning one additional Event Card before ending the turn.",
+            message,
+        )
+    }
+
+    @Test
+    fun endTurnSucceedsAfterValidFollowUpWhenNoOtherActionPending() {
+        val session = resolveDraw(startLuckyDraw(), "EVT_11").session
+        val ended = engine.process(session, GameCommand.EndTurn("USR_01"))
+        assertEquals(GameOutcome.SUCCESS, ended.outcome)
     }
 
     @Test
@@ -166,16 +158,8 @@ class LuckyDrawTests {
         val session = startLuckyDraw()
         val restored = serializer.deserialize(serializer.serialize(session))
         assertNotNull(restored.pendingEventDraw)
-        assertEquals(1, restored.eventChainDepth)
-    }
-
-    @Test
-    fun saveRestoreDuringMultiEvt15Chain() {
-        var session = startLuckyDraw()
-        session = resolveDraw(session, "EVT_15").session
-        val restored = serializer.deserialize(serializer.serialize(session))
-        assertEquals(2, restored.eventChainDepth)
-        assertEquals(2, restored.pendingEventDraw!!.chainDepth)
+        assertEquals(1, restored.pendingEventDraw!!.remainingDraws)
+        assertEquals(0, restored.eventChainDepth)
     }
 
     @Test
@@ -192,6 +176,14 @@ class LuckyDrawTests {
         val resolved = resolveDraw(session, "EVT_17")
         assertNull(resolved.session.pendingEventDraw)
         assertNotNull(resolved.session.pendingDiceGamble)
+        assertEquals("EVT_17", resolved.session.pendingDiceGamble!!.eventId)
+    }
+
+    @Test
+    fun endTurnBlockedUntilLuckyBreakCompletes() {
+        val session = resolveDraw(startLuckyDraw(), "EVT_17").session
+        val blocked = engine.process(session, GameCommand.EndTurn("USR_01"))
+        assertEquals(GameOutcome.REJECTED, blocked.outcome)
     }
 
     @Test

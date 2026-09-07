@@ -7,10 +7,10 @@ import com.boardbanker.app.banking.BankingCommandExecutor
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
-import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EditionIds
+import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -96,7 +96,7 @@ class PlayerDetailsViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.inJail)
-        assertEquals("IN JAIL", viewModel.uiState.value.jailStatusText)
+        assertEquals("In Jail", viewModel.uiState.value.playerStatusText)
     }
 
     @Test
@@ -252,5 +252,205 @@ class PlayerDetailsViewModelTest {
 
         assertEquals(listOf("PRP_01", "PRP_05", "PRP_22"), viewModel.uiState.value.ownedProperties.map { it.propertyId })
         assertTrue(viewModel.uiState.value.ownedProperties.all { it.currentRentText.startsWith("M") })
+        assertEquals("Brown", viewModel.uiState.value.ownedProperties.first { it.propertyId == "PRP_01" }.colorGroupLabel)
+    }
+
+    @Test
+    fun ukEditionHidesEnergyGridSection() = runTest {
+        startActiveGame()
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.hasEnergyGridsInEdition)
+        assertTrue(viewModel.uiState.value.ownedEnergyGrids.isEmpty())
+        assertEquals(0, viewModel.uiState.value.energyGridCount)
+    }
+
+    @Test
+    fun indiaPlayerShowsOwnedEnergyGridWithFormattedMoney() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        startIndiaGame(manager)
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_01", "ENG_01"))
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.energyGridCount)
+        assertEquals(1, viewModel.uiState.value.totalAssetCount)
+        assertEquals("ENG_01", viewModel.uiState.value.ownedEnergyGrids.single().energyGridId)
+        assertEquals("Solar Energy", viewModel.uiState.value.ownedEnergyGrids.single().energyGridName)
+        assertTrue(viewModel.uiState.value.ownedEnergyGrids.single().currentRentText.contains("5"))
+        assertTrue(viewModel.uiState.value.ownedEnergyGrids.single().purchasePriceText.contains("20"))
+    }
+
+    @Test
+    fun anotherPlayersEnergyGridIsNotShown() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        startIndiaGame(manager)
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_02", "ENG_02"))
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.ownedEnergyGrids.isEmpty())
+        assertEquals(0, viewModel.uiState.value.energyGridCount)
+    }
+
+    @Test
+    fun fourPropertiesAndOneEnergyGridShowCorrectCounts() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        startIndiaGame(manager)
+        listOf("PRP_01", "PRP_02", "PRP_03", "PRP_04").forEach { propertyId ->
+            executor.execute(GameCommand.PurchaseProperty("USR_01", propertyId))
+        }
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_01", "ENG_03"))
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertEquals(4, viewModel.uiState.value.propertyCount)
+        assertEquals(1, viewModel.uiState.value.energyGridCount)
+        assertEquals(5, viewModel.uiState.value.totalAssetCount)
+        assertEquals(4, viewModel.uiState.value.ownedProperties.size)
+        assertEquals(1, viewModel.uiState.value.ownedEnergyGrids.size)
+    }
+
+    @Test
+    fun undoRemovesOwnedEnergyGridFromPlayerDetails() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        startIndiaGame(manager)
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_01", "ENG_01"))
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.energyGridCount)
+
+        executor.execute(GameCommand.UndoLastAction)
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.uiState.value.energyGridCount)
+        assertTrue(viewModel.uiState.value.ownedEnergyGrids.isEmpty())
+    }
+
+    @Test
+    fun restoredSessionRebuildsOwnedEnergyGrid() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        val serializer = KotlinGameSessionSerializer()
+        startIndiaGame(manager)
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_01", "ENG_04"))
+        val saved = manager.currentSession()!!
+
+        repository.deleteAll()
+        repository.save(serializer.deserialize(serializer.serialize(saved)))
+        manager.restoreFromStorage()
+
+        val viewModel = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertEquals("ENG_04", viewModel.uiState.value.ownedEnergyGrids.single().energyGridId)
+    }
+
+    @Test
+    fun ownershipTransferUpdatesEnergyGridLists() = runTest {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(EditionIds.INDIA)
+        val repository = FakeGameSessionRepository()
+        val manager = AppTestSupport.sessionManager(repository)
+        val executor = BankingCommandExecutor(manager)
+        startIndiaGame(manager)
+        executor.execute(GameCommand.PurchaseEnergyGrid("USR_01", "ENG_01"))
+
+        val transferred = manager.currentSession()!!.copy(
+            energyGrids = manager.currentSession()!!.energyGrids + (
+                "ENG_01" to manager.currentSession()!!.energyGrids["ENG_01"]!!.copy(ownerPlayerId = "USR_02")
+            ),
+        )
+        repository.save(transferred)
+        manager.restoreFromStorage()
+
+        val formerOwner = PlayerDetailsViewModel(
+            playerId = "USR_01",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        val newOwner = PlayerDetailsViewModel(
+            playerId = "USR_02",
+            sessionManager = manager,
+            definitions = indiaDefinitions,
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        advanceUntilIdle()
+
+        assertTrue(formerOwner.uiState.value.ownedEnergyGrids.isEmpty())
+        assertEquals("ENG_01", newOwner.uiState.value.ownedEnergyGrids.single().energyGridId)
+    }
+
+    private suspend fun startIndiaGame(
+        manager: ActiveGameSessionManager,
+    ) {
+        var session = (manager.createNewGame(EditionIds.INDIA) as ProcessCommitResult.Committed).session
+        for (playerId in listOf("USR_01", "USR_02")) {
+            session = (
+                manager.processCommand(
+                    session,
+                    GameCommand.RegisterPlayer(playerId, AppTestSupport.defaultTestPlayerName(playerId)),
+                ) as ProcessCommitResult.Committed
+                ).session
+        }
+        manager.processCommand(session, GameCommand.StartGame)
     }
 }

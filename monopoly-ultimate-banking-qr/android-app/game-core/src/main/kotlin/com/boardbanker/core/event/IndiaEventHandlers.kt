@@ -326,7 +326,10 @@ class IndiaEventHandlers(
         if (player.pendingRentWaiver) {
             return EventEngine.EventResult.success(session, emptyList())
         }
-        val updated = player.copy(pendingRentWaiver = true)
+        val updated = player.copy(
+            pendingRentWaiver = true,
+            rentWaiverSourceEventId = eventId,
+        )
         return EventEngine.EventResult.success(
             session.copy(
                 players = session.players + (actingPlayerId to updated),
@@ -424,16 +427,10 @@ class IndiaEventHandlers(
         if (session.pendingEventDraw != null) {
             return EventEngine.EventResult.failure("Event draw already pending")
         }
-        val maxDepth = rule.intParam("maximumChainDepth") ?: 3
-        val nextDepth = session.eventChainDepth + 1
-        if (nextDepth > maxDepth) {
-            return EventEngine.EventResult.failure("Maximum chained event depth reached")
-        }
         val pending = PendingEventDraw(
             parentEventId = eventId,
             actingPlayerId = actingPlayerId,
-            chainDepth = nextDepth,
-            maximumChainDepth = maxDepth,
+            remainingDraws = 1,
         )
         val physical = PhysicalAction(
             instruction = "Scan the additional Event Card and resolve it completely.",
@@ -442,7 +439,7 @@ class IndiaEventHandlers(
         return EventEngine.EventResult.success(
             session.copy(
                 pendingEventDraw = pending,
-                eventChainDepth = nextDepth,
+                eventChainDepth = 0,
                 undoSnapshot = session.snapshot(),
             ),
             emptyList(),

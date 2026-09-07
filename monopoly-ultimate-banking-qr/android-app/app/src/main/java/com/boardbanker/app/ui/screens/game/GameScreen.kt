@@ -1,12 +1,12 @@
 package com.boardbanker.app.ui.screens.game
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,7 +28,6 @@ import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.ui.components.BankingActionBar
-import com.boardbanker.core.model.TurnKind
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
 import com.boardbanker.app.ui.components.CardFrontImage
@@ -43,7 +42,7 @@ import com.boardbanker.core.command.GameCommand
 fun GameScreen(
     viewModel: GameViewModel,
     onNavigateHome: () -> Unit,
-    onOpenScanner: (ScanRequest) -> Unit,
+    onOpenScanner: (ScanRequest, onCancelled: (() -> Unit)?) -> Unit,
     onNavigateToBanking: () -> Unit,
     onNavigateToAuction: (String?, String?, String) -> Unit,
     onNavigateToDebt: () -> Unit,
@@ -56,7 +55,7 @@ fun GameScreen(
         viewModel.events.collect { event ->
             when (event) {
                 GameEvent.NavigateHome -> onNavigateHome()
-                is GameEvent.OpenScanner -> onOpenScanner(event.request)
+                is GameEvent.OpenScanner -> onOpenScanner(event.request, event.onCancelled)
                 GameEvent.NavigateToBanking -> onNavigateToBanking()
                 is GameEvent.NavigateToAuction -> onNavigateToAuction(
                     event.propertyId,
@@ -111,13 +110,32 @@ fun GameScreen(
         gameplayLocked = uiState.gameplayLocked,
         activePlayerInJail = uiState.activePlayerInJail,
     )
+    val showGameTerminationActions = ActiveGameCardUiPolicy.showGameTerminationActions(
+        workflowState = uiState.workflowState,
+        result = uiState.result,
+        gameplayLocked = uiState.gameplayLocked,
+    )
     val showCardInteraction = ActiveGameCardUiPolicy.showCardInteraction(
         workflowState = uiState.workflowState,
         result = uiState.result,
     )
 
+    if (uiState.showEndGameConfirm) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissEndGameConfirm,
+            title = { Text("END GAME?") },
+            text = { Text("This will end the current game and determine the winner by total wealth.") },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmEndGame) { Text("END GAME") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissEndGameConfirm) { Text("KEEP PLAYING") }
+            },
+        )
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text("ACTIVE GAME") }) },
+        topBar = { TopAppBar(title = { Text("Active Game") }) },
     ) { innerPadding ->
         if (uiState.loading) {
             Column(
@@ -134,40 +152,20 @@ fun GameScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (!showCardInteraction) {
-                item {
-                    uiState.players.forEach { player ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.onPlayerSelected(player.playerId) }
-                                .padding(bottom = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            PlayerIdentity(
-                                playerId = player.playerId,
-                                playerName = player.playerName,
-                                iconSize = PlayerIconSize.Normal,
-                            )
-                            Text(player.balanceText, style = MaterialTheme.typography.bodyLarge)
-                            Text(player.summaryLine, style = MaterialTheme.typography.bodyMedium)
-                            if (player.inJail) {
-                                Text("IN JAIL", style = MaterialTheme.typography.labelLarge)
-                            }
-                        }
+                if (uiState.players.isNotEmpty()) {
+                    item {
+                        Text("Players", style = MaterialTheme.typography.titleMedium)
                     }
-                }
-            }
-
-            uiState.activeEventMessage?.let { message ->
-                item {
-                    Text(
-                        "ACTIVE EVENT\n\n$message",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    items(uiState.players, key = { it.playerId }) { player ->
+                        ActiveGamePlayerCard(
+                            player = player,
+                            onClick = { viewModel.onPlayerSelected(player.playerId) },
+                        )
+                    }
                 }
             }
 
@@ -203,53 +201,16 @@ fun GameScreen(
                 when (val workflow = uiState.workflowState) {
                     GameplayWorkflowState.Ready -> {
                         if (uiState.result == null && !uiState.gameplayLocked) {
-                            val turnLabel = when (uiState.turnKind) {
-                                TurnKind.EXTRA -> uiState.activePlayerName?.let { "$it's Extra Turn" }
-                                else -> uiState.activePlayerName?.let { "Current turn: $it" }
-                            }
-                            turnLabel?.let { label ->
-                                Text(
-                                    label,
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
-                            uiState.jailResolutionMessage?.let { jailMessage ->
-                                Text(
-                                    jailMessage,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                            Button(
-                                onClick = viewModel::onScanCardRequested,
-                                enabled = uiState.actionAvailability.scanCardEnabled,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text("SCAN CARD")
-                            }
-                            if (uiState.actionAvailability.getOutOfJailEnabled) {
-                                Button(
-                                    onClick = viewModel::onGetOutOfJailRequested,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text("GET OUT OF JAIL")
-                                }
-                            }
-                            Button(
-                                onClick = viewModel::onBankActionsRequested,
-                                enabled = uiState.actionAvailability.bankActionsEnabled,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text("BANK ACTIONS")
-                            }
-                            if (uiState.activePlayerId != null) {
-                                Button(
-                                    onClick = viewModel::onEndTurn,
-                                    enabled = uiState.actionAvailability.endTurnEnabled,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text("END TURN")
-                                }
-                            }
+                            ActiveGameHubActions(
+                                uiState = uiState,
+                                showGameTerminationActions = showGameTerminationActions,
+                                onScanCard = viewModel::onScanCardRequested,
+                                onGetOutOfJail = viewModel::onGetOutOfJailRequested,
+                                onBankActions = viewModel::onBankActionsRequested,
+                                onEndTurn = viewModel::onEndTurn,
+                                onEndGame = viewModel::requestEndGame,
+                                onAbandonGame = viewModel::requestAbandonGame,
+                            )
                         } else if (uiState.gameplayLocked) {
                             Text(
                                 "Game finished. Normal gameplay is disabled.",
@@ -266,9 +227,61 @@ fun GameScreen(
                                 onCancel = viewModel::onCancelWorkflow,
                                 commandInFlight = uiState.commandInFlight,
                                 money = viewModel::money,
+                                buyEnabled = actionVisibility.buyEnabled && !uiState.commandInFlight &&
+                                    viewModel.canAffordPurchase(uiState.cardPresentation?.buyAmount),
+                                auctionEnabled = actionVisibility.auctionEnabled && !uiState.commandInFlight,
+                                buyDisabledReason = actionVisibility.buyDisabledReason
+                                    ?: viewModel.purchaseBlockedReason(uiState.cardPresentation?.buyAmount),
                             )
                         }
                     }
+                    is GameplayWorkflowState.UnownedEnergyGridDecision -> {
+                        if (actionVisibility.showBuy || actionVisibility.showAuction) {
+                            UnownedPropertyContent(
+                                purchasePrice = uiState.cardPresentation?.buyAmount,
+                                onBuy = viewModel::onBuyProperty,
+                                onAuction = viewModel::onAuctionProperty,
+                                onCancel = viewModel::onCancelWorkflow,
+                                commandInFlight = uiState.commandInFlight,
+                                money = viewModel::money,
+                                buyEnabled = actionVisibility.buyEnabled && !uiState.commandInFlight &&
+                                    viewModel.canAffordPurchase(uiState.cardPresentation?.buyAmount),
+                                auctionEnabled = actionVisibility.auctionEnabled && !uiState.commandInFlight,
+                                buyDisabledReason = actionVisibility.buyDisabledReason
+                                    ?: viewModel.purchaseBlockedReason(uiState.cardPresentation?.buyAmount),
+                            )
+                        }
+                    }
+                    is GameplayWorkflowState.WaitingForPurchasingPlayerEnergyGrid,
+                    is GameplayWorkflowState.WaitingForAuctionStarterEnergyGrid,
+                    -> ScanPromptContent(
+                        prompt = uiState.scanPrompt ?: "Scan the required Player card.",
+                        scanButtonLabel = "SCAN CARD",
+                        onScan = viewModel::onScanRequested,
+                        onCancel = viewModel::onCancelWorkflow,
+                        commandInFlight = uiState.commandInFlight,
+                        showCancel = actionVisibility.showCancel,
+                    )
+                    is GameplayWorkflowState.WaitingForRentPayerEnergyGrid -> {
+                        if (actionVisibility.showScanPlayer) {
+                            ScanPromptContent(
+                                prompt = uiState.scanPrompt ?: "Scan the Player who landed here.",
+                                scanButtonLabel = "SCAN PLAYER",
+                                onScan = viewModel::onScanRequested,
+                                onCancel = viewModel::onCancelWorkflow,
+                                commandInFlight = uiState.commandInFlight,
+                                showCancel = actionVisibility.showCancel,
+                            )
+                        }
+                    }
+                    is GameplayWorkflowState.WaitingForExpectedEnergyGridScan -> ScanPromptContent(
+                        prompt = uiState.scanPrompt ?: "Scan the required Energy Grid card.",
+                        scanButtonLabel = "SCAN CARD",
+                        onScan = viewModel::onScanRequested,
+                        onCancel = viewModel::onCancelWorkflow,
+                        commandInFlight = uiState.commandInFlight,
+                        showCancel = actionVisibility.showCancel,
+                    )
                     is GameplayWorkflowState.WaitingForPurchasingPlayer,
                     is GameplayWorkflowState.WaitingForAuctionStarter,
                     -> ScanPromptContent(
@@ -325,6 +338,7 @@ fun GameScreen(
                             LuckyBreakContent(
                                 state = gamble,
                                 onRollDice = viewModel::onRollLuckyBreakDice,
+                                onContinue = viewModel::onLuckyBreakContinue,
                             )
                         }
                     }
@@ -382,15 +396,6 @@ fun GameScreen(
                     )
                 }
             }
-
-            item {
-                Button(
-                    onClick = viewModel::requestAbandonGame,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                ) {
-                    Text("END / ABANDON GAME")
-                }
-            }
         }
     }
 }
@@ -403,18 +408,24 @@ private fun UnownedPropertyContent(
     onCancel: () -> Unit,
     commandInFlight: Boolean,
     money: (Int) -> String,
+    buyEnabled: Boolean = true,
+    auctionEnabled: Boolean = true,
+    buyDisabledReason: String? = null,
 ) {
+    buyDisabledReason?.let { reason ->
+        Text(reason, style = MaterialTheme.typography.bodyMedium)
+    }
     val buyLabel = purchasePrice?.let { BankingActionLabels.confirm("BUY ${money(it)}") }
         ?: BankingActionLabels.confirm("BUY")
     BankingActionBar(
         confirmLabel = buyLabel,
         onConfirm = onBuy,
-        confirmEnabled = !commandInFlight,
+        confirmEnabled = buyEnabled && !commandInFlight,
         extraActions = listOf(
             BankingExtraAction(
                 label = "AUCTION",
                 onClick = onAuction,
-                enabled = !commandInFlight,
+                enabled = auctionEnabled && !commandInFlight,
                 contentDescription = "Start auction for this property",
             ),
         ),

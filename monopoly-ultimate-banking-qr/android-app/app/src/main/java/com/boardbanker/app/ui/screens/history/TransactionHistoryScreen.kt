@@ -121,6 +121,7 @@ private fun HistoryDetailRow(detail: HistoryDetail) {
     when (detail) {
         is HistoryDetail.PlayerTransfer -> InlinePlayerTransferDetail(detail = detail)
         is HistoryDetail.RentLevelChange -> InlineRentLevelChangeDetail(detail = detail)
+        is HistoryDetail.RentWaived -> InlineRentWaivedDetail(detail = detail)
         is HistoryDetail.Text -> {
             Text(
                 text = detail.value,
@@ -146,6 +147,38 @@ private fun InlinePlayerTransferDetail(detail: HistoryDetail.PlayerTransfer) {
             Text(
                 text = detail.amount,
                 style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun InlineRentWaivedDetail(detail: HistoryDetail.RentWaived) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "Rent waived: ${detail.waivedAmount}",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            InlineParty(playerId = detail.landingPlayerId, name = detail.landingPlayerName)
+            Text("•", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = detail.propertyName,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            Text("•", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = detail.reason,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

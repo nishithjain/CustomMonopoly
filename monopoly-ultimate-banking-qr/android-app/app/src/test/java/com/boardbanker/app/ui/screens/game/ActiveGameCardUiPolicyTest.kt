@@ -4,6 +4,7 @@ import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -81,14 +82,89 @@ class ActiveGameCardUiPolicyTest {
     }
 
     @Test
-    fun jailedActivePlayer_hidesBuyAndAuctionActions() {
+    fun jailedActivePlayer_showsBuyDisabledWithReason() {
         val visibility = ActiveGameCardUiPolicy.actionVisibility(
             workflowState = GameplayWorkflowState.UnownedPropertyDecision("PRP_01"),
             result = null,
             gameplayLocked = false,
             activePlayerInJail = true,
         )
+        assertTrue(visibility.showBuy)
+        assertFalse(visibility.buyEnabled)
+        assertNotNull(visibility.buyDisabledReason)
+        assertFalse(visibility.showAuction)
+    }
+
+    @Test
+    fun unownedEnergyGridShowsBuyAuctionCancel() {
+        val visibility = ActiveGameCardUiPolicy.actionVisibility(
+            workflowState = GameplayWorkflowState.UnownedEnergyGridDecision("ENG_01"),
+            result = null,
+            gameplayLocked = false,
+        )
+        assertTrue(visibility.showBuy)
+        assertTrue(visibility.showAuction)
+        assertTrue(visibility.showCancel)
+    }
+
+    @Test
+    fun ownedEnergyGridHidesBuyAndAuction() {
+        val visibility = ActiveGameCardUiPolicy.actionVisibility(
+            workflowState = GameplayWorkflowState.WaitingForRentPayerEnergyGrid(
+                energyGridId = "ENG_01",
+                ownerPlayerId = "USR_01",
+                ownerName = "Car",
+            ),
+            result = null,
+            gameplayLocked = false,
+        )
         assertFalse(visibility.showBuy)
+        assertFalse(visibility.showAuction)
+        assertTrue(visibility.showScanPlayer)
+    }
+
+    @Test
+    fun terminationActionsVisibleOnlyOnMainHub() {
+        assertTrue(
+            ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = GameplayWorkflowState.Ready,
+                result = null,
+                gameplayLocked = false,
+            ),
+        )
+        assertFalse(
+            ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = GameplayWorkflowState.UnownedPropertyDecision("PRP_01"),
+                result = null,
+                gameplayLocked = false,
+            ),
+        )
+        assertFalse(
+            ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = GameplayWorkflowState.UnownedEnergyGridDecision("ENG_01"),
+                result = null,
+                gameplayLocked = false,
+            ),
+        )
+        assertFalse(
+            ActiveGameCardUiPolicy.showGameTerminationActions(
+                workflowState = GameplayWorkflowState.Ready,
+                result = GameplayResultUiModel(title = "PURCHASE", primaryMessage = "Done"),
+                gameplayLocked = false,
+            ),
+        )
+    }
+
+    @Test
+    fun jailedActivePlayer_hidesBuyAndAuction() {
+        val visibility = ActiveGameCardUiPolicy.actionVisibility(
+            workflowState = GameplayWorkflowState.UnownedEnergyGridDecision("ENG_01"),
+            result = null,
+            gameplayLocked = false,
+            activePlayerInJail = true,
+        )
+        assertTrue(visibility.showBuy)
+        assertFalse(visibility.buyEnabled)
         assertFalse(visibility.showAuction)
     }
 
