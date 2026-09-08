@@ -16,12 +16,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.boardbanker.app.player.CommonUiIcon
 
 data class BankingExtraAction(
     val label: String,
     val onClick: () -> Unit,
     val enabled: Boolean = true,
     val contentDescription: String = label,
+    val icon: CommonUiIcon? = null,
 )
 
 /**
@@ -35,6 +37,7 @@ fun BankingActionBar(
     confirmLabel: String? = null,
     onConfirm: (() -> Unit)? = null,
     confirmEnabled: Boolean = true,
+    confirmIcon: CommonUiIcon = CommonUiIcon.CHECK,
     middleLabel: String? = null,
     onMiddle: (() -> Unit)? = null,
     middleEnabled: Boolean = true,
@@ -73,6 +76,7 @@ fun BankingActionBar(
                     label = confirmLabel!!,
                     onClick = onConfirm!!,
                     enabled = confirmEnabled,
+                    icon = confirmIcon,
                     modifier = Modifier.weight(1f),
                 )
                 BankingMiddleButton(
@@ -94,6 +98,7 @@ fun BankingActionBar(
                     label = confirmLabel!!,
                     onClick = onConfirm!!,
                     enabled = confirmEnabled,
+                    icon = confirmIcon,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -106,7 +111,12 @@ fun BankingActionBar(
                         .heightIn(min = 48.dp)
                         .semantics { contentDescription = action.contentDescription },
                 ) {
-                    Text(action.label, textAlign = TextAlign.Center)
+                    IconLabelRow(
+                        icon = action.icon,
+                        label = action.label,
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
             if (showMiddle) {
@@ -134,6 +144,7 @@ private fun BankingConfirmButton(
     label: String,
     onClick: () -> Unit,
     enabled: Boolean,
+    icon: CommonUiIcon,
     modifier: Modifier = Modifier,
 ) {
     Button(
@@ -143,7 +154,12 @@ private fun BankingConfirmButton(
             .heightIn(min = 48.dp)
             .semantics { contentDescription = accessibilityLabel(label, "Confirm") },
     ) {
-        Text(label, textAlign = TextAlign.Center)
+        IconLabelRow(
+            icon = icon,
+            label = label,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -165,7 +181,12 @@ private fun BankingMiddleButton(
             .heightIn(min = 48.dp)
             .semantics { contentDescription = accessibilityLabel(label, "Middle action") },
     ) {
-        Text(label, textAlign = TextAlign.Center)
+        IconLabelRow(
+            icon = CommonUiIcon.COLLECT,
+            label = label,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -183,7 +204,12 @@ private fun BankingCancelButton(
             .heightIn(min = 48.dp)
             .semantics { contentDescription = accessibilityLabel(label, "Cancel") },
     ) {
-        Text(label, textAlign = TextAlign.Center)
+        IconLabelRow(
+            icon = cancelIconForLabel(label),
+            label = label,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

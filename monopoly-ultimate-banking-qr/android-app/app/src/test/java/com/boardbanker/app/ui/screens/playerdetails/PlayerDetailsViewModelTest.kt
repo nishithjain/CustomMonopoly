@@ -189,11 +189,7 @@ class PlayerDetailsViewModelTest {
         val viewModel = createViewModel("USR_01")
         advanceUntilIdle()
 
-        val availability = PlayerDetailsActionAvailability.forPlayer(
-            inJail = viewModel.uiState.value.inJail,
-            commandInFlight = viewModel.uiState.value.commandInFlight,
-            step = viewModel.uiState.value.step,
-        )
+        val availability = viewModel.uiState.value.actionAvailability
         assertFalse(availability.collectGoEnabled)
         assertFalse(availability.locationEnabled)
         assertTrue(availability.getOutOfJailEnabled)
@@ -201,21 +197,21 @@ class PlayerDetailsViewModelTest {
     }
 
     @Test
-    fun nonJailedPlayer_keepsNormalBankActionsWhenOtherPlayerJailed() = runTest {
+    fun nonJailedPlayer_disablesActionsWhenNotActiveTurn() = runTest {
         startActiveGame()
         executor.execute(GameCommand.SendPlayerToJail("USR_01"))
         val viewModel = createViewModel("USR_02")
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.inJail)
-        val availability = PlayerDetailsActionAvailability.forPlayer(
-            inJail = viewModel.uiState.value.inJail,
-            commandInFlight = false,
-            step = PlayerDetailsStep.Hub,
+        val availability = viewModel.uiState.value.actionAvailability
+        assertFalse(availability.collectGoEnabled)
+        assertFalse(availability.locationEnabled)
+        assertFalse(availability.goToJailEnabled)
+        assertEquals(
+            "Actions are disabled because it is Nishith's turn.",
+            availability.actionsDisabledReason,
         )
-        assertTrue(availability.collectGoEnabled)
-        assertTrue(availability.locationEnabled)
-        assertTrue(availability.goToJailEnabled)
     }
 
     @Test
@@ -230,11 +226,7 @@ class PlayerDetailsViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.inJail)
-        val availability = PlayerDetailsActionAvailability.forPlayer(
-            inJail = viewModel.uiState.value.inJail,
-            commandInFlight = false,
-            step = PlayerDetailsStep.Hub,
-        )
+        val availability = viewModel.uiState.value.actionAvailability
         assertTrue(availability.collectGoEnabled)
         assertTrue(availability.locationEnabled)
         assertTrue(availability.goToJailEnabled)

@@ -1,7 +1,5 @@
 package com.boardbanker.app.audio
 
-import android.os.Handler
-import android.os.Looper
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -10,38 +8,45 @@ import java.util.concurrent.atomic.AtomicBoolean
 class GameEndAudioCoordinator(
     private val winnerDelayMs: Long = WINNER_DELAY_AFTER_LOST_GAME_MS,
     private val scheduleDelayed: (delayMs: Long, action: () -> Unit) -> Unit = { delayMs, action ->
-        Handler(Looper.getMainLooper()).postDelayed(action, delayMs)
+        if (delayMs <= 0L) {
+            action()
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(action, delayMs)
+        }
     },
 ) {
-    private val freshGameEndPending = AtomicBoolean(false)
-    private val winnerScheduled = AtomicBoolean(false)
-
-    fun markFreshGameEndFromBankruptcy() {
-        freshGameEndPending.set(true)
-    }
+    private val winnerPending = AtomicBoolean(false)
+    private val winnerPlayed = AtomicBoolean(false)
+    private val lostGamePlayedThisGameEnd = AtomicBoolean(false)
 
     fun onBankruptcyCommitted(audio: GameAudioFeedback) {
-        markFreshGameEndFromBankruptcy()
-        audio.playLostGame()
+        if (lostGamePlayedThisGameEnd.compareAndSet(false, true)) {
+            audio.playLostGame()
+        }
+        winnerPending.set(true)
+    }
+
+    fun onGameConcludedForWinnerPresentation() {
+        winnerPending.set(true)
     }
 
     fun onWinnerScreenPresented(audio: GameAudioFeedback) {
-        if (!freshGameEndPending.compareAndSet(true, false)) return
-        if (!winnerScheduled.compareAndSet(false, true)) return
-        val complete = {
+        if (!winnerPending.compareAndSet(true, false)) return
+        if (!winnerPlayed.compareAndSet(false, true)) return
+        val playWinner = {
             audio.playWinner()
-            winnerScheduled.set(false)
         }
-        if (winnerDelayMs <= 0L) {
-            complete()
+        if (lostGamePlayedThisGameEnd.get() && winnerDelayMs > 0L) {
+            scheduleDelayed(winnerDelayMs, playWinner)
         } else {
-            scheduleDelayed(winnerDelayMs, complete)
+            playWinner()
         }
     }
 
     fun resetForNewGame() {
-        freshGameEndPending.set(false)
-        winnerScheduled.set(false)
+        winnerPending.set(false)
+        winnerPlayed.set(false)
+        lostGamePlayedThisGameEnd.set(false)
     }
 
     companion object {

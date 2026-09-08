@@ -104,21 +104,23 @@ class ScanAudioFeedbackTest {
     }
 
     @Test
-    fun validPropertyScanProducesNoAudio() {
+    fun validPropertyScanPlaysScanCardOnce() {
         val result = controller.onQrPayload("MUB:P:01") as ScanProcessorResult.CardResolved
         val validation = ScannerCardFilter.validateCardType(result.resolution, CardType.PROPERTY)
         ScanAudioFeedback.onScanProcessed(audio, result, validation)
         assertTrue(audio.userCardCalls.isEmpty())
         assertTrue(audio.errorCalls.isEmpty())
+        assertEquals(listOf("SCAN_CARD"), audio.gameplayCalls)
     }
 
     @Test
-    fun validEventScanProducesNoAudio() {
+    fun validEventScanPlaysScanCardOnce() {
         val result = controller.onQrPayload("MUB:E:E01") as ScanProcessorResult.CardResolved
         val validation = ScannerCardFilter.validateCardType(result.resolution, CardType.EVENT)
         ScanAudioFeedback.onScanProcessed(audio, result, validation)
         assertTrue(audio.userCardCalls.isEmpty())
         assertTrue(audio.errorCalls.isEmpty())
+        assertEquals(listOf("SCAN_CARD"), audio.gameplayCalls)
     }
 
     @Test

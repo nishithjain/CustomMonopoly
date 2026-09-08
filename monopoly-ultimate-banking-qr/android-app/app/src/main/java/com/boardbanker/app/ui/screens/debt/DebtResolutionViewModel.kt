@@ -16,6 +16,7 @@ import com.boardbanker.app.banking.BankingResultMapper
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
+import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.PropertyDisplayNames
@@ -50,11 +51,34 @@ class DebtResolutionViewModel(
 
     init {
         refreshFromSession()
+        viewModelScope.launch {
+            sessionManager.committedSession.collect { session ->
+                if (session != null) {
+                    refreshFromSession(session)
+                } else {
+                    markNoActiveDebt()
+                }
+            }
+        }
+    }
+
+    fun onBack() {
+        _events.tryEmit(DebtResolutionEvent.NavigateBack)
     }
 
     fun refreshFromSession(clearSelection: Boolean = false) {
-        val session = sessionManager.currentSession() ?: return
-        val debt = session.debtResolution ?: return
+        val session = sessionManager.currentSession() ?: run {
+            markNoActiveDebt()
+            return
+        }
+        refreshFromSession(session, clearSelection)
+    }
+
+    private fun refreshFromSession(session: GameSession, clearSelection: Boolean = false) {
+        val debt = session.debtResolution ?: run {
+            markNoActiveDebt()
+            return
+        }
         val debtor = session.players[debt.debtorPlayerId]!!
         val debtorName = PlayerDisplayNames.displayName(session, debt.debtorPlayerId, definitions)
         val creditorName = if (debt.creditorPlayerId == EntityRef.BANK) {
@@ -98,10 +122,12 @@ class DebtResolutionViewModel(
         }
         _uiState.update {
             it.copy(
+                hasActiveDebt = true,
                 debtorPlayerId = debt.debtorPlayerId,
                 debtorName = debtorName,
                 creditorPlayerId = if (debt.creditorPlayerId == EntityRef.BANK) null else debt.creditorPlayerId,
                 creditorName = creditorName,
+                creditorIsBank = debt.creditorPlayerId == EntityRef.BANK,
                 amountDue = debt.amountRemaining + debtor.balance,
                 availableCash = debtor.balance,
                 remainingAfterCash = debt.amountRemaining,
@@ -125,7 +151,19 @@ class DebtResolutionViewModel(
         }
     }
 
+    private fun markNoActiveDebt() {
+        _uiState.update {
+            it.copy(
+                hasActiveDebt = false,
+                selectedPropertyIds = emptySet(),
+                properties = emptyList(),
+                commandInFlight = false,
+            ).withSettlementSummary(::money)
+        }
+    }
+
     fun onScanPropertyRequested() {
+        if (!_uiState.value.hasActiveDebt) return
         scanPromptToken = ScanPromptAudio.beginPromptSession()
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
         _events.tryEmit(DebtResolutionEvent.OpenPropertyScanner)
@@ -143,6 +181,7 @@ class DebtResolutionViewModel(
     }
 
     fun onSettleSelected() {
+        if (!_uiState.value.hasActiveDebt) return
         val selectedPropertyIds = _uiState.value.selectedPropertyIds.toList()
         if (selectedPropertyIds.isEmpty()) {
             _uiState.update { it.copy(message = "Select a Property to cover the debt.") }
@@ -168,7 +207,7 @@ class DebtResolutionViewModel(
             ) {
                 is BankingCommitOutcome.Success -> {
                     if (outcome.session.debtResolution != null) {
-                        refreshFromSession(clearSelection = true)
+                        refreshFromSession(session = outcome.session, clearSelection = true)
                         _uiState.update { it.copy(commandInFlight = false, result = null) }
                     } else {
                         GameplayOutcomeAudio.playCommittedOutcome(
@@ -192,7 +231,7 @@ class DebtResolutionViewModel(
                     }
                 }
                 is BankingCommitOutcome.DebtRequired -> {
-                    refreshFromSession(clearSelection = true)
+                    refreshFromSession(session = outcome.session, clearSelection = true)
                     _uiState.update { it.copy(commandInFlight = false) }
                 }
                 is BankingCommitOutcome.Bankruptcy -> {
@@ -223,11 +262,22 @@ class DebtResolutionViewModel(
     }
 
     fun onCheckBankruptcy() {
+        if (!_uiState.value.hasActiveDebt) {
+            _uiState.update { it.copy(message = "No debt payment is currently required.") }
+            return
+        }
         viewModelScope.launch {
             when (val outcome = executor.execute(GameCommand.CheckBankruptcy)) {
                 is BankingCommitOutcome.Bankruptcy -> {
                     gameEndAudioCoordinator.onBankruptcyCommitted(gameAudioFeedback)
                     _events.emit(DebtResolutionEvent.NavigateToGameOver)
+                }
+                is BankingCommitOutcome.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            message = "This player can still resolve the debt with cash or properties.",
+                        )
+                    }
                 }
                 is BankingCommitOutcome.Rejected -> {
                     _uiState.update {

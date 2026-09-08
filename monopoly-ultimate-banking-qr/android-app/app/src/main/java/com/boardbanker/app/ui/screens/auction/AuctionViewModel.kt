@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.boardbanker.app.audio.CommitAudioTrigger
 import com.boardbanker.app.audio.GameAudioFeedback
 import com.boardbanker.app.audio.GameEndAudioCoordinator
-import com.boardbanker.app.audio.GameplayAudioCue
 import com.boardbanker.app.audio.GameplayOutcomeAudio
 import com.boardbanker.app.audio.InvalidUserActionAudio
 import com.boardbanker.app.audio.ScanPromptAudio
@@ -203,17 +202,47 @@ class AuctionViewModel(
     }
 
     private fun onTimerExpired() {
-        if (!auctionEndingPlayed) {
-            auctionEndingPlayed = true
-            GameplayOutcomeAudio.playCue(gameAudioFeedback, GameplayAudioCue.AUCTION_ENDING)
-        }
         val session = sessionManager.currentSession() ?: return
         val auction = session.auction ?: return
         if (auction.currentBidderId == null) {
-            _uiState.update { it.copy(showNoBids = true, auctionRunning = false) }
-            return
+            finalizeNoBidAuction()
+        } else {
+            completeAuction()
         }
-        completeAuction()
+    }
+
+    private fun finalizeNoBidAuction() {
+        if (auctionEndingPlayed) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(commandInFlight = true) }
+            val sessionBefore = sessionManager.currentSession() ?: return@launch
+            when (val outcome = executor.execute(GameCommand.CancelAuction)) {
+                is BankingCommitOutcome.Success -> {
+                    auctionEndingPlayed = true
+                    GameplayOutcomeAudio.playCommittedOutcome(
+                        gameAudioFeedback,
+                        outcome.result,
+                        sessionBefore,
+                        CommitAudioTrigger.AuctionEnding,
+                    )
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            showNoBids = true,
+                            auctionRunning = false,
+                        )
+                    }
+                }
+                else -> {
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            message = "Unable to finalize auction.",
+                        )
+                    }
+                }
+            }
+        }
     }
 
     fun onCancelBeforeFirstBid() {
@@ -241,12 +270,22 @@ class AuctionViewModel(
     }
 
     private fun completeAuction() {
+        if (auctionEndingPlayed) return
         viewModelScope.launch {
             _uiState.update { it.copy(commandInFlight = true) }
             val sessionBefore = sessionManager.currentSession()
             val winnerId = sessionBefore?.auction?.currentBidderId
             when (val outcome = executor.execute(GameCommand.CompleteAuction)) {
                 is BankingCommitOutcome.Success -> {
+                    if (sessionBefore != null) {
+                        auctionEndingPlayed = true
+                        GameplayOutcomeAudio.playCommittedOutcome(
+                            gameAudioFeedback,
+                            outcome.result,
+                            sessionBefore,
+                            CommitAudioTrigger.AuctionEnding,
+                        )
+                    }
                     val mapped = winnerId?.let {
                         resultMapper.mapAuctionWin(outcome.result, propertyId, it)
                     }

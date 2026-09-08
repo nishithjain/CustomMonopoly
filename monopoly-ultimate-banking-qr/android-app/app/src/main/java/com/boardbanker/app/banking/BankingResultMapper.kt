@@ -6,6 +6,7 @@ import com.boardbanker.app.gameplay.presentation.PlayerRankingUi
 import com.boardbanker.app.gameplay.presentation.PropertyChangeUi
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.error.GameError
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.EntityRef
@@ -457,6 +458,29 @@ class BankingResultMapper(
                 append("Property Value:\n${money(propertyValue)}")
             },
         )
+    }
+
+    fun formatCommandError(error: GameError?, session: GameSession): String = when (error) {
+        is GameError.NotActivePlayer -> {
+            val targetName = resolvePlayerName(error.targetPlayerId, session)
+            val activeName = resolvePlayerName(error.activePlayerId, session)
+            "This action cannot be applied to $targetName because it is $activeName's turn."
+        }
+        is GameError.Validation -> error.message
+        is GameError.InvalidState -> error.message
+        is GameError.EventError -> error.message
+        is GameError.AuctionError -> error.message
+        is GameError.DebtError -> error.message
+        is GameError.UndoNotAllowed -> error.reason
+        is GameError.NotFound -> "${error.entity} not found: ${error.id}"
+        is GameError.InsufficientFunds ->
+            "Insufficient funds for ${resolvePlayerName(error.playerId, session)}."
+        is GameError.DuplicatePlayer -> "Player already registered."
+        is GameError.InvalidPlayerName -> error.message
+        is GameError.PlayerNameTooLong -> "Player name is too long."
+        is GameError.PlayerLimit -> error.message
+        GameError.GameFinished -> "Game is finished."
+        null -> "Unable to complete action."
     }
 
     fun errorResult(message: String): GameplayResultUiModel =

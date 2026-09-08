@@ -23,8 +23,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.game.ActiveGameSessionManager
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.BackActionButton
+import com.boardbanker.app.ui.components.CommonUiIconImage
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityRow
+import com.boardbanker.app.ui.components.DisplayIdentityTransferRow
 import com.boardbanker.app.ui.components.PlayerIconSize
-import com.boardbanker.app.ui.components.PlayerIdentity
+import com.boardbanker.app.ui.components.TopBarIconTitle
 import com.boardbanker.core.model.GameDefinitions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +46,16 @@ fun TransactionHistoryScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("RECENT BANKING") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    TopBarIconTitle(
+                        icon = CommonUiIcon.RECENT_BANKING,
+                        title = "RECENT BANKING",
+                    )
+                },
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -57,9 +72,7 @@ fun TransactionHistoryScreen(
                     TransactionHistoryEntryCard(entry = entry)
                 }
             }
-            Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("BACK")
-            }
+            BackActionButton(onClick = onBack)
         }
     }
 }
@@ -83,6 +96,13 @@ private fun TransactionHistoryEntryCard(entry: HistoryEntry) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f),
                 ) {
+                    entry.entryIcon?.let { icon ->
+                        CommonUiIconImage(
+                            icon = icon,
+                            size = 20.dp,
+                            contentDescription = null,
+                        )
+                    }
                     Text(
                         text = entry.title,
                         style = MaterialTheme.typography.titleSmall,
@@ -107,7 +127,7 @@ private fun TransactionHistoryEntryCard(entry: HistoryEntry) {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -119,7 +139,13 @@ private fun TransactionHistoryEntryCard(entry: HistoryEntry) {
 @Composable
 private fun HistoryDetailRow(detail: HistoryDetail) {
     when (detail) {
-        is HistoryDetail.PlayerTransfer -> InlinePlayerTransferDetail(detail = detail)
+        is HistoryDetail.PlayerTransfer -> DisplayIdentityTransferRow(
+            from = detail.from,
+            to = detail.to,
+            amount = detail.amount,
+            iconSize = PlayerIconSize.Compact,
+            showFallbackPlayerIcon = true,
+        )
         is HistoryDetail.RentLevelChange -> InlineRentLevelChangeDetail(detail = detail)
         is HistoryDetail.RentWaived -> InlineRentWaivedDetail(detail = detail)
         is HistoryDetail.PlayerMention -> InlinePlayerMentionDetail(detail = detail)
@@ -129,25 +155,6 @@ private fun HistoryDetailRow(detail: HistoryDetail) {
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun InlinePlayerTransferDetail(detail: HistoryDetail.PlayerTransfer) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        InlineParty(playerId = detail.fromPlayerId, name = detail.fromPlayerName)
-        Text("→", style = MaterialTheme.typography.bodyMedium)
-        InlineParty(playerId = detail.toPlayerId, name = detail.toPlayerName)
-        if (detail.amount.isNotBlank()) {
-            Text(
-                text = detail.amount,
-                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -165,7 +172,11 @@ private fun InlineRentWaivedDetail(detail: HistoryDetail.RentWaived) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            InlineParty(playerId = detail.landingPlayerId, name = detail.landingPlayerName)
+            DisplayIdentityRow(
+                identity = DisplayIdentity.Player(detail.landingPlayerId, detail.landingPlayerName),
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
             Text("•", style = MaterialTheme.typography.bodyMedium)
             Text(
                 text = detail.propertyName,
@@ -192,7 +203,11 @@ private fun InlinePlayerMentionDetail(detail: HistoryDetail.PlayerMention) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        InlineParty(playerId = detail.playerId, name = detail.playerName)
+        DisplayIdentityRow(
+            identity = DisplayIdentity.Player(detail.playerId, detail.playerName),
+            iconSize = PlayerIconSize.Compact,
+            showFallbackPlayerIcon = true,
+        )
         detail.suffix?.let { suffix ->
             Text(
                 text = ": $suffix",
@@ -211,7 +226,11 @@ private fun InlineRentLevelChangeDetail(detail: HistoryDetail.RentLevelChange) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        InlineParty(playerId = detail.playerId, name = detail.playerName)
+        DisplayIdentityRow(
+            identity = DisplayIdentity.Player(detail.playerId, detail.playerName),
+            iconSize = PlayerIconSize.Compact,
+            showFallbackPlayerIcon = true,
+        )
         Text(":", style = MaterialTheme.typography.bodyMedium)
         Text(
             text = "${detail.propertyName} ${detail.levelChangeText}",
@@ -221,14 +240,4 @@ private fun InlineRentLevelChangeDetail(detail: HistoryDetail.RentLevelChange) {
             modifier = Modifier.weight(1f, fill = false),
         )
     }
-}
-
-@Composable
-private fun InlineParty(playerId: String?, name: String) {
-    PlayerIdentity(
-        playerId = playerId,
-        playerName = name,
-        iconSize = PlayerIconSize.Small,
-        showFallbackIcon = true,
-    )
 }

@@ -29,6 +29,7 @@ class DebtResolutionScreenComposeTest {
 
     private fun baseState(): DebtResolutionUiState =
         DebtResolutionUiState(
+            hasActiveDebt = true,
             debtorPlayerId = "USR_02",
             debtorName = "Aditya",
             creditorPlayerId = "USR_01",
@@ -73,6 +74,41 @@ class DebtResolutionScreenComposeTest {
             .assertTextEquals("Remaining due: ¤500")
         composeRule.onNodeWithTag(DebtResolutionTestTags.SETTLEMENT_BUTTON).assertIsNotEnabled()
         composeRule.onNodeWithText("Settle with selected properties").assertIsDisplayed()
+        composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTION_GUIDANCE)
+            .assertTextEquals("Select properties worth at least ¤500 more.")
+    }
+
+    @Test
+    fun zeroOutstandingDebtShowsNoDebtGuidance() {
+        val summary = DebtSettlementSummary.compute(
+            outstandingAmount = 0,
+            selectedPropertyIds = emptySet(),
+            properties = emptyList(),
+            debtorName = "Aditya",
+            creditorPlayerId = "USR_01",
+            creditorName = "Nishith",
+            formatMoney = ::formatMoney,
+        )
+        composeRule.setContent {
+            BankingQRTheme {
+                DebtSettlementSummaryPanel(summary = summary, formatMoney = ::formatMoney)
+            }
+        }
+
+        composeRule.onNodeWithTag(DebtResolutionTestTags.SELECTION_GUIDANCE)
+            .assertTextEquals("No debt is outstanding.")
+    }
+
+    @Test
+    fun noActiveDebtContentShowsMessage() {
+        composeRule.setContent {
+            BankingQRTheme {
+                DebtResolutionNoActiveDebtContent()
+            }
+        }
+
+        composeRule.onNodeWithTag(DebtResolutionTestTags.NO_ACTIVE_DEBT).assertIsDisplayed()
+        composeRule.onNodeWithText("No outstanding debt payment is required.").assertIsDisplayed()
     }
 
     @Test

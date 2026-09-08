@@ -23,6 +23,8 @@ class SoundPoolGameAudioFeedback(
     private val soundPool: SoundPool
     private val soundIds = mutableMapOf<String, Int>()
     private val activeStreams = mutableListOf<Int>()
+    private val pendingSequenceRunnables = mutableListOf<Runnable>()
+    private var sequenceInProgress = false
     private var pendingErrorRunnable: Runnable? = null
 
     init {
@@ -73,31 +75,80 @@ class SoundPoolGameAudioFeedback(
 
     override fun playScanPrompt() = playOperationSound(GameSound.SCAN_CARD)
 
+    override fun playScanAccepted() = playOperationSound(GameSound.SCAN_CARD)
+
     override fun playGameStarted() = playMajorSound(GameSound.GAME_STARTS)
 
     override fun playPropertyPurchased() = playOperationSound(GameSound.PROPERTY_PURCHASED)
+
+    override fun playEnergyGridPurchased() = playOperationSound(GameSound.ENERGY_GRID_PURCHASED)
 
     override fun playColorSetComplete() = playOperationSound(GameSound.COLOR_SET_COMPLETE)
 
     override fun playRentTransfer() = playOperationSound(GameSound.RENT_TRANSFER)
 
+    override fun playRentRelief() = playOperationSound(GameSound.RENT_RELIEF)
+
     override fun playRentLevelIncreased() = playOperationSound(GameSound.RENT_LEVEL_INCREASED)
 
     override fun playRentLevelDecreased() = playOperationSound(GameSound.RENT_LEVEL_DECREASED)
 
+    override fun playPropertySold() = playOperationSound(GameSound.PROPERTY_SOLD)
+
     override fun playGo() = playOperationSound(GameSound.GO)
+
+    override fun playLocation() = playOperationSound(GameSound.LOCATION)
 
     override fun playGoToJail() = playOperationSound(GameSound.GO_TO_JAIL)
 
-    override fun playJail() = playOperationSound(GameSound.JAIL)
+    override fun playJailRelease() = playOperationSound(GameSound.JAIL_RELEASE)
+
+    override fun playJailPass() = playOperationSound(GameSound.JAIL_PASS)
 
     override fun playAuctionBegins() = playMajorSound(GameSound.AUCTION_BEGINS)
 
     override fun playAuctionEnding() = playMajorSound(GameSound.AUCTION_ENDING)
 
-    override fun playKaChing() = playOperationSound(GameSound.KA_CHING)
+    override fun playBankCredit() = playOperationSound(GameSound.BANK_CREDIT)
 
-    override fun playMoneyLost() = playOperationSound(GameSound.MONEY_LOST)
+    override fun playBankDebit() = playOperationSound(GameSound.BANK_DEBIT)
+
+    override fun playMoneyTransfer() = playOperationSound(GameSound.MONEY_TRANSFER)
+
+    override fun playEventApplied() = playOperationSound(GameSound.EVENT_APPLIED)
+
+    override fun playTurnChanged() = playOperationSound(GameSound.TURN_CHANGED)
+
+    override fun playTurnSkipped() = playOperationSound(GameSound.TURN_SKIPPED)
+
+    override fun playExtraTurn() = playOperationSound(GameSound.EXTRA_TURN)
+
+    override fun playDiceRoll() = playOperationSound(GameSound.DICE_ROLL)
+
+    override fun playMovePlayer() = playOperationSound(GameSound.MOVE_PLAYER)
+
+    override fun playLuckyDraw() = playOperationSound(GameSound.LUCKY_DRAW)
+
+    override fun playSoundSequence(steps: List<() -> Unit>, gapBetweenMs: Long) {
+        if (!enabled || steps.isEmpty()) return
+        cancelPendingSequence()
+        stopActiveStreams()
+        sequenceInProgress = true
+        steps.forEachIndexed { index, step ->
+            val wrapped = Runnable {
+                step()
+                if (index == steps.lastIndex) {
+                    sequenceInProgress = false
+                }
+            }
+            if (index == 0) {
+                wrapped.run()
+            } else {
+                pendingSequenceRunnables.add(wrapped)
+                mainHandler.postDelayed(wrapped, gapBetweenMs * index)
+            }
+        }
+    }
 
     override fun playUndo() = playOperationSound(GameSound.UNDO)
 
@@ -115,7 +166,9 @@ class SoundPoolGameAudioFeedback(
 
     private fun playOperationSound(sound: GameSound) {
         if (!enabled) return
-        cancelPendingSequence()
+        if (!sequenceInProgress) {
+            cancelPendingSequence()
+        }
         stopActiveStreams()
         playSound(GameSoundRegistry.resourceNameFor(sound))
     }
@@ -153,6 +206,9 @@ class SoundPoolGameAudioFeedback(
     private fun cancelPendingSequence() {
         pendingErrorRunnable?.let { mainHandler.removeCallbacks(it) }
         pendingErrorRunnable = null
+        pendingSequenceRunnables.forEach { mainHandler.removeCallbacks(it) }
+        pendingSequenceRunnables.clear()
+        sequenceInProgress = false
     }
 
     private fun stopActiveStreams() {

@@ -23,6 +23,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.BuildConfig
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.CommonFilledActionButton
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.core.model.GameStatus
 
 @Composable
@@ -54,12 +57,20 @@ fun HomeScreen(
                         viewModel.deleteSavedGame(onDeleted = onNewGame)
                     },
                 ) {
-                    Text("START NEW GAME")
+                    IconLabelRow(
+                        icon = CommonUiIcon.START_GAME,
+                        label = "START NEW GAME",
+                        textStyle = MaterialTheme.typography.labelLarge,
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNewGameConfirm = false }) {
-                    Text("CANCEL")
+                    IconLabelRow(
+                        icon = CommonUiIcon.CANCEL,
+                        label = "CANCEL",
+                        textStyle = MaterialTheme.typography.labelLarge,
+                    )
                 }
             },
         )
@@ -95,7 +106,9 @@ fun HomeScreen(
                 )
             }
 
-            Button(
+            CommonFilledActionButton(
+                icon = CommonUiIcon.START_GAME,
+                label = "NEW GAME",
                 onClick = {
                     if (homeState.hasSavedGame) {
                         showNewGameConfirm = true
@@ -104,13 +117,8 @@ fun HomeScreen(
                     }
                 },
                 enabled = homeState.definitionsError == null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 32.dp)
-                    .semantics { contentDescription = "Start new game" },
-            ) {
-                Text("NEW GAME")
-            }
+                modifier = Modifier.padding(top = 32.dp),
+            )
 
             val resumeEnabled = homeState.incompatibleEdition == null && homeState.definitionsError == null
             when (homeState.savedGameStatus) {

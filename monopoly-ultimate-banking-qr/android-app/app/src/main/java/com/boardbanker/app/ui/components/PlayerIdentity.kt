@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.boardbanker.app.player.PlayerIconRegistry
 
 enum class PlayerIconSize(val size: Dp) {
+    Compact(22.dp),
     Small(24.dp),
     Normal(36.dp),
     Large(80.dp),
@@ -88,24 +89,24 @@ fun PlayerTransferRow(
     toPlayerName: String,
     modifier: Modifier = Modifier,
     iconSize: PlayerIconSize = PlayerIconSize.Normal,
+    amount: String? = null,
+    fromIdentity: DisplayIdentity? = null,
+    toIdentity: DisplayIdentity? = null,
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        PlayerIdentity(
-            playerId = fromPlayerId,
-            playerName = fromPlayerName,
-            iconSize = iconSize,
-        )
-        Text("→", style = MaterialTheme.typography.titleMedium)
-        if (toPlayerId == null && toPlayerName == "Bank") {
-            Text("Bank", style = MaterialTheme.typography.bodyLarge)
-        } else {
-            PlayerIdentity(
-                playerId = toPlayerId,
-                playerName = toPlayerName,
-                iconSize = iconSize,
-            )
-        }
+    val resolvedFrom = fromIdentity ?: DisplayIdentity.Player(fromPlayerId, fromPlayerName)
+    val resolvedTo = toIdentity ?: when {
+        toPlayerId != null -> DisplayIdentity.Player(toPlayerId, toPlayerName)
+        toPlayerName == DisplayIdentity.Bank.label -> DisplayIdentity.Bank
+        else -> DisplayIdentity.Player(toPlayerId, toPlayerName)
     }
+    DisplayIdentityTransferRow(
+        from = resolvedFrom,
+        to = resolvedTo,
+        modifier = modifier,
+        amount = amount,
+        iconSize = iconSize,
+        showFallbackPlayerIcon = true,
+    )
 }
 
 @Composable

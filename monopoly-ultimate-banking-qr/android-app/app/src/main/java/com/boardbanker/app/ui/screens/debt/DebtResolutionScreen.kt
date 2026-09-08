@@ -1,5 +1,6 @@
 package com.boardbanker.app.ui.screens.debt
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,10 +33,13 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.app.ui.components.GameplayResultPresentation
-import com.boardbanker.app.ui.components.PlayerTransferRow
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityTransferRow
 import com.boardbanker.app.ui.components.PlayerIconSize
 
 internal object DebtResolutionTestTags {
@@ -46,6 +51,8 @@ internal object DebtResolutionTestTags {
     const val CHANGE_AMOUNT = "debt_change_amount"
     const val SETTLEMENT_BUTTON = "debt_settlement_button"
     const val SELECTION_GUIDANCE = "debt_selection_guidance"
+    const val BACK_BUTTON = "debt_resolution_back"
+    const val NO_ACTIVE_DEBT = "debt_resolution_no_active_debt"
 
     fun propertyCheckbox(propertyId: String): String = "debt_property_select_$propertyId"
 }
@@ -59,6 +66,8 @@ fun DebtResolutionScreen(
     onOpenPropertyScanner: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    BackHandler { viewModel.onBack() }
 
     LaunchedEffect(Unit) {
         viewModel.refreshFromSession()
@@ -103,23 +112,63 @@ fun DebtResolutionScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (uiState.result == null) {
-                DebtResolutionActiveContent(
-                    uiState = uiState,
-                    formatMoney = viewModel::money,
-                    onToggleProperty = viewModel::onToggleProperty,
-                    onScanPropertyRequested = viewModel::onScanPropertyRequested,
-                    onSettleSelected = viewModel::onSettleSelected,
-                    onCheckBankruptcy = viewModel::onCheckBankruptcy,
-                )
-            } else {
-                GameplayResultPresentation(result = uiState.result!!)
-                BankingActionBar(
-                    confirmLabel = BankingActionLabels.confirm("DONE"),
-                    onConfirm = viewModel::onDone,
+            when {
+                uiState.result != null -> {
+                    GameplayResultPresentation(result = uiState.result!!)
+                    BankingActionBar(
+                        confirmLabel = BankingActionLabels.confirm("DONE"),
+                        onConfirm = viewModel::onDone,
+                    )
+                }
+                !uiState.hasActiveDebt -> {
+                    DebtResolutionNoActiveDebtContent()
+                }
+                else -> {
+                    DebtResolutionActiveContent(
+                        uiState = uiState,
+                        formatMoney = viewModel::money,
+                        onToggleProperty = viewModel::onToggleProperty,
+                        onScanPropertyRequested = viewModel::onScanPropertyRequested,
+                        onSettleSelected = viewModel::onSettleSelected,
+                        onCheckBankruptcy = viewModel::onCheckBankruptcy,
+                    )
+                }
+            }
+
+            OutlinedButton(
+                onClick = viewModel::onBack,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(DebtResolutionTestTags.BACK_BUTTON),
+            ) {
+                IconLabelRow(
+                    icon = CommonUiIcon.BACK,
+                    label = "BACK",
                 )
             }
         }
+    }
+}
+
+@Composable
+internal fun DebtResolutionNoActiveDebtContent(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(DebtResolutionTestTags.NO_ACTIVE_DEBT),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "No outstanding debt payment is required.",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = "Return to the game and continue play.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -133,12 +182,15 @@ internal fun DebtResolutionActiveContent(
     onCheckBankruptcy: () -> Unit,
 ) {
     Text("DEBT PAYMENT", style = MaterialTheme.typography.titleMedium)
-    PlayerTransferRow(
-        fromPlayerId = uiState.debtorPlayerId,
-        fromPlayerName = uiState.debtorName,
-        toPlayerId = uiState.creditorPlayerId,
-        toPlayerName = uiState.creditorName,
+    DisplayIdentityTransferRow(
+        from = DisplayIdentity.Player(uiState.debtorPlayerId, uiState.debtorName),
+        to = if (uiState.creditorIsBank) {
+            DisplayIdentity.Bank
+        } else {
+            DisplayIdentity.Player(uiState.creditorPlayerId, uiState.creditorName)
+        },
         iconSize = PlayerIconSize.Normal,
+        showFallbackPlayerIcon = true,
     )
     Text(
         buildString {

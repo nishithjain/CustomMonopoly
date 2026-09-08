@@ -26,7 +26,7 @@ Failed:     0
 
 Unique QR Payloads
 Expected: 96
-Found:    96
+Found:    100
 
 Missing Front Assets: 0
 Missing QR Assets:    0
@@ -34,4 +34,9 @@ Missing QR Assets:    0
 Duplicate Card IDs:     0
 Duplicate QR Payloads:  0
 
-RESULT: PASS
+RESULT: FAIL
+
+Problems:
+---------
+- Edition 'india' total card count mismatch: expected 47, found 51
+- Unique QR payloads across registries: expected 96, found 100

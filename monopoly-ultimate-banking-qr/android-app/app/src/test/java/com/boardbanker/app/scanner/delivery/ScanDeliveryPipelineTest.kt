@@ -232,19 +232,34 @@ private class ThrowingGameAudioFeedback : GameAudioFeedback {
     }
 
     override fun playScanPrompt() = Unit
+    override fun playScanAccepted() = Unit
     override fun playGameStarted() = Unit
     override fun playPropertyPurchased() = Unit
+    override fun playEnergyGridPurchased() = Unit
     override fun playColorSetComplete() = Unit
     override fun playRentTransfer() = Unit
+    override fun playRentRelief() = Unit
     override fun playRentLevelIncreased() = Unit
     override fun playRentLevelDecreased() = Unit
+    override fun playPropertySold() = Unit
     override fun playGo() = Unit
+    override fun playLocation() = Unit
     override fun playGoToJail() = Unit
-    override fun playJail() = Unit
+    override fun playJailRelease() = Unit
+    override fun playJailPass() = Unit
     override fun playAuctionBegins() = Unit
     override fun playAuctionEnding() = Unit
-    override fun playKaChing() = Unit
-    override fun playMoneyLost() = Unit
+    override fun playBankCredit() = Unit
+    override fun playBankDebit() = Unit
+    override fun playMoneyTransfer() = Unit
+    override fun playEventApplied() = Unit
+    override fun playTurnChanged() = Unit
+    override fun playTurnSkipped() = Unit
+    override fun playExtraTurn() = Unit
+    override fun playDiceRoll() = Unit
+    override fun playMovePlayer() = Unit
+    override fun playLuckyDraw() = Unit
+    override fun playSoundSequence(steps: List<() -> Unit>, gapBetweenMs: Long) = Unit
     override fun playUndo() = Unit
     override fun playUndoLastAction() = Unit
     override fun playLostGame() = Unit

@@ -3,6 +3,7 @@ package com.boardbanker.core.rules
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.model.isJailPassEvent
@@ -42,6 +43,8 @@ class JailRules(
             type = TransactionType.JAIL_STATUS_CHANGE,
             timestamp = timestamp,
             playerId = playerId,
+            stateBefore = JailStatusSnapshot.stateBefore(false),
+            stateAfter = JailStatusSnapshot.stateAfter(true),
         )
         return JailResult.success(sessionAfterTx, extraTurnTransactions + tx)
     }
@@ -83,6 +86,8 @@ class JailRules(
             type = TransactionType.JAIL_STATUS_CHANGE,
             timestamp = timestamp,
             playerId = playerId,
+            stateBefore = JailStatusSnapshot.stateBefore(true),
+            stateAfter = JailStatusSnapshot.stateAfter(false),
         )
         return JailResult.success(
             sessionAfterJail.copy(undoSnapshot = session.snapshot()),
@@ -126,6 +131,8 @@ class JailRules(
             timestamp = timestamp,
             playerId = playerId,
             reversible = true,
+            stateBefore = JailStatusSnapshot.stateBefore(true),
+            stateAfter = JailStatusSnapshot.stateAfter(false),
         )
         return JailResult.success(
             sessionAfterJail.copy(undoSnapshot = session.snapshot()),
@@ -168,6 +175,8 @@ class JailRules(
             timestamp = timestamp,
             playerId = playerId,
             reversible = true,
+            stateBefore = JailStatusSnapshot.stateBefore(true),
+            stateAfter = JailStatusSnapshot.stateAfter(false),
         )
         return JailResult.success(
             sessionAfterJail.copy(undoSnapshot = session.snapshot()),
@@ -194,6 +203,8 @@ class JailRules(
             type = TransactionType.JAIL_STATUS_CHANGE,
             timestamp = timestamp,
             playerId = playerId,
+            stateBefore = JailStatusSnapshot.stateBefore(true),
+            stateAfter = JailStatusSnapshot.stateAfter(false),
         )
         return JailResult.success(sessionAfterTx, listOf(tx))
     }

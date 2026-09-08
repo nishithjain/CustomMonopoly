@@ -45,6 +45,13 @@ data class PlayerDetailsUiState(
     val energyGridCount: Int = 0,
     val totalAssetCount: Int = 0,
     val isActiveTurn: Boolean = false,
+    val activePlayerName: String? = null,
+    val actionAvailability: PlayerDetailsActionAvailability = PlayerDetailsActionAvailability(
+        collectGoEnabled = false,
+        locationEnabled = false,
+        goToJailEnabled = false,
+        getOutOfJailEnabled = false,
+    ),
     val hasEnergyGridsInEdition: Boolean = false,
     val inJail: Boolean = false,
     val jailPassCount: Int = 0,

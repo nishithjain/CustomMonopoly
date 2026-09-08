@@ -308,4 +308,24 @@ class DebtResolutionViewModelTest {
             viewModel.uiState.value.selectedPropertyValue,
         )
     }
+
+    @Test
+    fun refreshWithoutActiveDebtMarksScreenAsInactive() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.hasActiveDebt)
+        assertEquals("No debt is outstanding.", viewModel.uiState.value.settlementSummary.selectionGuidance)
+    }
+
+    @Test
+    fun checkBankruptcyWithoutActiveDebtShowsMessage() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onCheckBankruptcy()
+        advanceUntilIdle()
+
+        assertEquals("No debt payment is currently required.", viewModel.uiState.value.message)
+    }
 }

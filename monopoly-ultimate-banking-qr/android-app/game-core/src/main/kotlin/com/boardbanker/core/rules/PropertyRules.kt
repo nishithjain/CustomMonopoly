@@ -4,8 +4,10 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PlayerState
 import com.boardbanker.core.model.PropertyState
+import com.boardbanker.core.model.PurchaseAssetType
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.transaction.TransactionFactory
 
 class PropertyRules(
@@ -70,6 +72,8 @@ class PropertyRules(
             toEntity = com.boardbanker.core.model.EntityRef.BANK,
             playerId = buyerId,
             propertyId = propertyId,
+            assetName = propertyDef.displayNameWithNumber(),
+            assetType = PurchaseAssetType.PROPERTY,
             amount = price,
             reversible = true,
         )
