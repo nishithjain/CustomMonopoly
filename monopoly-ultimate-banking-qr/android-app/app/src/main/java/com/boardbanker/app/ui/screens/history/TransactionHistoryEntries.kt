@@ -42,6 +42,21 @@ internal sealed interface HistoryDetail {
         val reason: String,
     ) : HistoryDetail
 
+    data class PlayerMention(
+        val playerId: String?,
+        val playerName: String,
+        val suffix: String? = null,
+    ) : HistoryDetail {
+        val displayText: String
+            get() = buildString {
+                append(playerName)
+                if (!suffix.isNullOrBlank()) {
+                    append(": ")
+                    append(suffix)
+                }
+            }
+    }
+
     data class Text(val value: String) : HistoryDetail
 }
 
@@ -425,6 +440,7 @@ internal object TransactionHistoryEntries {
                     "${detail.playerName}: ${detail.propertyName} ${detail.levelChangeText}"
                 is HistoryDetail.RentWaived ->
                     "${detail.landingPlayerName} • ${detail.propertyName} • ${detail.reason}"
+                is HistoryDetail.PlayerMention -> detail.displayText.takeIf { it.isNotBlank() }
                 is HistoryDetail.Text -> detail.value.takeIf { it.isNotBlank() }
             }
         }
@@ -452,6 +468,13 @@ internal object TransactionHistoryEntries {
             ?.let { PropertyDisplayNames.displayNameWithNumber(it, definitions) }
         val playerName = tx.playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) }
         val detailText = detailText(tx, definitions)
+        if (propertyName == null && playerName != null) {
+            return HistoryDetail.PlayerMention(
+                playerId = tx.playerId,
+                playerName = playerName,
+                suffix = detailText,
+            )
+        }
         val value = buildString {
             if (playerName != null) {
                 append(playerName)

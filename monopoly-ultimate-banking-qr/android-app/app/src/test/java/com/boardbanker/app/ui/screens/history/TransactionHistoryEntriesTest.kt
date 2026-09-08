@@ -10,6 +10,7 @@ import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.money.MoneyFormatter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -299,6 +300,197 @@ class TransactionHistoryEntriesTest {
             MoneyFormatter.format(total - TransactionHistoryEntries.MAX_ENTRIES + 1, definitions),
             (entries.last().detail as HistoryDetail.PlayerTransfer).amount,
         )
+    }
+
+    @Test
+    fun nextTurnShowsActivePlayerMentionWithPlayerId() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = base.transactions + Transaction(
+                transactionId = "${base.gameId}_TX_TURN",
+                gameId = base.gameId,
+                timestamp = 8_000L,
+                transactionType = TransactionType.TURN_ADVANCED,
+                fromEntity = "USR_01",
+                toEntity = "USR_02",
+                playerId = "USR_02",
+            ),
+        )
+
+        val nextTurnEntry = TransactionHistoryEntries.build(session, definitions)
+            .first { it.title == "Next turn" }
+        val detail = nextTurnEntry.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_02", detail.playerId)
+        assertEquals("Aditya", detail.playerName)
+        assertEquals(null, detail.suffix)
+        assertEquals("Aditya", detail.displayText)
+    }
+
+    @Test
+    fun turnSkippedShowsSkippedPlayerMentionWithSuffix() {
+        var session = AppTestSupport.newGameForEdition(
+            editionId = com.boardbanker.core.model.EditionIds.INDIA,
+            playerIds = listOf("USR_01", "USR_02"),
+        )
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(
+            AppTestSupport.editionRepository.load(com.boardbanker.core.model.EditionIds.INDIA),
+        )
+        session = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_18", "USR_02")).session
+        session = indiaEngine.process(
+            session,
+            GameCommand.EndTurn(session.turnState!!.activePlayerId),
+        ).session
+
+        val skippedEntry = TransactionHistoryEntries.build(session, AppTestSupport.editionRepository.load(
+            com.boardbanker.core.model.EditionIds.INDIA,
+        )).first { it.title == "Turn skipped" }
+        val detail = skippedEntry.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_02", detail.playerId)
+        assertEquals("Aditya", detail.playerName)
+        assertEquals("skips this turn", detail.suffix)
+        assertEquals("Aditya: skips this turn", detail.displayText)
+    }
+
+    @Test
+    fun turnSkippedUsesSkippedPlayerNotNextActivePlayer() {
+        var session = AppTestSupport.newGameForEdition(
+            editionId = com.boardbanker.core.model.EditionIds.INDIA,
+            playerIds = listOf("USR_01", "USR_02"),
+        )
+        val indiaDefinitions = AppTestSupport.editionRepository.load(
+            com.boardbanker.core.model.EditionIds.INDIA,
+        )
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(indiaDefinitions)
+        session = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_18", "USR_02")).session
+        session = indiaEngine.process(
+            session,
+            GameCommand.EndTurn(session.turnState!!.activePlayerId),
+        ).session
+
+        val entries = TransactionHistoryEntries.build(session, indiaDefinitions)
+        val skipped = entries.first { it.title == "Turn skipped" }.detail as HistoryDetail.PlayerMention
+        val nextTurn = entries.first { it.title == "Next turn" }.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_02", skipped.playerId)
+        assertEquals("USR_01", nextTurn.playerId)
+        assertNotEquals(skipped.playerId, nextTurn.playerId)
+    }
+
+    @Test
+    fun extraTurnStartedShowsPlayerMentionWithSuffix() {
+        val base = AppTestSupport.newGameForEdition(
+            editionId = com.boardbanker.core.model.EditionIds.INDIA,
+            playerIds = listOf("USR_01", "USR_02"),
+        )
+        val indiaDefinitions = AppTestSupport.editionRepository.load(
+            com.boardbanker.core.model.EditionIds.INDIA,
+        )
+        val session = base.copy(
+            transactions = base.transactions + Transaction(
+                transactionId = "${base.gameId}_TX_EXTRA",
+                gameId = base.gameId,
+                timestamp = 9_000L,
+                transactionType = TransactionType.EXTRA_TURN_STARTED,
+                playerId = "USR_01",
+            ),
+        )
+
+        val extraTurnEntry = TransactionHistoryEntries.build(session, indiaDefinitions)
+            .first { it.title == "Extra turn" }
+        val detail = extraTurnEntry.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_01", detail.playerId)
+        assertEquals("Nishith", detail.playerName)
+        assertEquals("takes an extra turn", detail.suffix)
+    }
+
+    @Test
+    fun playerMentionsSurviveSessionRoundTrip() {
+        var session = AppTestSupport.newGameForEdition(
+            editionId = com.boardbanker.core.model.EditionIds.INDIA,
+            playerIds = listOf("USR_01", "USR_02"),
+        )
+        val indiaDefinitions = AppTestSupport.editionRepository.load(
+            com.boardbanker.core.model.EditionIds.INDIA,
+        )
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(indiaDefinitions)
+        val serializer = com.boardbanker.core.persistence.KotlinGameSessionSerializer()
+        session = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_18", "USR_02")).session
+        session = indiaEngine.process(
+            session,
+            GameCommand.EndTurn(session.turnState!!.activePlayerId),
+        ).session
+        session = serializer.deserialize(serializer.serialize(session))
+
+        val entries = TransactionHistoryEntries.build(session, indiaDefinitions)
+        val skipped = entries.first { it.title == "Turn skipped" }.detail as HistoryDetail.PlayerMention
+        val nextTurn = entries.first { it.title == "Next turn" }.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_02", skipped.playerId)
+        assertEquals("USR_01", nextTurn.playerId)
+    }
+
+    @Test
+    fun playerMentionsRemainCorrectAfterMultipleTurnChanges() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = base.transactions + listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_TURN_1",
+                    gameId = base.gameId,
+                    timestamp = 8_000L,
+                    transactionType = TransactionType.TURN_ADVANCED,
+                    fromEntity = "USR_01",
+                    toEntity = "USR_02",
+                    playerId = "USR_02",
+                ),
+                Transaction(
+                    transactionId = "${base.gameId}_TX_TURN_2",
+                    gameId = base.gameId,
+                    timestamp = 9_000L,
+                    transactionType = TransactionType.TURN_ADVANCED,
+                    fromEntity = "USR_02",
+                    toEntity = "USR_01",
+                    playerId = "USR_01",
+                ),
+            ),
+        )
+
+        val entries = TransactionHistoryEntries.build(session, definitions)
+        val turnEntries = entries.filter { it.title == "Next turn" }
+            .map { it.detail as HistoryDetail.PlayerMention }
+
+        assertEquals(2, turnEntries.size)
+        assertEquals("USR_01", turnEntries[0].playerId)
+        assertEquals("USR_02", turnEntries[1].playerId)
+    }
+
+    @Test
+    fun legacyTurnEntryWithoutPlayerIdDoesNotCrash() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.TURN_ADVANCED,
+                ),
+                Transaction(
+                    transactionId = "${base.gameId}_TX_2",
+                    gameId = base.gameId,
+                    timestamp = 2_000L,
+                    transactionType = TransactionType.TURN_SKIPPED,
+                ),
+            ),
+        )
+
+        val entries = TransactionHistoryEntries.build(session, definitions)
+
+        assertEquals(2, entries.size)
+        assertTrue(entries.all { it.detail is HistoryDetail.Text })
     }
 
     @Test

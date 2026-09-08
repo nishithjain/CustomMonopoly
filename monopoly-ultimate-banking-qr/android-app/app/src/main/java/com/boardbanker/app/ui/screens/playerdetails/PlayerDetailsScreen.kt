@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
@@ -106,9 +107,6 @@ fun PlayerDetailsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Player Details") },
-                navigationIcon = {
-                    TextButton(onClick = viewModel::onBack) { Text("Back") }
-                },
             )
         },
     ) { innerPadding ->
@@ -149,6 +147,19 @@ fun PlayerDetailsScreen(
             uiState.result?.let { result ->
                 item(key = "result") {
                     PlayerDetailsResultContent(result = result, onDone = viewModel::onDone)
+                }
+            }
+
+            if (uiState.step == PlayerDetailsStep.Hub && uiState.result == null) {
+                item(key = "back") {
+                    Button(
+                        onClick = viewModel::onBack,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("player_details_back"),
+                    ) {
+                        Text("BACK")
+                    }
                 }
             }
         }

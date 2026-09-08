@@ -122,6 +122,7 @@ private fun HistoryDetailRow(detail: HistoryDetail) {
         is HistoryDetail.PlayerTransfer -> InlinePlayerTransferDetail(detail = detail)
         is HistoryDetail.RentLevelChange -> InlineRentLevelChangeDetail(detail = detail)
         is HistoryDetail.RentWaived -> InlineRentWaivedDetail(detail = detail)
+        is HistoryDetail.PlayerMention -> InlinePlayerMentionDetail(detail = detail)
         is HistoryDetail.Text -> {
             Text(
                 text = detail.value,
@@ -185,6 +186,25 @@ private fun InlineRentWaivedDetail(detail: HistoryDetail.RentWaived) {
 }
 
 @Composable
+private fun InlinePlayerMentionDetail(detail: HistoryDetail.PlayerMention) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        InlineParty(playerId = detail.playerId, name = detail.playerName)
+        detail.suffix?.let { suffix ->
+            Text(
+                text = ": $suffix",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
 private fun InlineRentLevelChangeDetail(detail: HistoryDetail.RentLevelChange) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -205,13 +225,10 @@ private fun InlineRentLevelChangeDetail(detail: HistoryDetail.RentLevelChange) {
 
 @Composable
 private fun InlineParty(playerId: String?, name: String) {
-    if (playerId == null) {
-        Text(name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    } else {
-        PlayerIdentity(
-            playerId = playerId,
-            playerName = name,
-            iconSize = PlayerIconSize.Small,
-        )
-    }
+    PlayerIdentity(
+        playerId = playerId,
+        playerName = name,
+        iconSize = PlayerIconSize.Small,
+        showFallbackIcon = true,
+    )
 }

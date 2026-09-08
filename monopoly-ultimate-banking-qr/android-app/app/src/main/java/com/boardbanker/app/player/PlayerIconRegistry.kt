@@ -31,5 +31,17 @@ object PlayerIconRegistry {
         return icon
     }
 
+    @DrawableRes
+    fun iconResIdOrFallback(playerId: String?): Int =
+        iconResId(playerId) ?: R.drawable.ic_player_fallback
+
+    fun iconLabel(playerId: String?): String = when (playerId) {
+        "USR_01" -> "Car"
+        "USR_02" -> "Helicopter"
+        "USR_03" -> "Ship"
+        "USR_04" -> "Aeroplane"
+        else -> "Player"
+    }
+
     fun runtimeResourceName(playerId: String?): String? = playerId?.let { runtimeNameByPlayerId[it] }
 }

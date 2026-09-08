@@ -31,8 +31,20 @@ fun PlayerIdentity(
     modifier: Modifier = Modifier,
     iconSize: PlayerIconSize = PlayerIconSize.Normal,
     vertical: Boolean = false,
+    showFallbackIcon: Boolean = false,
 ) {
-    val iconResId = PlayerIconRegistry.iconResId(playerId)
+    val iconResId = if (showFallbackIcon) {
+        PlayerIconRegistry.iconResIdOrFallback(playerId)
+    } else {
+        PlayerIconRegistry.iconResId(playerId)
+    }
+    val textStyle = if (vertical) {
+        MaterialTheme.typography.titleMedium
+    } else if (iconSize == PlayerIconSize.Small) {
+        MaterialTheme.typography.bodyMedium
+    } else {
+        MaterialTheme.typography.bodyLarge
+    }
     if (vertical) {
         Column(
             modifier = modifier,
@@ -43,10 +55,11 @@ fun PlayerIdentity(
                 PlayerIconImage(
                     iconResId = iconResId,
                     playerId = playerId,
+                    playerName = playerName,
                     size = iconSize,
                 )
             }
-            Text(playerName, style = MaterialTheme.typography.titleMedium)
+            Text(playerName, style = textStyle)
         }
     } else {
         Row(
@@ -58,10 +71,11 @@ fun PlayerIdentity(
                 PlayerIconImage(
                     iconResId = iconResId,
                     playerId = playerId,
+                    playerName = playerName,
                     size = iconSize,
                 )
             }
-            Text(playerName, style = MaterialTheme.typography.bodyLarge)
+            Text(playerName, style = textStyle)
         }
     }
 }
@@ -98,6 +112,7 @@ fun PlayerTransferRow(
 private fun PlayerIconImage(
     iconResId: Int,
     playerId: String?,
+    playerName: String,
     size: PlayerIconSize,
 ) {
     Image(
@@ -106,19 +121,17 @@ private fun PlayerIconImage(
         modifier = Modifier
             .size(size.size)
             .semantics {
-                contentDescription = playerDisplayIconDescription(playerId, size)
+                contentDescription = playerDisplayIconDescription(playerId, playerName, size)
             },
         contentScale = ContentScale.Fit,
     )
 }
 
-private fun playerDisplayIconDescription(playerId: String?, size: PlayerIconSize): String {
-    val label = when (playerId) {
-        "USR_01" -> "Car player icon"
-        "USR_02" -> "Helicopter player icon"
-        "USR_03" -> "Ship player icon"
-        "USR_04" -> "Aeroplane player icon"
-        else -> "Player icon"
-    }
+fun playerDisplayIconDescription(
+    playerId: String?,
+    playerName: String,
+    size: PlayerIconSize = PlayerIconSize.Normal,
+): String {
+    val label = "${PlayerIconRegistry.iconLabel(playerId)}, Player $playerName"
     return if (size == PlayerIconSize.Large) "Large $label" else label
 }
