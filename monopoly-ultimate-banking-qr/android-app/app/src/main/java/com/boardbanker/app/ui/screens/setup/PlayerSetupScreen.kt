@@ -38,9 +38,11 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.CardFrontImage
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
 import com.boardbanker.core.card.CardType
@@ -206,17 +208,19 @@ fun PlayerSetupScreen(
                 enabled = uiState.canAddPlayer,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    if (uiState.canAddPlayer) {
-                        "SCAN PLAYER CARD"
-                    } else {
-                        "MAXIMUM PLAYERS REACHED"
-                    },
-                )
+                if (uiState.canAddPlayer) {
+                    IconLabelRow(
+                        icon = CommonUiIcon.SCAN_CARD,
+                        label = "SCAN PLAYER CARD",
+                    )
+                } else {
+                    Text("MAXIMUM PLAYERS REACHED")
+                }
             }
 
             BankingActionBar(
                 confirmLabel = BankingActionLabels.confirm("START GAME"),
+                confirmIcon = CommonUiIcon.START_GAME,
                 onConfirm = viewModel::startGame,
                 confirmEnabled = uiState.canStartGame,
                 cancelLabel = BankingActionLabels.cancel("CANCEL GAME"),

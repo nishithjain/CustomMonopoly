@@ -5,7 +5,9 @@ import com.boardbanker.app.gameplay.workflow.WorkflowCommandContext
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.GameOutcome
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -146,7 +148,7 @@ class GameplayOutcomeAudioTest {
         val before = session
         val result = engine.process(session, GameCommand.ApplyEvent("EVT_11", "USR_01", targetPlayerId = "USR_02"))
         assertEquals(
-            GameplayAudioCue.KA_CHING,
+            GameplayAudioCue.BANK_CREDIT,
             cue(result, before, CommitAudioTrigger.GameWorkflow(WorkflowCommandContext.ApplyEvent("EVT_11"))),
         )
     }
@@ -158,7 +160,7 @@ class GameplayOutcomeAudioTest {
         val before = session
         val result = engine.process(session, GameCommand.ApplyEvent("EVT_07", "USR_01"))
         assertEquals(
-            GameplayAudioCue.MONEY_LOST,
+            GameplayAudioCue.BANK_DEBIT,
             cue(result, before, CommitAudioTrigger.GameWorkflow(WorkflowCommandContext.ApplyEvent("EVT_07"))),
         )
     }
@@ -170,9 +172,17 @@ class GameplayOutcomeAudioTest {
         val before = session
         val result = engine.process(session, GameCommand.UndoLastAction)
         assertEquals(
-            GameplayAudioCue.UNDO_LAST_ACTION,
+            GameplayAudioCue.UNDO,
             cue(result, before, CommitAudioTrigger.Banking(GameCommand.UndoLastAction)),
         )
+        GameplayOutcomeAudio.playCommittedOutcome(
+            audio,
+            result,
+            before,
+            CommitAudioTrigger.Banking(GameCommand.UndoLastAction),
+        )
+        assertEquals(listOf("UNDO"), audio.gameplayCalls)
+        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
     }
 
     @Test
@@ -195,13 +205,31 @@ class GameplayOutcomeAudioTest {
 
 class GameEndAudioCoordinatorTest {
     @Test
-    fun winnerPlaysOnlyAfterFreshBankruptcyMark() {
+    fun winnerPlaysOnlyAfterGameEndIsMarked() {
         val audio = RecordingGameAudioFeedback()
         val coordinator = GameEndAudioCoordinator(winnerDelayMs = 0L)
         coordinator.onWinnerScreenPresented(audio)
         assertEquals(emptyList<String>(), audio.gameplayCalls)
-        coordinator.markFreshGameEndFromBankruptcy()
+        coordinator.onGameConcludedForWinnerPresentation()
         coordinator.onWinnerScreenPresented(audio)
         assertEquals(listOf("WINNER"), audio.gameplayCalls)
+    }
+
+    @Test
+    fun bankruptcySequencesLostGameBeforeWinner() {
+        val audio = RecordingGameAudioFeedback()
+        val coordinator = GameEndAudioCoordinator(winnerDelayMs = 0L)
+        coordinator.onBankruptcyCommitted(audio)
+        assertEquals(listOf("LOST_GAME"), audio.gameplayCalls)
+        coordinator.onWinnerScreenPresented(audio)
+        assertEquals(listOf("LOST_GAME", "WINNER"), audio.gameplayCalls)
+    }
+
+    @Test
+    fun resumeDoesNotReplayWinner() {
+        val audio = RecordingGameAudioFeedback()
+        val coordinator = GameEndAudioCoordinator(winnerDelayMs = 0L)
+        coordinator.onWinnerScreenPresented(audio)
+        assertTrue(audio.gameplayCalls.isEmpty())
     }
 }

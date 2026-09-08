@@ -118,7 +118,6 @@ class AdvancedBankingViewModel(
             }
             return
         }
-        GameplayOutcomeAudio.playCue(gameAudioFeedback, GameplayAudioCue.JAIL_WORKFLOW)
         _uiState.update {
             it.copy(step = AdvancedBankingStep.GetOutOfJailChoice(playerId), result = null, message = null)
         }
@@ -186,6 +185,7 @@ class AdvancedBankingViewModel(
             players = players,
             undoDescription = undoEligibility.undoDescription(session),
         )
+        gameAudioFeedback.playUndoLastAction()
         _uiState.update {
             it.copy(
                 step = AdvancedBankingStep.UndoAuthorization,

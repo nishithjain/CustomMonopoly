@@ -3,16 +3,23 @@ Workspace root: C:\Personal\Monopoly
 Project root:   C:\Personal\Monopoly\monopoly-ultimate-banking-qr
 
 Source icons directory: PASS
-Source icon files: 4 / 4
-Android drawable resources: 4 / 4
-Manifest entries: 4 / 4
+Source player icon files: 4 / 4
+Source common icon files: 18 / 18
+Android player drawables: 4 / 4
+Android common drawables: 20 / 20
+Player manifest entries: 4 / 4
+Common manifest entries: 36 / 20
 PlayerIconRegistry: PASS
+CommonIconRegistry: PASS
 PlayerIdentity component: PASS
+DisplayIdentity component: PASS
+CommonUiIcon component: PASS
 game-core image resources: 0
 
 RESULT: PASS
 - All source and runtime icons present
 - USR_01..USR_04 mappings correct
-- Reusable PlayerIdentity component exists
+- Common UI icons mapped
+- Reusable PlayerIdentity and DisplayIdentity components exist
 - game-core contains no Android image resources
 - No icon data added to GameSession

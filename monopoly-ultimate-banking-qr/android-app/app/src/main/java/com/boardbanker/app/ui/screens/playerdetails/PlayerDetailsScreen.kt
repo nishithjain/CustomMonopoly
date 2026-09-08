@@ -21,17 +21,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.scanner.ScanRequest
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.BackActionButton
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
 import com.boardbanker.app.ui.components.CardFrontImage
+import com.boardbanker.app.ui.components.CommonFilledActionButton
+import com.boardbanker.app.ui.components.CommonUiIconImage
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityIcon
+import com.boardbanker.app.ui.components.DisplayIdentityTransferRow
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.PlayerIconSize
 import com.boardbanker.app.ui.components.PlayerIdentity
+import com.boardbanker.app.ui.components.TopBarIconTitle
 import com.boardbanker.core.card.CardType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,11 +56,7 @@ fun PlayerDetailsScreen(
     onContinueLocationOnActiveGame: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val actionAvailability = PlayerDetailsActionAvailability.forPlayer(
-        inJail = uiState.inJail,
-        commandInFlight = uiState.commandInFlight,
-        step = uiState.step,
-    )
+    val actionAvailability = uiState.actionAvailability
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -106,7 +112,12 @@ fun PlayerDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Player Details") },
+                title = {
+                    TopBarIconTitle(
+                        icon = CommonUiIcon.BANK,
+                        title = "Player Details",
+                    )
+                },
             )
         },
     ) { innerPadding ->
@@ -152,14 +163,10 @@ fun PlayerDetailsScreen(
 
             if (uiState.step == PlayerDetailsStep.Hub && uiState.result == null) {
                 item(key = "back") {
-                    Button(
+                    BackActionButton(
                         onClick = viewModel::onBack,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("player_details_back"),
-                    ) {
-                        Text("BACK")
-                    }
+                        testTag = "player_details_back",
+                    )
                 }
             }
         }
@@ -179,48 +186,58 @@ private fun PlayerDetailsBankActions(
         when (uiState.step) {
             PlayerDetailsStep.Hub -> {
                 if (uiState.result == null) {
-                    Text("Bank Actions", style = MaterialTheme.typography.titleMedium)
-                    Button(
+                    CommonUiIconImage(icon = CommonUiIcon.BANK, contentDescription = "Bank actions")
+                    CommonFilledActionButton(
+                        icon = CommonUiIcon.COLLECT_GO,
+                        label = "Collect GO",
                         onClick = viewModel::onCollectGo,
                         enabled = actionAvailability.collectGoEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Collect GO")
-                    }
-                    Button(
+                    )
+                    CommonFilledActionButton(
+                        icon = CommonUiIcon.LOCATION,
+                        label = "Location",
                         onClick = viewModel::onLocation,
                         enabled = actionAvailability.locationEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Location")
-                    }
+                    )
                     if (uiState.inJail) {
-                        Button(
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.JAIL,
+                            label = "Get Out of Jail",
                             onClick = viewModel::onGetOutOfJail,
                             enabled = actionAvailability.getOutOfJailEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("Get Out of Jail")
-                        }
+                            modifier = Modifier.semantics {
+                                contentDescription = if (actionAvailability.getOutOfJailEnabled) {
+                                    "Get Out of Jail"
+                                } else {
+                                    actionAvailability.actionsDisabledReason ?: "Get Out of Jail disabled"
+                                }
+                            },
+                        )
                     } else {
-                        Button(
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.JAIL,
+                            label = "Go to Jail",
                             onClick = viewModel::onGoToJail,
                             enabled = actionAvailability.goToJailEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("Go to Jail")
-                        }
+                        )
+                    }
+                    actionAvailability.actionsDisabledReason?.let { reason ->
+                        Text(
+                            text = reason,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("player_details_actions_disabled_reason")
+                                .semantics { contentDescription = reason },
+                        )
                     }
                 }
             }
             PlayerDetailsStep.GoConfirm -> {
-                Text(
-                    "Collect ${viewModel.goSalaryText()} for:",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                PlayerIdentity(
-                    playerId = uiState.playerId,
-                    playerName = uiState.playerName,
+                DisplayIdentityTransferRow(
+                    from = DisplayIdentity.Bank,
+                    to = DisplayIdentity.Player(uiState.playerId, uiState.playerName),
                     iconSize = PlayerIconSize.Normal,
                 )
                 Text(
@@ -235,10 +252,9 @@ private fun PlayerDetailsBankActions(
                 )
             }
             PlayerDetailsStep.LocationConfirm -> {
-                Text("Location", style = MaterialTheme.typography.titleMedium)
-                PlayerIdentity(
-                    playerId = uiState.playerId,
-                    playerName = uiState.playerName,
+                DisplayIdentityTransferRow(
+                    from = DisplayIdentity.Player(uiState.playerId, uiState.playerName),
+                    to = DisplayIdentity.Bank,
                     iconSize = PlayerIconSize.Normal,
                 )
                 Text("Pay ${viewModel.locationFeeText()}?", style = MaterialTheme.typography.bodyLarge)
@@ -250,9 +266,9 @@ private fun PlayerDetailsBankActions(
                 )
             }
             PlayerDetailsStep.GoToJailConfirm -> {
-                PlayerIdentity(
-                    playerId = uiState.playerId,
-                    playerName = uiState.playerName,
+                DisplayIdentityTransferRow(
+                    from = DisplayIdentity.Player(uiState.playerId, uiState.playerName),
+                    to = DisplayIdentity.Jail,
                     iconSize = PlayerIconSize.Normal,
                 )
                 Text(
@@ -267,7 +283,10 @@ private fun PlayerDetailsBankActions(
                 )
             }
             PlayerDetailsStep.GetOutOfJailChoice -> {
-                Text("Get Out of Jail", style = MaterialTheme.typography.titleMedium)
+                DisplayIdentityIcon(
+                    identity = DisplayIdentity.Jail,
+                    iconSize = PlayerIconSize.Small,
+                )
                 Text(
                     "How would ${uiState.playerName} like to get out of Jail?",
                     style = MaterialTheme.typography.bodyLarge,

@@ -3,6 +3,7 @@ package com.boardbanker.app.audio
 import android.util.Log
 import com.boardbanker.app.BuildConfig
 import com.boardbanker.app.scanner.CardTypeValidation
+import com.boardbanker.core.card.CardResolution
 import com.boardbanker.core.card.CardType
 import com.boardbanker.core.scanner.ScanProcessorResult
 
@@ -27,12 +28,9 @@ object ScanAudioFeedback {
                 is ScanProcessorResult.CardResolved -> {
                     val resolution = result.resolution
                     when (validation) {
-                        CardTypeValidation.Accepted -> {
-                            if (resolution.cardType == CardType.USER) {
-                                logUserAudio(scanAttemptId, resolution.cardId)
-                                audio.playUserCard(resolution.cardId)
-                            }
-                        }
+                        CardTypeValidation.Accepted,
+                        null,
+                        -> playAcceptedScan(audio, resolution, scanAttemptId)
                         is CardTypeValidation.WrongType,
                         is CardTypeValidation.WrongCard,
                         -> {
@@ -41,12 +39,6 @@ object ScanAudioFeedback {
                                 audio.playUserCardThenError(resolution.cardId)
                             } else {
                                 audio.playError()
-                            }
-                        }
-                        null -> {
-                            if (resolution.cardType == CardType.USER) {
-                                logUserAudio(scanAttemptId, resolution.cardId)
-                                audio.playUserCard(resolution.cardId)
                             }
                         }
                     }
@@ -60,6 +52,19 @@ object ScanAudioFeedback {
                     // android.util.Log is not mocked in JVM unit tests.
                 }
             }
+        }
+    }
+
+    private fun playAcceptedScan(
+        audio: GameAudioFeedback,
+        resolution: CardResolution.Success,
+        scanAttemptId: Long?,
+    ) {
+        if (resolution.cardType == CardType.USER) {
+            logUserAudio(scanAttemptId, resolution.cardId)
+            audio.playUserCard(resolution.cardId)
+        } else {
+            audio.playScanAccepted()
         }
     }
 

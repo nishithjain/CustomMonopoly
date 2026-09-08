@@ -27,11 +27,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
 import com.boardbanker.app.ui.components.CardFrontImage
 import com.boardbanker.app.ui.components.GameplayResultPresentation
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
 import com.boardbanker.core.card.CardType
@@ -445,7 +447,10 @@ private fun ScanPromptContent(
 ) {
     Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
     Button(onClick = onScan, enabled = !commandInFlight, modifier = Modifier.fillMaxWidth()) {
-        Text(scanButtonLabel)
+        IconLabelRow(
+            icon = CommonUiIcon.SCAN_CARD,
+            label = scanButtonLabel,
+        )
     }
     if (showCancel) {
         BankingActionBar(

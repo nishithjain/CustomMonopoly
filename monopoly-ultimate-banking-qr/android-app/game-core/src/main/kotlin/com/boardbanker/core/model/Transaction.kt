@@ -13,6 +13,8 @@ data class Transaction(
     val toEntity: String? = null,
     val playerId: String? = null,
     val propertyId: String? = null,
+    val assetName: String? = null,
+    val assetType: PurchaseAssetType? = null,
     val eventId: String? = null,
     val amount: Int? = null,
     val stateBefore: JsonObject = JsonObject(emptyMap()),

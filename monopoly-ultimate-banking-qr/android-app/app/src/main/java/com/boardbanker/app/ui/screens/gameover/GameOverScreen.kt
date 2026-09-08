@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -17,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.CommonFilledActionButton
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,12 +44,16 @@ fun GameOverScreen(
                     showLargePrimaryPlayer = true,
                 )
             }
-            Button(onClick = onNavigateHome, modifier = Modifier.fillMaxWidth()) {
-                Text("RETURN HOME")
-            }
-            Button(onClick = onNewGame, modifier = Modifier.fillMaxWidth()) {
-                Text("NEW GAME")
-            }
+            CommonFilledActionButton(
+                icon = CommonUiIcon.RETURN_HOME,
+                label = "RETURN HOME",
+                onClick = onNavigateHome,
+            )
+            CommonFilledActionButton(
+                icon = CommonUiIcon.START_GAME,
+                label = "NEW GAME",
+                onClick = onNewGame,
+            )
         }
     }
 }

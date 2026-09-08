@@ -38,12 +38,22 @@ fun GameplayResultPresentation(
         val secondaryName = result.secondaryPlayerName
 
         if (result.primaryPlayerId != null && result.secondaryPlayerId != null && primaryName != null && secondaryName != null) {
+            val toIdentity = when (result.secondaryPlayerId) {
+                EntityRef.BANK -> DisplayIdentity.Bank
+                else -> DisplayIdentity.Player(result.secondaryPlayerId, secondaryName)
+            }
+            val fromIdentity = when (result.primaryPlayerId) {
+                EntityRef.BANK -> DisplayIdentity.Bank
+                else -> DisplayIdentity.Player(result.primaryPlayerId, primaryName)
+            }
             PlayerTransferRow(
                 fromPlayerId = result.primaryPlayerId,
                 fromPlayerName = primaryName,
                 toPlayerId = if (result.secondaryPlayerId == EntityRef.BANK) null else result.secondaryPlayerId,
                 toPlayerName = secondaryName,
                 iconSize = highlightIconSize,
+                fromIdentity = fromIdentity,
+                toIdentity = toIdentity,
             )
         } else if (result.primaryPlayerId != null && primaryName != null) {
             PlayerIdentity(

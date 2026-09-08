@@ -1,6 +1,8 @@
 package com.boardbanker.core.transaction
 
+import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PurchaseAssetType
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import kotlinx.serialization.json.JsonObject
@@ -15,6 +17,8 @@ class TransactionFactory {
         toEntity: String? = null,
         playerId: String? = null,
         propertyId: String? = null,
+        assetName: String? = null,
+        assetType: PurchaseAssetType? = null,
         eventId: String? = null,
         amount: Int? = null,
         stateBefore: JsonObject = JsonObject(emptyMap()),
@@ -31,6 +35,8 @@ class TransactionFactory {
             toEntity = toEntity,
             playerId = playerId,
             propertyId = propertyId,
+            assetName = assetName,
+            assetType = assetType,
             eventId = eventId,
             amount = amount,
             stateBefore = stateBefore,

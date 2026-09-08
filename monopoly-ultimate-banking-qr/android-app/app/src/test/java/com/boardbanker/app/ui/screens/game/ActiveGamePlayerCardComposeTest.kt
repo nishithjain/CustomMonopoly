@@ -2,6 +2,7 @@ package com.boardbanker.app.ui.screens.game
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.boardbanker.app.ui.theme.BankingQRTheme
@@ -70,6 +71,21 @@ class ActiveGamePlayerCardComposeTest {
         composeRule.onNodeWithText("Current Turn").assertDoesNotExist()
     }
 
+    @Test
+    fun jailedPlayerCardShowsJailIdentity() {
+        composeRule.setContent {
+            BankingQRTheme {
+                ActiveGamePlayerCard(
+                    player = samplePlayer(inJail = true),
+                    onClick = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Jail").assertIsDisplayed()
+        composeRule.onNodeWithText("In Jail").assertDoesNotExist()
+    }
+
     private fun samplePlayer(
         playerId: String = "USR_01",
         playerName: String = "Nishith",
@@ -78,6 +94,7 @@ class ActiveGamePlayerCardComposeTest {
         energyGridCount: Int = 0,
         assetsSummaryLine: String = "1 Property • 0 Energy Grids",
         isActiveTurn: Boolean = false,
+        inJail: Boolean = false,
         activeEventLines: List<String> = emptyList(),
     ) = PlayerDashboardUi(
         playerId = playerId,
@@ -87,7 +104,8 @@ class ActiveGamePlayerCardComposeTest {
         energyGridCount = energyGridCount,
         hasEnergyGridsInEdition = true,
         isActiveTurn = isActiveTurn,
-        statusText = "Active",
+        inJail = inJail,
+        statusText = if (inJail) "In Jail" else "Active",
         assetsSummaryLine = assetsSummaryLine,
         activeEventLines = activeEventLines,
     )

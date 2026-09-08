@@ -470,6 +470,11 @@ class GameplayResultMapper(
         val message = when (error) {
             is GameError.EventError -> error.message
             is GameError.Validation -> error.message
+            is GameError.NotActivePlayer -> {
+                val targetName = definitions.players[error.targetPlayerId]?.displayName ?: error.targetPlayerId
+                val activeName = definitions.players[error.activePlayerId]?.displayName ?: error.activePlayerId
+                "This action cannot be applied to $targetName because it is $activeName's turn."
+            }
             is GameError.InvalidState -> error.message
             is GameError.NotFound -> "${error.entity} not found: ${error.id}"
             is GameError.InsufficientFunds ->

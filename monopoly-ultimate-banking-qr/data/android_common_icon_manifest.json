@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "tools/sync_android_icons.py",
+  "icons": {
+    "ABANDON_GAME": {
+      "iconId": "ABANDON_GAME",
+      "name": "Abandon Game",
+      "sourceIconPath": "Resources/Common/Icons/abandon_game.png",
+      "drawableResource": "common_abandon_game",
+      "runtimePath": "res/drawable/common_abandon_game.png"
+    },
+    "ACCEPT_CARD": {
+      "iconId": "ACCEPT_CARD",
+      "name": "Accept Card",
+      "sourceIconPath": "Resources/Common/Icons/accept_card.png",
+      "drawableResource": "common_accept_card",
+      "runtimePath": "res/drawable/common_accept_card.png"
+    },
+    "BACK": {
+      "iconId": "BACK",
+      "name": "Back",
+      "sourceIconPath": "Resources/Common/Icons/back.png",
+      "drawableResource": "common_back",
+      "runtimePath": "res/drawable/common_back.png"
+    },
+    "BANK": {
+      "iconId": "BANK",
+      "name": "Bank",
+      "sourceIconPath": "Resources/Common/Icons/bank.png",
+      "drawableResource": "common_bank",
+      "runtimePath": "res/drawable/common_bank.png"
+    },
+    "CHECK": {
+      "iconId": "CHECK",
+      "name": "Check",
+      "sourceIconPath": "Resources/Common/Icons/check.png",
+      "drawableResource": "common_check",
+      "runtimePath": "res/drawable/common_check.png"
+    },
+    "COLLECT_GO": {
+      "iconId": "COLLECT_GO",
+      "name": "Collect GO",
+      "sourceIconPath": "Resources/Common/Icons/collect_go.png",
+      "drawableResource": "common_collect_go",
+      "runtimePath": "res/drawable/common_collect_go.png"
+    },
+    "COLLECT": {
+      "iconId": "COLLECT",
+      "name": "Collect",
+      "sourceIconPath": "Resources/Common/Icons/collect.png",
+      "drawableResource": "common_collect",
+      "runtimePath": "res/drawable/common_collect.png"
+    },
+    "CANCEL": {
+      "iconId": "CANCEL",
+      "name": "Cancel",
+      "sourceIconPath": "Resources/Common/Icons/cancel.png",
+      "drawableResource": "common_cancel",
+      "runtimePath": "res/drawable/common_cancel.png"
+    },
+    "END_GAME": {
+      "iconId": "END_GAME",
+      "name": "End Game",
+      "sourceIconPath": "Resources/Common/Icons/end_game.png",
+      "drawableResource": "common_end_game",
+      "runtimePath": "res/drawable/common_end_game.png"
+    },
+    "END_TURN": {
+      "iconId": "END_TURN",
+      "name": "End Turn",
+      "sourceIconPath": "Resources/Common/Icons/end_turn.png",
+      "drawableResource": "common_end_turn",
+      "runtimePath": "res/drawable/common_end_turn.png"
+    },
+    "GAME_STATUS": {
+      "iconId": "GAME_STATUS",
+      "name": "Game Status",
+      "sourceIconPath": "Resources/Common/Icons/gmae_status.png",
+      "drawableResource": "common_game_status",
+      "runtimePath": "res/drawable/common_game_status.png"
+    },
+    "JAIL": {
+      "iconId": "JAIL",
+      "name": "Jail",
+      "sourceIconPath": "Resources/Common/Icons/jail.png",
+      "drawableResource": "common_jail",
+      "runtimePath": "res/drawable/common_jail.png"
+    },
+    "LOCATION": {
+      "iconId": "LOCATION",
+      "name": "Location",
+      "sourceIconPath": "Resources/Common/Icons/location.png",
+      "drawableResource": "common_location",
+      "runtimePath": "res/drawable/common_location.png"
+    },
+    "RECENT_BANKING": {
+      "iconId": "RECENT_BANKING",
+      "name": "Recent Banking",
+      "sourceIconPath": "Resources/Common/Icons/recent_banking.png",
+      "drawableResource": "common_recent_banking",
+      "runtimePath": "res/drawable/common_recent_banking.png"
+    },
+    "SCAN_CARD": {
+      "iconId": "SCAN_CARD",
+      "name": "Scan Card",
+      "sourceIconPath": "Resources/Common/Icons/scan_card.png",
+      "drawableResource": "common_scan_card",
+      "runtimePath": "res/drawable/common_scan_card.png"
+    },
+    "START_GAME": {
+      "iconId": "START_GAME",
+      "name": "Start Game",
+      "sourceIconPath": "Resources/Common/Icons/start_game.png",
+      "drawableResource": "common_start_game",
+      "runtimePath": "res/drawable/common_start_game.png"
+    },
+    "RETURN_HOME": {
+      "iconId": "RETURN_HOME",
+      "name": "Return Home",
+      "sourceIconPath": "Resources/Common/Icons/return_home.png",
+      "drawableResource": "common_return_home",
+      "runtimePath": "res/drawable/common_return_home.png"
+    },
+    "UNDO_LAST_ACTION": {
+      "iconId": "UNDO_LAST_ACTION",
+      "name": "Undo Last Action",
+      "sourceIconPath": "Resources/Common/Icons/undo_last_action.png",
+      "drawableResource": "common_undo_last_action",
+      "runtimePath": "res/drawable/common_undo_last_action.png"
+    },
+    "AUCTION": {
+      "iconId": "AUCTION",
+      "name": "Auction",
+      "sourceIconPath": "Resources/Common/Icons/auction.png",
+      "drawableResource": "common_auction",
+      "runtimePath": "res/drawable/common_auction.png"
+    },
+    "BUY_PROPERTY": {
+      "iconId": "BUY_PROPERTY",
+      "name": "Buy Property",
+      "sourceIconPath": "Resources/Common/Icons/buy_property.png",
+      "drawableResource": "common_buy_property",
+      "runtimePath": "res/drawable/common_buy_property.png"
+    },
+    "CAMERA": {
+      "iconId": "CAMERA",
+      "name": "Camera",
+      "sourceIconPath": "Resources/Common/Icons/camera.png",
+      "drawableResource": "common_camera",
+      "runtimePath": "res/drawable/common_camera.png"
+    },
+    "COLOR_SET_COMPLETE": {
+      "iconId": "COLOR_SET_COMPLETE",
+      "name": "Color Set Complete",
+      "sourceIconPath": "Resources/Common/Icons/color_set_complete.png",
+      "drawableResource": "common_color_set_complete",
+      "runtimePath": "res/drawable/common_color_set_complete.png"
+    },
+    "CURRENT_TURN": {
+      "iconId": "CURRENT_TURN",
+      "name": "Current Turn",
+      "sourceIconPath": "Resources/Common/Icons/current_turn.png",
+      "drawableResource": "common_current_turn",
+      "runtimePath": "res/drawable/common_current_turn.png"
+    },
+    "DEBT": {
+      "iconId": "DEBT",
+      "name": "Debt",
+      "sourceIconPath": "Resources/Common/Icons/debt.png",
+      "drawableResource": "common_debt",
+      "runtimePath": "res/drawable/common_debt.png"
+    },
+    "DICE": {
+      "iconId": "DICE",
+      "name": "Dice",
+      "sourceIconPath": "Resources/Common/Icons/dice.png",
+      "drawableResource": "common_dice",
+      "runtimePath": "res/drawable/common_dice.png"
+    },
+    "DO_NOTHING": {
+      "iconId": "DO_NOTHING",
+      "name": "Do Nothing",
+      "sourceIconPath": "Resources/Common/Icons/do_nothing.png",
+      "drawableResource": "common_do_nothing",
+      "runtimePath": "res/drawable/common_do_nothing.png"
+    },
+    "ENERGY_GRID": {
+      "iconId": "ENERGY_GRID",
+      "name": "Energy Grid",
+      "sourceIconPath": "Resources/Common/Icons/energy_grid.png",
+      "drawableResource": "common_energy_grid",
+      "runtimePath": "res/drawable/common_energy_grid.png"
+    },
+    "ERROR": {
+      "iconId": "ERROR",
+      "name": "Error",
+      "sourceIconPath": "Resources/Common/Icons/error.png",
+      "drawableResource": "common_error",
+      "runtimePath": "res/drawable/common_error.png"
+    },
+    "EVENT_CARD": {
+      "iconId": "EVENT_CARD",
+      "name": "Event Card",
+      "sourceIconPath": "Resources/Common/Icons/event_card.png",
+      "drawableResource": "common_event_card",
+      "runtimePath": "res/drawable/common_event_card.png"
+    },
+    "LUCKY_DRAW": {
+      "iconId": "LUCKY_DRAW",
+      "name": "Lucky Draw",
+      "sourceIconPath": "Resources/Common/Icons/lucky_draw.png",
+      "drawableResource": "common_lucky_draw",
+      "runtimePath": "res/drawable/common_lucky_draw.png"
+    },
+    "MONEY_TRANSFER": {
+      "iconId": "MONEY_TRANSFER",
+      "name": "Money Transfer",
+      "sourceIconPath": "Resources/Common/Icons/money_transfer.png",
+      "drawableResource": "common_money_transfer",
+      "runtimePath": "res/drawable/common_money_transfer.png"
+    },
+    "PLAYER_DETAILS": {
+      "iconId": "PLAYER_DETAILS",
+      "name": "Player Details",
+      "sourceIconPath": "Resources/Common/Icons/player_details.png",
+      "drawableResource": "common_player_details",
+      "runtimePath": "res/drawable/common_player_details.png"
+    },
+    "PROPERTY": {
+      "iconId": "PROPERTY",
+      "name": "Property",
+      "sourceIconPath": "Resources/Common/Icons/property.png",
+      "drawableResource": "common_property",
+      "runtimePath": "res/drawable/common_property.png"
+    },
+    "RENT": {
+      "iconId": "RENT",
+      "name": "Rent",
+      "sourceIconPath": "Resources/Common/Icons/rent.png",
+      "drawableResource": "common_rent",
+      "runtimePath": "res/drawable/common_rent.png"
+    },
+    "RENT_DECREASE": {
+      "iconId": "RENT_DECREASE",
+      "name": "Rent Decrease",
+      "sourceIconPath": "Resources/Common/Icons/rent_decrease.png",
+      "drawableResource": "common_rent_decrease",
+      "runtimePath": "res/drawable/common_rent_decrease.png"
+    },
+    "RENT_INCREASE": {
+      "iconId": "RENT_INCREASE",
+      "name": "Rent Increase",
+      "sourceIconPath": "Resources/Common/Icons/rent_increase.png",
+      "drawableResource": "common_rent_increase",
+      "runtimePath": "res/drawable/common_rent_increase.png"
+    },
+    "RESUME_GAME": {
+      "iconId": "RESUME_GAME",
+      "name": "Resume Game",
+      "sourceIconPath": "Resources/Common/Icons/resume_game.png",
+      "drawableResource": "common_resume_game",
+      "runtimePath": "res/drawable/common_resume_game.png"
+    }
+  }
+}

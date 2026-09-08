@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,12 +31,20 @@ import com.boardbanker.app.banking.UndoAuthorizationController
 import com.boardbanker.app.banking.UndoAuthorizationPhase
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.scanner.ScanRequest
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.BackActionButton
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.BankingExtraAction
+import com.boardbanker.app.ui.components.CommonFilledActionButton
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityIcon
+import com.boardbanker.app.ui.components.DisplayIdentityTransferRow
 import com.boardbanker.app.ui.components.GameplayResultPresentation
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
+import com.boardbanker.app.ui.components.TopBarIconTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,9 +60,7 @@ fun AdvancedBankingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    BackHandler(enabled = uiState.step == AdvancedBankingStep.UndoAuthorization) {
-        viewModel.onCancelUndo()
-    }
+    BackHandler { viewModel.onBack() }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -81,9 +88,11 @@ fun AdvancedBankingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("BANK ACTIONS") },
-                navigationIcon = {
-                    TextButton(onClick = viewModel::onBack) { Text("BACK") }
+                title = {
+                    TopBarIconTitle(
+                        icon = CommonUiIcon.BANK,
+                        title = "BANK ACTIONS",
+                    )
                 },
             )
         },
@@ -117,34 +126,30 @@ fun AdvancedBankingScreen(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
-                        Button(
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.COLLECT_GO,
+                            label = "COLLECT GO",
                             onClick = viewModel::onCollectGo,
                             enabled = eligibility.collectGoEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("COLLECT GO")
-                        }
-                        Button(
+                        )
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.LOCATION,
+                            label = "LOCATION",
                             onClick = viewModel::onLocation,
                             enabled = eligibility.locationEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("LOCATION")
-                        }
-                        Button(
+                        )
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.JAIL,
+                            label = "GO TO JAIL",
                             onClick = viewModel::onGoToJail,
                             enabled = eligibility.goToJailEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("GO TO JAIL")
-                        }
-                        Button(
+                        )
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.JAIL,
+                            label = "GET OUT OF JAIL",
                             onClick = viewModel::onGetOutOfJail,
                             enabled = eligibility.getOutOfJailEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("GET OUT OF JAIL")
-                        }
+                        )
                         if (eligibility.activePlayerInJail) {
                             Text(
                                 "Collect GO and Location are unavailable while the active player is in Jail.",
@@ -156,31 +161,34 @@ fun AdvancedBankingScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
-                        Button(
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.UNDO_LAST_ACTION,
+                            label = "UNDO LAST ACTION",
                             onClick = viewModel::onUndo,
                             enabled = uiState.canUndo,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text("UNDO LAST ACTION")
-                        }
+                        )
                         if (!uiState.canUndo) {
                             Text(
                                 "Nothing can currently be undone.",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
-                        Button(onClick = viewModel::onGameStatus, modifier = Modifier.fillMaxWidth()) {
-                            Text("GAME STATUS")
-                        }
-                        Button(onClick = viewModel::onHistory, modifier = Modifier.fillMaxWidth()) {
-                            Text("RECENT BANKING")
-                        }
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.GAME_STATUS,
+                            label = "GAME STATUS",
+                            onClick = viewModel::onGameStatus,
+                        )
+                        CommonFilledActionButton(
+                            icon = CommonUiIcon.RECENT_BANKING,
+                            label = "RECENT BANKING",
+                            onClick = viewModel::onHistory,
+                        )
                     }
                 }
                 is AdvancedBankingStep.GoConfirm -> {
-                    PlayerIdentity(
-                        playerId = step.playerId,
-                        playerName = viewModel.playerDisplayName(step.playerId),
+                    DisplayIdentityTransferRow(
+                        from = DisplayIdentity.Bank,
+                        to = DisplayIdentity.Player(step.playerId, viewModel.playerDisplayName(step.playerId)),
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
@@ -210,6 +218,7 @@ fun AdvancedBankingScreen(
                                 label = "DO NOTHING",
                                 onClick = viewModel::onLocationDoNothing,
                                 contentDescription = "Do nothing for location",
+                                icon = CommonUiIcon.DO_NOTHING,
                             ),
                         ),
                         cancelLabel = BankingActionLabels.cancel("BACK"),
@@ -217,9 +226,9 @@ fun AdvancedBankingScreen(
                     )
                 }
                 is AdvancedBankingStep.LocationConfirmPlayer -> {
-                    PlayerIdentity(
-                        playerId = step.playerId,
-                        playerName = viewModel.playerDisplayName(step.playerId),
+                    DisplayIdentityTransferRow(
+                        from = DisplayIdentity.Player(step.playerId, viewModel.playerDisplayName(step.playerId)),
+                        to = DisplayIdentity.Bank,
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
@@ -236,9 +245,9 @@ fun AdvancedBankingScreen(
                     )
                 }
                 is AdvancedBankingStep.GoToJailConfirm -> {
-                    PlayerIdentity(
-                        playerId = step.playerId,
-                        playerName = viewModel.playerDisplayName(step.playerId),
+                    DisplayIdentityTransferRow(
+                        from = DisplayIdentity.Player(step.playerId, viewModel.playerDisplayName(step.playerId)),
+                        to = DisplayIdentity.Jail,
                         iconSize = PlayerIconSize.Normal,
                     )
                     Text(
@@ -260,7 +269,10 @@ fun AdvancedBankingScreen(
                         playerName = viewModel.playerDisplayName(step.playerId),
                         iconSize = PlayerIconSize.Normal,
                     )
-                    Text("GET OUT OF JAIL", style = MaterialTheme.typography.titleMedium)
+                    DisplayIdentityIcon(
+                        identity = DisplayIdentity.Jail,
+                        iconSize = PlayerIconSize.Small,
+                    )
                     Text(
                         "How would ${viewModel.playerDisplayName(step.playerId)} like to get out of Jail?",
                         style = MaterialTheme.typography.bodyLarge,
@@ -282,6 +294,7 @@ fun AdvancedBankingScreen(
                                         label = "SCAN GET OUT OF JAIL PASS",
                                         onClick = { viewModel.onScanJailPass(step.playerId) },
                                         contentDescription = "Scan Get out of Jail Pass Event Card",
+                                        icon = CommonUiIcon.SCAN_CARD,
                                     ),
                                 )
                             }
@@ -312,7 +325,10 @@ fun AdvancedBankingScreen(
                         playerName = viewModel.playerDisplayName(step.playerId),
                         iconSize = PlayerIconSize.Normal,
                     )
-                    Text("IN JAIL", style = MaterialTheme.typography.titleMedium)
+                    DisplayIdentityIcon(
+                        identity = DisplayIdentity.Jail,
+                        iconSize = PlayerIconSize.Small,
+                    )
                     val jailPassLabel = viewModel.jailPassActionLabel(step.playerId)
                     BankingActionBar(
                         confirmLabel = BankingActionLabels.confirm("PAY ${viewModel.jailFeeText()} TO LEAVE JAIL"),
@@ -366,6 +382,13 @@ fun AdvancedBankingScreen(
 
             uiState.result?.let { result ->
                 BankingResultContent(result = result, onDone = viewModel::onDone)
+            }
+
+            if (uiState.step == AdvancedBankingStep.Hub) {
+                BackActionButton(
+                    onClick = viewModel::onBack,
+                    testTag = "bank_actions_back",
+                )
             }
         }
     }
@@ -430,13 +453,17 @@ private fun UndoAuthorizationContent(
         )
     }
     if (authorization.phase == UndoAuthorizationPhase.COLLECTING) {
-        Button(onClick = onScan, modifier = Modifier.fillMaxWidth()) {
-            Text("SCAN PLAYER CARD")
-        }
+        CommonFilledActionButton(
+            icon = CommonUiIcon.SCAN_CARD,
+            label = "SCAN PLAYER CARD",
+            onClick = onScan,
+        )
     }
-    Button(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
-        Text("CANCEL UNDO")
-    }
+    CommonFilledActionButton(
+        icon = CommonUiIcon.CANCEL,
+        label = "CANCEL UNDO",
+        onClick = onCancel,
+    )
 }
 
 @Composable

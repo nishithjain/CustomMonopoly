@@ -26,6 +26,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityIcon
 import com.boardbanker.app.ui.components.PlayerIconSize
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.util.pluralize
@@ -149,15 +151,18 @@ private fun PlayerSummaryCard(uiState: PlayerDetailsUiState) {
                     text = uiState.balanceText,
                     style = MaterialTheme.typography.headlineSmall,
                 )
-                Text(
-                    text = uiState.playerStatusText,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (uiState.inJail) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                )
+                if (uiState.inJail) {
+                    DisplayIdentityIcon(
+                        identity = DisplayIdentity.Jail,
+                        iconSize = PlayerIconSize.Small,
+                    )
+                } else {
+                    Text(
+                        text = uiState.playerStatusText,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
 
             Row(

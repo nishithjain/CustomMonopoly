@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -123,6 +124,13 @@ def main() -> int:
 
     print("\nGENERATED RUNTIME ASSETS — DO NOT EDIT DIRECTLY")
     print("Authoritative source: data/common and data/editions")
+
+    icons_script = Path(__file__).resolve().parent / "sync_android_icons.py"
+    icon_result = subprocess.run([sys.executable, str(icons_script)], check=False)
+    if icon_result.returncode != 0:
+        print("sync_android_icons.py failed.", file=sys.stderr)
+        return icon_result.returncode
+
     return 0
 
 

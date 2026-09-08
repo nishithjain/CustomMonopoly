@@ -588,6 +588,12 @@ class GameViewModel(
                     workflowController.reset()
                     transientWorkflow.resetToReady()
                     locationWorkflowHolder.clear()
+                    GameplayOutcomeAudio.playCommittedOutcome(
+                        gameAudioFeedback,
+                        commit.result,
+                        sessionBefore,
+                        CommitAudioTrigger.Banking(GameCommand.EndTurn(activePlayerId)),
+                    )
                     completeCommandUiSync(commit.session) {
                         it.copy(
                             workflowState = GameplayWorkflowState.Ready,
@@ -692,7 +698,7 @@ class GameViewModel(
                             status = commit.session.status,
                         )
                     }
-                    gameEndAudioCoordinator.onBankruptcyCommitted(gameAudioFeedback)
+                    gameEndAudioCoordinator.onGameConcludedForWinnerPresentation()
                     _events.emit(GameEvent.NavigateToGameOver)
                 }
                 else -> {

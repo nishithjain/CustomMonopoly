@@ -1036,7 +1036,10 @@ class DefaultGameEngine(
         val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
             ?: return GameError.Validation("No active player for bank action.")
         if (playerId != activePlayerId) {
-            return GameError.Validation("Bank actions apply only to the active player during their turn.")
+            return GameError.NotActivePlayer(
+                targetPlayerId = playerId,
+                activePlayerId = activePlayerId,
+            )
         }
         return null
     }

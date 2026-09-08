@@ -17,31 +17,65 @@ interface GameAudioFeedback {
 
     fun playScanPrompt()
 
+    /** Successful QR recognition for non-user cards (property, event, energy grid). */
+    fun playScanAccepted()
+
     fun playGameStarted()
 
     fun playPropertyPurchased()
+
+    fun playEnergyGridPurchased()
 
     fun playColorSetComplete()
 
     fun playRentTransfer()
 
+    fun playRentRelief()
+
     fun playRentLevelIncreased()
 
     fun playRentLevelDecreased()
 
+    fun playPropertySold()
+
     fun playGo()
+
+    fun playLocation()
 
     fun playGoToJail()
 
-    fun playJail()
+    fun playJailRelease()
+
+    fun playJailPass()
 
     fun playAuctionBegins()
 
     fun playAuctionEnding()
 
-    fun playKaChing()
+    fun playBankCredit()
 
-    fun playMoneyLost()
+    fun playBankDebit()
+
+    fun playMoneyTransfer()
+
+    fun playEventApplied()
+
+    fun playTurnChanged()
+
+    fun playTurnSkipped()
+
+    fun playExtraTurn()
+
+    fun playDiceRoll()
+
+    fun playMovePlayer()
+
+    fun playLuckyDraw()
+
+    /**
+     * Plays short gameplay cues in order without overlap.
+     */
+    fun playSoundSequence(steps: List<() -> Unit>, gapBetweenMs: Long = DEFAULT_SEQUENCE_GAP_MS)
 
     fun playUndo()
 
@@ -52,4 +86,8 @@ interface GameAudioFeedback {
     fun playWinner()
 
     fun release()
+
+    companion object {
+        const val DEFAULT_SEQUENCE_GAP_MS = 500L
+    }
 }

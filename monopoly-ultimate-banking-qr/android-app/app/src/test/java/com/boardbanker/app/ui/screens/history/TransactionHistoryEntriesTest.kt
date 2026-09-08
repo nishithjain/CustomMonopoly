@@ -1,6 +1,7 @@
 package com.boardbanker.app.ui.screens.history
 
 import com.boardbanker.app.AppTestSupport
+import com.boardbanker.app.ui.components.DisplayIdentity
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.PropertyDisplayNames
@@ -40,8 +41,10 @@ class TransactionHistoryEntriesTest {
 
         assertEquals("Rent payment", rentEntry.title)
         val detail = rentEntry.detail as HistoryDetail.PlayerTransfer
-        assertEquals("Aditya", detail.fromPlayerName)
-        assertEquals("Nishith", detail.toPlayerName)
+        assertEquals("Aditya", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals("USR_02", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Nishith", (detail.to as DisplayIdentity.Player).playerName)
+        assertEquals("USR_01", (detail.to as DisplayIdentity.Player).playerId)
         assertEquals(MoneyFormatter.format(expectedRent, definitions), detail.amount)
     }
 
@@ -201,10 +204,16 @@ class TransactionHistoryEntriesTest {
             ),
         ).session
 
-        val entry = TransactionHistoryEntries.build(session, definitions).first()
+        val entries = TransactionHistoryEntries.build(session, definitions)
 
-        assertEquals("Event: Pick Your Own", entry.title)
-        assertTrue((entry.detail as HistoryDetail.Text).value.contains("Aditya"))
+        assertEquals(1, entries.size)
+        val entry = entries.single()
+        assertEquals("Jail", entry.title)
+        assertEquals("Sent to Jail", entry.subtitle)
+        val detail = entry.detail as HistoryDetail.PlayerTransfer
+        assertEquals("USR_02", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Aditya", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Jail, detail.to)
     }
 
     @Test
@@ -216,10 +225,100 @@ class TransactionHistoryEntriesTest {
         ).session
 
         val purchaseEntry = TransactionHistoryEntries.build(session, definitions)
-            .single { it.title == "Property purchase" }
-        val detail = purchaseEntry.detail
+            .single { it.title.startsWith("Property Purchase →") }
+        val detail = purchaseEntry.detail as HistoryDetail.PlayerTransfer
 
-        assertTrue(detail.toString(), detail is HistoryDetail.PlayerTransfer)
+        assertEquals("Property Purchase → [1] Old Kent Road", purchaseEntry.title)
+        assertEquals("USR_01", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Nishith", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Bank, detail.to)
+        assertEquals(
+            MoneyFormatter.format(definitions.properties["PRP_01"]!!.purchasePrice, definitions),
+            detail.amount,
+        )
+    }
+
+    @Test
+    fun energyGridPurchaseShowsPurchaserAssetAndBankTransfer() {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(com.boardbanker.core.model.EditionIds.INDIA)
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(indiaDefinitions)
+        var session = AppTestSupport.newGameForEdition(com.boardbanker.core.model.EditionIds.INDIA)
+        session = indiaEngine.process(
+            session,
+            GameCommand.PurchaseEnergyGrid("USR_01", "ENG_01"),
+        ).session
+
+        val purchaseTx = session.transactions.single {
+            it.transactionType == TransactionType.ENERGY_GRID_PURCHASE
+        }
+        assertEquals("USR_01", purchaseTx.playerId)
+        assertEquals("ENG_01", purchaseTx.propertyId)
+        assertEquals("[15] Solar Energy", purchaseTx.assetName)
+        assertEquals(com.boardbanker.core.model.PurchaseAssetType.ENERGY_GRID, purchaseTx.assetType)
+
+        val purchaseEntry = TransactionHistoryEntries.build(session, indiaDefinitions)
+            .single { it.title.startsWith("Energy Grid Purchase →") }
+        val detail = purchaseEntry.detail as HistoryDetail.PlayerTransfer
+
+        assertEquals("Energy Grid Purchase → [15] Solar Energy", purchaseEntry.title)
+        assertEquals("USR_01", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Nishith", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Bank, detail.to)
+        assertEquals(
+            MoneyFormatter.format(indiaDefinitions.energyGrids["ENG_01"]!!.purchasePrice, indiaDefinitions),
+            detail.amount,
+        )
+    }
+
+    @Test
+    fun indiaPropertyPurchaseShowsNamedAssetInTitle() {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(com.boardbanker.core.model.EditionIds.INDIA)
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(indiaDefinitions)
+        var session = AppTestSupport.newGameForEdition(com.boardbanker.core.model.EditionIds.INDIA)
+        session = indiaEngine.process(
+            session,
+            GameCommand.PurchaseProperty("USR_01", "PRP_05"),
+        ).session
+
+        val purchaseEntry = TransactionHistoryEntries.build(session, indiaDefinitions)
+            .single { it.title.startsWith("Property Purchase →") }
+
+        assertEquals("Property Purchase → [5] Juhu Beach", purchaseEntry.title)
+        val detail = purchaseEntry.detail as HistoryDetail.PlayerTransfer
+        assertEquals(
+            MoneyFormatter.format(indiaDefinitions.properties["PRP_05"]!!.purchasePrice, indiaDefinitions),
+            detail.amount,
+        )
+    }
+
+    @Test
+    fun legacyPurchaseWithoutMetadataUsesFallbackDescription() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.ENERGY_GRID_PURCHASE,
+                    fromEntity = "USR_01",
+                    toEntity = EntityRef.BANK,
+                    playerId = "USR_01",
+                    propertyId = "ENG_99",
+                    amount = 20_000,
+                ),
+            ),
+        )
+
+        val entry = TransactionHistoryEntries.build(
+            session,
+            AppTestSupport.editionRepository.load(com.boardbanker.core.model.EditionIds.INDIA),
+        ).single()
+
+        assertEquals("Energy grid purchase", entry.title)
+        val detail = entry.detail as HistoryDetail.PlayerTransfer
+        assertEquals("USR_01", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals(DisplayIdentity.Bank, detail.to)
     }
 
     @Test
@@ -234,12 +333,12 @@ class TransactionHistoryEntriesTest {
         val undoEntry = TransactionHistoryEntries.build(session, definitions).first()
 
         assertEquals("Undo", undoEntry.title)
-        assertEquals("Reverted: Property purchase", undoEntry.subtitle)
+        assertEquals("Reverted: Property Purchase → [1] Old Kent Road", undoEntry.subtitle)
         val detail = undoEntry.detail
         assertTrue(detail is HistoryDetail.PlayerTransfer)
         detail as HistoryDetail.PlayerTransfer
-        assertEquals("Nishith", detail.fromPlayerName)
-        assertEquals("Bank", detail.toPlayerName)
+        assertEquals("Nishith", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Bank, detail.to)
         assertEquals(
             MoneyFormatter.format(definitions.properties["PRP_01"]!!.purchasePrice, definitions),
             detail.amount,
@@ -262,7 +361,7 @@ class TransactionHistoryEntriesTest {
         session = AppTestSupport.engine.process(session, GameCommand.UndoLastAction).session
 
         val entries = TransactionHistoryEntries.build(session, definitions)
-        val purchases = entries.filter { it.title == "Property purchase" }
+        val purchases = entries.filter { it.title.startsWith("Property Purchase") }
 
         assertEquals("Undo", entries[0].title)
         assertTrue(purchases.any { it.undone })
@@ -520,6 +619,43 @@ class TransactionHistoryEntriesTest {
 
         assertEquals(1, entries.size)
         assertEquals("Jail", entries.single().title)
-        assertTrue((entries.single().detail as HistoryDetail.Text).value.isNotBlank())
+        assertEquals("Get out of Jail fee", entries.single().subtitle)
+        val detail = entries.single().detail as HistoryDetail.PlayerTransfer
+        assertEquals("USR_01", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Nishith", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Bank, detail.to)
+    }
+
+    @Test
+    fun payJailFeeShowsPlayerTransferWithIcons() {
+        val base = AppTestSupport.newGame()
+        val shared = listOf(
+            Transaction(
+                transactionId = "${base.gameId}_TX_1",
+                gameId = base.gameId,
+                timestamp = 5_000L,
+                transactionType = TransactionType.BANK_DEBIT,
+                fromEntity = "USR_02",
+                toEntity = EntityRef.BANK,
+                playerId = "USR_02",
+                amount = 100,
+            ),
+            Transaction(
+                transactionId = "${base.gameId}_TX_2",
+                gameId = base.gameId,
+                timestamp = 5_000L,
+                transactionType = TransactionType.JAIL_STATUS_CHANGE,
+                playerId = "USR_02",
+            ),
+        )
+
+        val entries = TransactionHistoryEntries.build(base.copy(transactions = shared), definitions)
+
+        assertEquals(1, entries.size)
+        val detail = entries.single().detail as HistoryDetail.PlayerTransfer
+        assertEquals("USR_02", (detail.from as DisplayIdentity.Player).playerId)
+        assertEquals("Aditya", (detail.from as DisplayIdentity.Player).playerName)
+        assertEquals(DisplayIdentity.Bank, detail.to)
+        assertEquals("Get out of Jail fee", entries.single().subtitle)
     }
 }

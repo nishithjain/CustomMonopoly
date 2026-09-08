@@ -7,10 +7,13 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.EnergyGridState
 import com.boardbanker.core.model.GameStatus
+import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.model.PropertyState
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.model.PurchaseAssetType
+import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.transaction.TransactionFactory
 
 class DebtRules(
@@ -323,6 +326,8 @@ class DebtRules(
                     type = TransactionType.JAIL_STATUS_CHANGE,
                     timestamp = timestamp,
                     playerId = debtorId,
+                    stateBefore = JailStatusSnapshot.stateBefore(true),
+                    stateAfter = JailStatusSnapshot.stateAfter(false),
                 )
                 DebtResult.success(sessionAfter, listOf(tx))
             }
@@ -353,6 +358,8 @@ class DebtRules(
             toEntity = EntityRef.BANK,
             playerId = buyerId,
             propertyId = propertyId,
+            assetName = propertyDef.displayNameWithNumber(),
+            assetType = PurchaseAssetType.PROPERTY,
             amount = propertyDef.purchasePrice,
         )
         updatedSession = sessionAfter

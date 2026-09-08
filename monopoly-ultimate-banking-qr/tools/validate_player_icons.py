@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate generated Android player icon resources and registry coverage."""
+"""Validate generated Android player and common icon resources and registry coverage."""
 
 from __future__ import annotations
 
@@ -8,13 +8,58 @@ import sys
 from pathlib import Path
 
 REPORT_NAME = "player_icon_validation.txt"
-MANIFEST_NAME = "android_player_icon_manifest.json"
-EXPECTED = {
+PLAYER_MANIFEST_NAME = "android_player_icon_manifest.json"
+COMMON_MANIFEST_NAME = "android_common_icon_manifest.json"
+EXPECTED_PLAYERS = {
     "USR_01": ("Car", "player_car.png"),
     "USR_02": ("Helicopter", "player_helicopter.png"),
     "USR_03": ("Ship", "player_ship.png"),
     "USR_04": ("Aeroplane", "player_aeroplane.png"),
 }
+EXPECTED_COMMON = {
+    "ABANDON_GAME": ("Abandon Game", "common_abandon_game.png"),
+    "ACCEPT_CARD": ("Accept Card", "common_accept_card.png"),
+    "BACK": ("Back", "common_back.png"),
+    "BANK": ("Bank", "common_bank.png"),
+    "CHECK": ("Check", "common_check.png"),
+    "COLLECT_GO": ("Collect GO", "common_collect_go.png"),
+    "COLLECT": ("Collect", "common_collect.png"),
+    "CANCEL": ("Cancel", "common_cancel.png"),
+    "END_GAME": ("End Game", "common_end_game.png"),
+    "END_TURN": ("End Turn", "common_end_turn.png"),
+    "GAME_STATUS": ("Game Status", "common_game_status.png"),
+    "JAIL": ("Jail", "common_jail.png"),
+    "LOCATION": ("Location", "common_location.png"),
+    "RECENT_BANKING": ("Recent Banking", "common_recent_banking.png"),
+    "RETURN_HOME": ("Return Home", "common_return_home.png"),
+    "SCAN_CARD": ("Scan Card", "common_scan_card.png"),
+    "START_GAME": ("Start Game", "common_start_game.png"),
+    "DICE": ("Dice", "common_dice.png"),
+    "DO_NOTHING": ("Do Nothing", "common_do_nothing.png"),
+    "ENERGY_GRID": ("Energy Grid", "common_energy_grid.png"),
+    "UNDO_LAST_ACTION": ("Undo Last Action", "common_undo_last_action.png"),
+}
+EXPECTED_COMMON_SOURCE_FILES = [
+    "abandon_game.png",
+    "accept_card.png",
+    "back.png",
+    "bank.png",
+    "cancel.png",
+    "check.png",
+    "collect.png",
+    "collect_go.png",
+    "do_nothing.png",
+    "end_game.png",
+    "end_turn.png",
+    "gmae_status.png",
+    "jail.png",
+    "location.png",
+    "recent_banking.png",
+    "return_home.png",
+    "scan_card.png",
+    "start_game.png",
+    "undo_last_action.png",
+]
 
 
 def find_workspace_root() -> Path:
@@ -40,11 +85,11 @@ def find_project_root(workspace_root: Path) -> Path:
 
 
 def main() -> int:
-    tools_dir = Path(__file__).resolve().parent
     workspace_root = find_workspace_root()
     project_root = find_project_root(workspace_root)
     report_path = project_root / "data" / REPORT_NAME
-    manifest_path = project_root / "data" / MANIFEST_NAME
+    player_manifest_path = project_root / "data" / PLAYER_MANIFEST_NAME
+    common_manifest_path = project_root / "data" / COMMON_MANIFEST_NAME
     drawable_dir = project_root / "android-app" / "app" / "src" / "main" / "res" / "drawable"
     app_root = project_root / "android-app" / "app" / "src" / "main" / "java" / "com" / "boardbanker" / "app"
     game_core = project_root / "android-app" / "game-core" / "src"
@@ -54,32 +99,57 @@ def main() -> int:
     icons_dir = workspace_root / "Resources" / "Common" / "Icons"
     if not icons_dir.is_dir():
         problems.append("Resources/Common/Icons directory missing")
-    for icon_name in ["Car.png", "Helicopter.png", "Ship.png", "Aeroplane.png"]:
+    for icon_name in ["Car.png", "Helicopter.png", "Ship.png", "Aeroplane.png"] + EXPECTED_COMMON_SOURCE_FILES:
         if not (icons_dir / icon_name).is_file():
             problems.append(f"Missing source icon: Resources/Common/Icons/{icon_name}")
 
-    if not manifest_path.is_file():
-        problems.append(f"Missing manifest: data/{MANIFEST_NAME}")
-        manifest = {}
+    if not player_manifest_path.is_file():
+        problems.append(f"Missing manifest: data/{PLAYER_MANIFEST_NAME}")
+        player_manifest = {}
     else:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8")).get("players", {})
+        player_manifest = json.loads(player_manifest_path.read_text(encoding="utf-8")).get("players", {})
 
-    for player_id, (name, drawable_file) in EXPECTED.items():
+    if not common_manifest_path.is_file():
+        problems.append(f"Missing manifest: data/{COMMON_MANIFEST_NAME}")
+        common_manifest = {}
+    else:
+        common_manifest = json.loads(common_manifest_path.read_text(encoding="utf-8")).get("icons", {})
+
+    for player_id, (name, drawable_file) in EXPECTED_PLAYERS.items():
         drawable_path = drawable_dir / drawable_file
         if not drawable_path.is_file():
             problems.append(f"Missing Android drawable: res/drawable/{drawable_file}")
-        entry = manifest.get(player_id)
+        entry = player_manifest.get(player_id)
         if entry is None:
             problems.append(f"Missing manifest entry for {player_id}")
         elif entry.get("drawableResource") != drawable_file.removesuffix(".png"):
             problems.append(f"{player_id} manifest drawable mismatch")
 
+    for icon_id, (name, drawable_file) in EXPECTED_COMMON.items():
+        drawable_path = drawable_dir / drawable_file
+        if not drawable_path.is_file():
+            problems.append(f"Missing Android drawable: res/drawable/{drawable_file}")
+        entry = common_manifest.get(icon_id)
+        if entry is None:
+            problems.append(f"Missing common manifest entry for {icon_id}")
+        elif entry.get("drawableResource") != drawable_file.removesuffix(".png"):
+            problems.append(f"{icon_id} manifest drawable mismatch")
+
     registry_path = app_root / "player" / "PlayerIconRegistry.kt"
+    common_registry_path = app_root / "player" / "CommonIconRegistry.kt"
     identity_path = app_root / "ui" / "components" / "PlayerIdentity.kt"
+    display_identity_path = app_root / "ui" / "components" / "DisplayIdentity.kt"
+    common_ui_icon_path = app_root / "ui" / "components" / "CommonUiIcon.kt"
     if not registry_path.is_file():
         problems.append("PlayerIconRegistry.kt missing")
+    if not common_registry_path.is_file():
+        problems.append("CommonIconRegistry.kt missing")
     if not identity_path.is_file():
         problems.append("PlayerIdentity component missing")
+    if not display_identity_path.is_file():
+        problems.append("DisplayIdentity component missing")
+    if not common_ui_icon_path.is_file():
+        problems.append("CommonUiIcon component missing")
 
     image_hits: list[str] = []
     for path in game_core.rglob("*"):
@@ -101,11 +171,17 @@ def main() -> int:
         f"Project root:   {project_root}",
         "",
         f"Source icons directory: {'PASS' if icons_dir.is_dir() else 'FAIL'}",
-        f"Source icon files: {sum(1 for n in ['Car.png','Helicopter.png','Ship.png','Aeroplane.png'] if (icons_dir / n).is_file())} / 4",
-        f"Android drawable resources: {sum(1 for _, (_, f) in EXPECTED.items() if (drawable_dir / f).is_file())} / 4",
-        f"Manifest entries: {len(manifest)} / 4",
+        f"Source player icon files: {sum(1 for n in ['Car.png','Helicopter.png','Ship.png','Aeroplane.png'] if (icons_dir / n).is_file())} / 4",
+        f"Source common icon files: {sum(1 for n in EXPECTED_COMMON_SOURCE_FILES if (icons_dir / n).is_file())} / {len(EXPECTED_COMMON_SOURCE_FILES)}",
+        f"Android player drawables: {sum(1 for _, (_, f) in EXPECTED_PLAYERS.items() if (drawable_dir / f).is_file())} / 4",
+        f"Android common drawables: {sum(1 for _, (_, f) in EXPECTED_COMMON.items() if (drawable_dir / f).is_file())} / {len(EXPECTED_COMMON)}",
+        f"Player manifest entries: {len(player_manifest)} / 4",
+        f"Common manifest entries: {len(common_manifest)} / {len(EXPECTED_COMMON)}",
         f"PlayerIconRegistry: {'PASS' if registry_path.is_file() else 'FAIL'}",
+        f"CommonIconRegistry: {'PASS' if common_registry_path.is_file() else 'FAIL'}",
         f"PlayerIdentity component: {'PASS' if identity_path.is_file() else 'FAIL'}",
+        f"DisplayIdentity component: {'PASS' if display_identity_path.is_file() else 'FAIL'}",
+        f"CommonUiIcon component: {'PASS' if common_ui_icon_path.is_file() else 'FAIL'}",
         f"game-core image resources: {len(image_hits)}",
         "",
     ]
@@ -116,7 +192,8 @@ def main() -> int:
         lines.append("RESULT: PASS")
         lines.append("- All source and runtime icons present")
         lines.append("- USR_01..USR_04 mappings correct")
-        lines.append("- Reusable PlayerIdentity component exists")
+        lines.append("- Common UI icons mapped")
+        lines.append("- Reusable PlayerIdentity and DisplayIdentity components exist")
         lines.append("- game-core contains no Android image resources")
         lines.append("- No icon data added to GameSession")
 

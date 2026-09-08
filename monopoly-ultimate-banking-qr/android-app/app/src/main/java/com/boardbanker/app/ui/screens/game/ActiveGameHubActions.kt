@@ -18,6 +18,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.boardbanker.app.player.CommonUiIcon
+import com.boardbanker.app.ui.components.CommonOutlinedActionButton
+import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.core.model.TurnKind
 
 private val StandardButtonHeight = 56.dp
@@ -66,8 +69,20 @@ fun ActiveGameHubActions(
                 .height(StandardButtonHeight)
                 .testTag("active_game_scan_card_button"),
         ) {
-            Text("Scan Card")
+            IconLabelRow(
+                icon = CommonUiIcon.SCAN_CARD,
+                label = "Scan Card",
+            )
         }
+
+        CommonOutlinedActionButton(
+            icon = CommonUiIcon.BANK,
+            label = "Bank Actions",
+            onClick = onBankActions,
+            enabled = uiState.actionAvailability.bankActionsEnabled,
+            modifier = Modifier.height(StandardButtonHeight),
+            testTag = "active_game_bank_actions_button",
+        )
 
         if (uiState.actionAvailability.getOutOfJailEnabled) {
             Button(
@@ -76,19 +91,11 @@ fun ActiveGameHubActions(
                     .fillMaxWidth()
                     .height(StandardButtonHeight),
             ) {
-                Text("Get Out of Jail")
+                IconLabelRow(
+                    icon = CommonUiIcon.JAIL,
+                    label = "Get Out of Jail",
+                )
             }
-        }
-
-        OutlinedButton(
-            onClick = onBankActions,
-            enabled = uiState.actionAvailability.bankActionsEnabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(StandardButtonHeight)
-                .testTag("active_game_bank_actions_button"),
-        ) {
-            Text("Bank Actions")
         }
 
         if (uiState.activePlayerId != null) {
@@ -107,7 +114,11 @@ fun ActiveGameHubActions(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Text("END TURN", style = MaterialTheme.typography.titleMedium)
+                    IconLabelRow(
+                        icon = CommonUiIcon.END_TURN,
+                        label = "END TURN",
+                        textStyle = MaterialTheme.typography.titleMedium,
+                    )
                     uiState.endTurnSubtitle?.let { subtitle ->
                         Text(subtitle, style = MaterialTheme.typography.bodySmall)
                     }
@@ -135,7 +146,10 @@ fun ActiveGameHubActions(
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) {
-                Text("End Game")
+                IconLabelRow(
+                    icon = CommonUiIcon.END_GAME,
+                    label = "End Game",
+                )
             }
             OutlinedButton(
                 onClick = onAbandonGame,
@@ -147,7 +161,10 @@ fun ActiveGameHubActions(
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) {
-                Text("Abandon Game")
+                IconLabelRow(
+                    icon = CommonUiIcon.ABANDON_GAME,
+                    label = "Abandon Game",
+                )
             }
         }
     }

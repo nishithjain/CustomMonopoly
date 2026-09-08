@@ -21,6 +21,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityIcon
 import com.boardbanker.app.ui.components.PlayerIconSize
 import com.boardbanker.app.ui.components.PlayerIdentity
 
@@ -98,15 +100,23 @@ fun ActiveGamePlayerCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Text(
-                text = player.statusText,
-                style = MaterialTheme.typography.labelLarge,
-                color = when {
-                    player.isBankrupt -> MaterialTheme.colorScheme.error
-                    player.inJail -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.primary
-                },
-            )
+            if (player.inJail) {
+                DisplayIdentityIcon(
+                    identity = DisplayIdentity.Jail,
+                    iconSize = com.boardbanker.app.ui.components.PlayerIconSize.Small,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            } else {
+                Text(
+                    text = player.statusText,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (player.isBankrupt) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                )
+            }
 
             player.activeEventLines.forEach { line ->
                 Text(

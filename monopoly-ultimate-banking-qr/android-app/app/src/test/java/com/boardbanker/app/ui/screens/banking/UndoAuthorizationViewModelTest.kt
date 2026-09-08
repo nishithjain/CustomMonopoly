@@ -89,7 +89,7 @@ class UndoAuthorizationViewModelTest {
         assertEquals(before.players["USR_01"]!!.balance, sessionManager.currentSession()!!.players["USR_01"]!!.balance)
         assertNotNull(sessionManager.currentSession()!!.undoSnapshot)
         assertFalse(sessionManager.currentSession()!!.transactions.any { it.transactionType == TransactionType.UNDO })
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(listOf("UNDO_LAST_ACTION"), audio.gameplayCalls.filter { it == "UNDO_LAST_ACTION" || it == "UNDO" })
         assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
@@ -121,7 +121,8 @@ class UndoAuthorizationViewModelTest {
         assertTrue(authorization.players.first { it.playerId == "USR_01" }.verified)
         assertEquals(listOf("USR_02"), authorization.waitingPlayers.map { it.playerId })
         assertNull(sessionManager.currentSession()!!.transactions.lastOrNull { it.transactionType == TransactionType.UNDO })
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -136,7 +137,8 @@ class UndoAuthorizationViewModelTest {
 
         assertEquals(1, viewModel.uiState.value.authorization.verifiedCount)
         assertEquals("Nishith has already approved the undo.", viewModel.uiState.value.message)
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -152,7 +154,8 @@ class UndoAuthorizationViewModelTest {
         assertEquals(UndoAuthorizationController.WRONG_CARD_MESSAGE, viewModel.uiState.value.message)
         assertEquals(0, viewModel.uiState.value.authorization.verifiedCount)
         assertNotNull(sessionManager.currentSession()!!.undoSnapshot)
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -167,7 +170,8 @@ class UndoAuthorizationViewModelTest {
         assertEquals(UndoAuthorizationController.UNREGISTERED_PLAYER_MESSAGE, viewModel.uiState.value.message)
         assertEquals(1, audio.errorCalls.size)
         assertEquals(0, viewModel.uiState.value.authorization.verifiedCount)
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -186,7 +190,7 @@ class UndoAuthorizationViewModelTest {
         assertEquals(AdvancedBankingStep.Hub, viewModel.uiState.value.step)
         assertFalse(viewModel.uiState.value.authorization.active)
         assertEquals(UndoAuthorizationController.SUCCESS_MESSAGE, viewModel.uiState.value.result?.primaryMessage)
-        assertEquals(listOf("UNDO_LAST_ACTION"), audio.gameplayCalls.filter { it == "UNDO_LAST_ACTION" || it == "UNDO" })
+        assertEquals(listOf("UNDO_LAST_ACTION", "UNDO"), audio.gameplayCalls.filter { it == "UNDO_LAST_ACTION" || it == "UNDO" })
     }
 
     @Test
@@ -203,7 +207,7 @@ class UndoAuthorizationViewModelTest {
 
         assertEquals(1, sessionManager.currentSession()!!.transactions.count { it.transactionType == TransactionType.UNDO })
         assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
-        assertFalse(audio.gameplayCalls.contains("UNDO"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO" })
     }
 
     @Test
@@ -223,7 +227,8 @@ class UndoAuthorizationViewModelTest {
         assertEquals(snapshot, sessionManager.currentSession()!!.undoSnapshot)
         assertTrue(viewModel.uiState.value.canUndo)
         assertFalse(sessionManager.currentSession()!!.transactions.any { it.transactionType == TransactionType.UNDO })
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -238,7 +243,8 @@ class UndoAuthorizationViewModelTest {
         assertEquals(AdvancedBankingStep.Hub, viewModel.uiState.value.step)
         assertFalse(viewModel.uiState.value.authorization.active)
         assertNotNull(sessionManager.currentSession()!!.undoSnapshot)
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
     }
 
     @Test
@@ -257,7 +263,8 @@ class UndoAuthorizationViewModelTest {
 
         assertEquals(AdvancedBankingStep.UndoAuthorization, viewModel.uiState.value.step)
         assertEquals(UndoAuthorizationPhase.FAILED, viewModel.uiState.value.authorization.phase)
-        assertFalse(audio.gameplayCalls.contains("UNDO_LAST_ACTION"))
+        assertEquals(1, audio.gameplayCalls.count { it == "UNDO_LAST_ACTION" })
+        assertFalse(audio.gameplayCalls.contains("UNDO"))
         val undoCount = sessionManager.currentSession()!!.transactions.count { it.transactionType == TransactionType.UNDO }
         viewModel.onScanDelivered("USR_01", CardType.USER)
         viewModel.onScanDelivered("USR_02", CardType.USER)

@@ -43,10 +43,13 @@ data class DebtSettlementSummary(
                 1 -> "Settle with selected property"
                 else -> "Settle with selected properties"
             }
-            val selectionGuidance = if (amounts.remainingDebt == 0) {
-                "The selected property value covers the amount due."
-            } else {
-                "Select properties worth at least ${formatMoney(amounts.remainingDebt)} more."
+            val selectionGuidance = when {
+                outstandingAmount <= 0 && selectedPropertyCount == 0 ->
+                    "No debt is outstanding."
+                amounts.remainingDebt == 0 ->
+                    "The selected property value covers the amount due."
+                else ->
+                    "Select properties worth at least ${formatMoney(amounts.remainingDebt)} more."
             }
             val isBankCreditor = creditorPlayerId == null
             val changePayerName = when {
@@ -67,7 +70,7 @@ data class DebtSettlementSummary(
                 propertiesSelectedLabel = propertiesSelectedLabel,
                 settleButtonLabel = settleButtonLabel,
                 selectionGuidance = selectionGuidance,
-                isSettleEnabled = selectedPropertyCount > 0,
+                isSettleEnabled = selectedPropertyCount > 0 && outstandingAmount > 0,
                 isDebtFullyCovered = amounts.isFullyCovered,
             )
         }

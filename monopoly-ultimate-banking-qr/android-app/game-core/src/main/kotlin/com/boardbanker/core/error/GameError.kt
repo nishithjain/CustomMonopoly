@@ -13,5 +13,9 @@ sealed class GameError {
     data class AuctionError(val message: String) : GameError()
     data class DebtError(val message: String) : GameError()
     data class EventError(val message: String) : GameError()
+    data class NotActivePlayer(
+        val targetPlayerId: String,
+        val activePlayerId: String,
+    ) : GameError()
     object GameFinished : GameError()
 }

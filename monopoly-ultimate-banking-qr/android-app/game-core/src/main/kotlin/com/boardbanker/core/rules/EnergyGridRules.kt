@@ -1,8 +1,10 @@
 package com.boardbanker.core.rules
 
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PurchaseAssetType
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.transaction.TransactionFactory
 
@@ -61,6 +63,8 @@ class EnergyGridRules(
             toEntity = EntityRef.BANK,
             playerId = buyerId,
             propertyId = energyGridId,
+            assetName = EnergyGridDisplayNames.displayNameWithNumber(gridDef, definitions),
+            assetType = PurchaseAssetType.ENERGY_GRID,
             amount = price,
             reversible = true,
         )

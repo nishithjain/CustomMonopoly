@@ -4,6 +4,7 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameOutcome
 import com.boardbanker.core.model.GoCollectionReason
+import com.boardbanker.core.error.GameError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -26,6 +27,7 @@ class BankActionActivePlayerTests {
             GameCommand.PayGoSalary("USR_01", GoCollectionReason.MANUAL_BANK_ACTION),
         )
         assertEquals(GameOutcome.REJECTED, result.outcome)
+        assertTrue(result.error is GameError.NotActivePlayer)
     }
 
     @Test
@@ -51,6 +53,7 @@ class BankActionActivePlayerTests {
             GameCommand.PayLocationFee("USR_01", "PRP_01", restrictToActivePlayer = true),
         )
         assertEquals(GameOutcome.REJECTED, result.outcome)
+        assertTrue(result.error is GameError.NotActivePlayer)
     }
 
     @Test
@@ -62,6 +65,7 @@ class BankActionActivePlayerTests {
             GameCommand.SendPlayerToJail("USR_01", restrictToActivePlayer = true),
         )
         assertEquals(GameOutcome.REJECTED, result.outcome)
+        assertTrue(result.error is GameError.NotActivePlayer)
     }
 
     @Test

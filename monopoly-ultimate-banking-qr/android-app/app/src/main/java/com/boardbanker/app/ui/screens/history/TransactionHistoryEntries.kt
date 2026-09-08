@@ -1,11 +1,16 @@
 package com.boardbanker.app.ui.screens.history
 
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.app.ui.components.DisplayIdentity
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.model.EnergyGridDisplayNames
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.model.PropertyDisplayNames
+import com.boardbanker.core.model.PurchaseAssetType
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
@@ -15,10 +20,8 @@ import java.time.format.DateTimeFormatter
 
 internal sealed interface HistoryDetail {
     data class PlayerTransfer(
-        val fromPlayerId: String?,
-        val fromPlayerName: String,
-        val toPlayerId: String?,
-        val toPlayerName: String,
+        val from: DisplayIdentity,
+        val to: DisplayIdentity,
         val amount: String,
     ) : HistoryDetail
 
@@ -67,7 +70,19 @@ internal data class HistoryEntry(
     val subtitle: String? = null,
     /** True when a later UNDO transaction rolled this action back. */
     val undone: Boolean = false,
+    val entryIcon: CommonUiIcon? = null,
 )
+
+internal fun HistoryEntry.withResolvedIcon(
+    transactionType: TransactionType? = null,
+    eventName: String? = null,
+): HistoryEntry {
+    if (entryIcon != null) return this
+    val resolved = transactionType?.let {
+        HistoryEntryIcons.forTransactionType(it, eventName, subtitle)
+    } ?: HistoryEntryIcons.forDetail(detail)
+    return if (resolved != null) copy(entryIcon = resolved) else this
+}
 
 /**
  * Turns committed transactions into display entries for RECENT BANKING.
@@ -88,6 +103,7 @@ internal object TransactionHistoryEntries {
     /** Types whose `amount` holds currency. Others store rent levels or effect uses. */
     private val moneyTypes = setOf(
         TransactionType.PROPERTY_PURCHASE,
+        TransactionType.ENERGY_GRID_PURCHASE,
         TransactionType.RENT_PAYMENT,
         TransactionType.BANK_CREDIT,
         TransactionType.BANK_DEBIT,
@@ -112,6 +128,7 @@ internal object TransactionHistoryEntries {
         TransactionType.RENT_PAYMENT,
         TransactionType.RENT_WAIVED,
         TransactionType.PROPERTY_PURCHASE,
+        TransactionType.ENERGY_GRID_PURCHASE,
         TransactionType.AUCTION_WIN,
         TransactionType.AUCTION_PURCHASE,
         TransactionType.LOCATION_FEE,
@@ -224,7 +241,7 @@ internal object TransactionHistoryEntries {
             subtitle = revertedPrimary?.let { "Reverted: ${it.title}" }
                 ?: "Reverted the previous action.",
             detail = revertedDetail,
-        )
+        ).withResolvedIcon(TransactionType.UNDO)
     }
 
     private fun buildEntries(
@@ -250,7 +267,7 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildRentWaivedDetail(waivedTx, session, definitions),
                     undone = undone,
-                ),
+                ).withResolvedIcon(TransactionType.RENT_WAIVED),
             )
         }
 
@@ -261,7 +278,7 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildTransferDetail(rentTx, session, definitions),
                     undone = undone,
-                ),
+                ).withResolvedIcon(TransactionType.RENT_PAYMENT),
             )
             if (levelTx != null) {
                 entries += HistoryEntry(
@@ -269,7 +286,7 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildRentLevelDetail(levelTx, session, definitions),
                     undone = undone,
-                )
+                ).withResolvedIcon(TransactionType.PROPERTY_RENT_LEVEL_CHANGE)
             }
             return entries
         }
@@ -285,7 +302,16 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildRentLevelDetail(levelTx, session, definitions),
                     undone = undone,
-                ),
+                ).withResolvedIcon(TransactionType.PROPERTY_RENT_LEVEL_CHANGE),
+            )
+        }
+
+        val purchaseHeadline = headline(group)
+        if (purchaseHeadline.transactionType == TransactionType.PROPERTY_PURCHASE ||
+            purchaseHeadline.transactionType == TransactionType.ENERGY_GRID_PURCHASE
+        ) {
+            return listOf(
+                buildPurchaseEntry(purchaseHeadline, session, definitions, time, undone),
             )
         }
 
@@ -297,7 +323,7 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildSingleDetail(skipTx, session, definitions),
                     undone = undone,
-                )
+                ).withResolvedIcon(TransactionType.TURN_SKIPPED)
             }.toMutableList()
             group.firstOrNull { it.transactionType == TransactionType.TURN_ADVANCED }?.let { advanceTx ->
                 entries += HistoryEntry(
@@ -305,27 +331,81 @@ internal object TransactionHistoryEntries {
                     time = time,
                     detail = buildSingleDetail(advanceTx, session, definitions),
                     undone = undone,
-                )
+                ).withResolvedIcon(TransactionType.TURN_ADVANCED)
             }
             return entries
         }
 
-        val scannedJailPassTx = group.firstOrNull {
-            it.transactionType == TransactionType.JAIL_PASS_USED && it.eventId != null
+        val jailStatusTx = group.firstOrNull { it.transactionType == TransactionType.JAIL_STATUS_CHANGE }
+        val jailFeeTx = group.firstOrNull {
+            it.transactionType == TransactionType.BANK_DEBIT && it.toEntity == EntityRef.BANK
         }
-        if (scannedJailPassTx != null &&
-            group.any { it.transactionType == TransactionType.JAIL_STATUS_CHANGE }
-        ) {
-            val playerId = scannedJailPassTx.playerId
-            val playerName = playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) } ?: "Player"
+        if (jailStatusTx != null && jailFeeTx != null) {
+            val playerId = jailStatusTx.playerId ?: jailFeeTx.playerId
             return listOf(
                 HistoryEntry(
-                    title = "$playerName got out of Jail",
+                    title = label(TransactionType.JAIL_STATUS_CHANGE),
                     time = time,
-                    subtitle = "Get out of Jail Pass used • No fee charged",
-                    detail = HistoryDetail.Text("Get out of Jail Pass used • No fee charged"),
+                    subtitle = "Get out of Jail fee",
+                    detail = HistoryDetail.PlayerTransfer(
+                        from = playerIdentity(playerId, session, definitions),
+                        to = DisplayIdentity.Bank,
+                        amount = jailFeeTx.amount?.let { formatMoney(it, definitions) } ?: "",
+                    ),
                     undone = undone,
-                ),
+                ).withResolvedIcon(TransactionType.JAIL_STATUS_CHANGE),
+            )
+        }
+        val jailPassTx = group.firstOrNull { it.transactionType == TransactionType.JAIL_PASS_USED }
+        if (jailPassTx != null && jailStatusTx != null) {
+            val playerId = jailPassTx.playerId ?: jailStatusTx.playerId
+            val subtitle = if (jailPassTx.eventId != null) {
+                "Get out of Jail Pass used • No fee charged"
+            } else {
+                "Get Out of Jail pass used"
+            }
+            return listOf(
+                HistoryEntry(
+                    title = "${playerDisplayName(playerId, session, definitions)} got out of Jail",
+                    time = time,
+                    subtitle = subtitle,
+                    detail = HistoryDetail.PlayerTransfer(
+                        from = DisplayIdentity.Jail,
+                        to = playerIdentity(playerId, session, definitions),
+                        amount = "",
+                    ),
+                    undone = undone,
+                ).withResolvedIcon(TransactionType.JAIL_PASS_USED),
+            )
+        }
+        if (jailStatusTx != null && JailStatusSnapshot.enteredJail(jailStatusTx)) {
+            return listOf(
+                HistoryEntry(
+                    title = label(TransactionType.JAIL_STATUS_CHANGE),
+                    time = time,
+                    subtitle = "Sent to Jail",
+                    detail = HistoryDetail.PlayerTransfer(
+                        from = playerIdentity(jailStatusTx.playerId, session, definitions),
+                        to = DisplayIdentity.Jail,
+                        amount = "",
+                    ),
+                    undone = undone,
+                ).withResolvedIcon(TransactionType.JAIL_STATUS_CHANGE),
+            )
+        }
+        if (jailStatusTx != null && JailStatusSnapshot.releasedFromJail(jailStatusTx)) {
+            return listOf(
+                HistoryEntry(
+                    title = label(TransactionType.JAIL_STATUS_CHANGE),
+                    time = time,
+                    subtitle = "Released from Jail",
+                    detail = HistoryDetail.PlayerTransfer(
+                        from = DisplayIdentity.Jail,
+                        to = playerIdentity(jailStatusTx.playerId, session, definitions),
+                        amount = "",
+                    ),
+                    undone = undone,
+                ).withResolvedIcon(TransactionType.JAIL_STATUS_CHANGE),
             )
         }
 
@@ -346,6 +426,7 @@ internal object TransactionHistoryEntries {
         val detail = when (headlineTx.transactionType) {
             TransactionType.RENT_PAYMENT,
             TransactionType.PROPERTY_PURCHASE,
+            TransactionType.ENERGY_GRID_PURCHASE,
             TransactionType.AUCTION_WIN,
             TransactionType.AUCTION_PURCHASE,
             -> buildTransferDetail(headlineTx, session, definitions)
@@ -361,8 +442,83 @@ internal object TransactionHistoryEntries {
                 subtitle = subtitle,
                 detail = detail,
                 undone = undone,
-            ),
+            ).withResolvedIcon(headlineTx.transactionType, event?.name),
         )
+    }
+
+    private fun buildPurchaseEntry(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val assetType = resolvePurchaseAssetType(tx)
+        val assetName = resolvePurchaseAssetName(tx, assetType, definitions)
+        val title = purchaseTitle(tx, assetType, assetName, tx.transactionType)
+        val entryIcon = when (assetType) {
+            PurchaseAssetType.PROPERTY -> CommonUiIcon.PROPERTY
+            PurchaseAssetType.ENERGY_GRID -> CommonUiIcon.ENERGY_GRID
+        }
+        return HistoryEntry(
+            title = title,
+            time = time,
+            detail = buildPurchaseTransferDetail(tx, session, definitions),
+            undone = undone,
+            entryIcon = entryIcon,
+        )
+    }
+
+    private fun buildPurchaseTransferDetail(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): HistoryDetail.PlayerTransfer {
+        val purchaserId = tx.playerId ?: tx.fromEntity
+        val amount = tx.amount?.let { formatMoney(it, definitions) } ?: ""
+        return HistoryDetail.PlayerTransfer(
+            from = playerIdentity(purchaserId, session, definitions),
+            to = DisplayIdentity.Bank,
+            amount = amount,
+        )
+    }
+
+    private fun resolvePurchaseAssetType(tx: Transaction): PurchaseAssetType =
+        tx.assetType ?: when (tx.transactionType) {
+            TransactionType.ENERGY_GRID_PURCHASE -> PurchaseAssetType.ENERGY_GRID
+            else -> PurchaseAssetType.PROPERTY
+        }
+
+    private fun resolvePurchaseAssetName(
+        tx: Transaction,
+        assetType: PurchaseAssetType,
+        definitions: GameDefinitions,
+    ): String {
+        tx.assetName?.takeIf { it.isNotBlank() }?.let { return it }
+        val assetId = tx.propertyId ?: return ""
+        return when (assetType) {
+            PurchaseAssetType.PROPERTY -> PropertyDisplayNames.displayNameWithNumber(assetId, definitions)
+            PurchaseAssetType.ENERGY_GRID -> EnergyGridDisplayNames.displayNameWithNumber(assetId, definitions)
+        }
+    }
+
+    private fun purchaseTitle(
+        tx: Transaction,
+        assetType: PurchaseAssetType,
+        assetName: String,
+        transactionType: TransactionType,
+    ): String {
+        val prefix = when (assetType) {
+            PurchaseAssetType.PROPERTY -> "Property Purchase"
+            PurchaseAssetType.ENERGY_GRID -> "Energy Grid Purchase"
+        }
+        val hasStoredName = tx.assetName?.isNotBlank() == true
+        val hasResolvedName = assetName.isNotBlank() && assetName != tx.propertyId
+        return if (hasStoredName || hasResolvedName) {
+            "$prefix → ${tx.assetName?.takeIf { hasStoredName } ?: assetName}"
+        } else {
+            label(transactionType)
+        }
     }
 
     private fun buildRentWaivedDetail(
@@ -398,10 +554,8 @@ internal object TransactionHistoryEntries {
     ): HistoryDetail.PlayerTransfer {
         val amount = tx.amount?.let { formatMoney(it, definitions) } ?: ""
         return HistoryDetail.PlayerTransfer(
-            fromPlayerId = tx.fromEntity?.takeIf { it != EntityRef.BANK },
-            fromPlayerName = tx.fromEntity?.let { entityName(it, session, definitions) } ?: "",
-            toPlayerId = tx.toEntity?.takeIf { it != EntityRef.BANK },
-            toPlayerName = tx.toEntity?.let { entityName(it, session, definitions) } ?: "",
+            from = entityToIdentity(tx.fromEntity, session, definitions),
+            to = entityToIdentity(tx.toEntity, session, definitions),
             amount = amount,
         )
     }
@@ -435,7 +589,7 @@ internal object TransactionHistoryEntries {
         val parts = transactions.mapNotNull { tx ->
             when (val detail = buildSingleDetail(tx, session, definitions)) {
                 is HistoryDetail.PlayerTransfer ->
-                    "${detail.fromPlayerName} → ${detail.toPlayerName} ${detail.amount}".trim()
+                    "${detail.from.label} → ${detail.to.label} ${detail.amount}".trim()
                 is HistoryDetail.RentLevelChange ->
                     "${detail.playerName}: ${detail.propertyName} ${detail.levelChangeText}"
                 is HistoryDetail.RentWaived ->
@@ -514,6 +668,32 @@ internal object TransactionHistoryEntries {
         group.minByOrNull { tx ->
             headlineOrder.indexOf(tx.transactionType).takeIf { it >= 0 } ?: headlineOrder.size
         } ?: group.first()
+
+    private fun entityToIdentity(
+        entity: String?,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): DisplayIdentity = when (entity) {
+        EntityRef.BANK -> DisplayIdentity.Bank
+        null -> DisplayIdentity.Player(playerId = null, playerName = "")
+        else -> playerIdentity(entity, session, definitions)
+    }
+
+    private fun playerIdentity(
+        playerId: String?,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): DisplayIdentity.Player =
+        DisplayIdentity.Player(
+            playerId = playerId,
+            playerName = playerDisplayName(playerId, session, definitions),
+        )
+
+    private fun playerDisplayName(
+        playerId: String?,
+        session: GameSession,
+        definitions: GameDefinitions,
+    ): String = playerId?.let { PlayerDisplayNames.displayName(session, it, definitions) } ?: "Player"
 
     private fun entityName(
         entity: String,
