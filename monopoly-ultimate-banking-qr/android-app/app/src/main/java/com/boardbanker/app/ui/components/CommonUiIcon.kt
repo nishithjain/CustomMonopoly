@@ -73,15 +73,9 @@ fun IconLabelRow(
     }
 }
 
-fun cancelIconForLabel(label: String): CommonUiIcon {
-    val stripped = label
-        .removePrefix(BankingActionLabels.CONFIRM_SYMBOL)
-        .removePrefix(BankingActionLabels.MIDDLE_SYMBOL)
-        .removePrefix(BankingActionLabels.CANCEL_SYMBOL)
-        .trim()
-    return if (stripped.equals("BACK", ignoreCase = true)) {
+fun cancelIconForLabel(label: String): CommonUiIcon =
+    if (label.trim().equals("BACK", ignoreCase = true)) {
         CommonUiIcon.BACK
     } else {
         CommonUiIcon.CANCEL
     }
-}

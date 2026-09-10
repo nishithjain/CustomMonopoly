@@ -379,6 +379,33 @@ internal object TransactionHistoryEntries {
             )
         }
         if (jailStatusTx != null && JailStatusSnapshot.enteredJail(jailStatusTx)) {
+            val directJailWithTurnEnd = event?.actions?.any { it.endsCurrentTurnAfterJail() } == true
+            if (directJailWithTurnEnd) {
+                val entries = mutableListOf(
+                    HistoryEntry(
+                        title = event?.name ?: label(TransactionType.JAIL_STATUS_CHANGE),
+                        time = time,
+                        detail = HistoryDetail.PlayerTransfer(
+                            from = playerIdentity(jailStatusTx.playerId, session, definitions),
+                            to = DisplayIdentity.Jail,
+                            amount = "",
+                        ),
+                        undone = undone,
+                    ).withResolvedIcon(TransactionType.EVENT_APPLIED, event?.name),
+                )
+                group.lastOrNull {
+                    it.transactionType == TransactionType.TURN_ADVANCED &&
+                        it.fromEntity == jailStatusTx.playerId
+                }?.let { advanceTx ->
+                    entries += HistoryEntry(
+                        title = label(TransactionType.TURN_ADVANCED),
+                        time = time,
+                        detail = buildSingleDetail(advanceTx, session, definitions),
+                        undone = undone,
+                    ).withResolvedIcon(TransactionType.TURN_ADVANCED)
+                }
+                return entries
+            }
             return listOf(
                 HistoryEntry(
                     title = label(TransactionType.JAIL_STATUS_CHANGE),

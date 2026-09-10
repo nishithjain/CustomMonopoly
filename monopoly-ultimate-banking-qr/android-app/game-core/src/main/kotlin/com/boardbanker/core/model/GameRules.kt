@@ -97,7 +97,7 @@ data class AuctionRules(
     val requiredForUnownedLanding: Boolean = true,
     val arbitraryBidAmountsAllowed: Boolean = false,
     val jailedPlayersCannotBid: Boolean = true,
-    val timedAuctionSeconds: Int = 30,
+    val timedAuctionSeconds: Int = 15,
     val lastBidBeforeTimerWins: Boolean = true,
     val winnerInitialRentLevel: Int = 1,
     val noBidsBehaviour: AuctionNoBidsBehaviour = AuctionNoBidsBehaviour.CANCEL_REMAIN_UNOWNED,

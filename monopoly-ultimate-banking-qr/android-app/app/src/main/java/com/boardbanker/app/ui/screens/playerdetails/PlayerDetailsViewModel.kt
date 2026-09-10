@@ -69,12 +69,6 @@ class PlayerDetailsViewModel(
     fun onBack() {
         when (_uiState.value.step) {
             PlayerDetailsStep.Hub -> _events.tryEmit(PlayerDetailsEvent.NavigateBack)
-            PlayerDetailsStep.JailDoublesConfirm -> {
-                _uiState.update { it.copy(step = PlayerDetailsStep.JailOptions, result = null) }
-            }
-            PlayerDetailsStep.JailOptions -> {
-                _uiState.update { it.copy(step = PlayerDetailsStep.GetOutOfJailChoice, result = null) }
-            }
             else -> _uiState.update { it.copy(step = PlayerDetailsStep.Hub, result = null) }
         }
     }
@@ -167,11 +161,6 @@ class PlayerDetailsViewModel(
                 else -> null
             }
         }
-    }
-
-    fun onOpenJailOptions() {
-        if (!currentActionAvailability().getOutOfJailEnabled) return
-        _uiState.update { it.copy(step = PlayerDetailsStep.JailOptions, result = null) }
     }
 
     fun onConfirmGo() {
@@ -274,6 +263,7 @@ class PlayerDetailsViewModel(
     fun onPayJailFee() {
         if (!currentActionAvailability().getOutOfJailEnabled) return
         val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) return
         val balanceBefore = session.players[playerId]?.balance ?: 0
         executeCommand(
             GameCommand.PayJailFee(
@@ -330,14 +320,10 @@ class PlayerDetailsViewModel(
         return if (count > 1) "Use Jail Pass ($count)" else "Use Jail Pass"
     }
 
-    fun onJailDoubles() {
-        if (!currentActionAvailability().getOutOfJailEnabled) return
-        _uiState.update { it.copy(step = PlayerDetailsStep.JailDoublesConfirm) }
-    }
-
-    fun onConfirmJailDoubles() {
+    fun onReleaseAfterDoubles() {
         if (!currentActionAvailability().getOutOfJailEnabled) return
         val session = sessionManager.currentSession() ?: return
+        if (session.players[playerId]?.jailStatus != true) return
         executeCommand(
             GameCommand.ReleasePlayerFromJailByDoubles(
                 playerId,
@@ -346,8 +332,8 @@ class PlayerDetailsViewModel(
         ) { outcome ->
             when (outcome) {
                 is BankingCommitOutcome.Success -> {
-                    val session = sessionManager.currentSession()
-                    resultMapper.mapJailDoublesRelease(playerId, session ?: return@executeCommand null)
+                    val updatedSession = sessionManager.currentSession()
+                    resultMapper.mapJailDoublesRelease(playerId, updatedSession ?: return@executeCommand null)
                 }
                 is BankingCommitOutcome.Rejected ->
                     resultMapper.errorResult(rejectedCommandMessage(outcome, session))

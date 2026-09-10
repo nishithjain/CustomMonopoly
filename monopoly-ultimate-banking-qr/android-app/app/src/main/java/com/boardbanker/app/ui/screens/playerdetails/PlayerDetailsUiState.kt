@@ -30,8 +30,13 @@ sealed class PlayerDetailsStep {
     data object LocationConfirm : PlayerDetailsStep()
     data object GoToJailConfirm : PlayerDetailsStep()
     data object GetOutOfJailChoice : PlayerDetailsStep()
-    data object JailOptions : PlayerDetailsStep()
-    data object JailDoublesConfirm : PlayerDetailsStep()
+}
+
+object PlayerDetailsTestTags {
+    const val JAIL_PAY = "player_details_jail_pay"
+    const val JAIL_SCAN_PASS = "player_details_jail_scan_pass"
+    const val JAIL_DOUBLES_RELEASE = "player_details_jail_doubles_release"
+    const val JAIL_CANCEL = "player_details_jail_cancel"
 }
 
 data class PlayerDetailsUiState(

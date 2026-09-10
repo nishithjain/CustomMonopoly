@@ -18,6 +18,7 @@ import com.boardbanker.app.gameplay.presentation.GameplayResultMapper
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
 import com.boardbanker.app.gameplay.location.LocationWorkflowConstants
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowController
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
@@ -51,6 +52,7 @@ class GameViewModel(
     private val definitions: GameDefinitions,
     private val transientWorkflow: TransientScanWorkflowHolder,
     private val locationWorkflowHolder: LocationWorkflowHolder,
+    private val activeGameHubReturnSignal: ActiveGameHubReturnSignal,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModel() {
@@ -74,6 +76,11 @@ class GameViewModel(
 
     init {
         loadSession()
+        viewModelScope.launch {
+            activeGameHubReturnSignal.requests.collect {
+                returnToActiveGameHub()
+            }
+        }
         viewModelScope.launch {
             sessionManager.committedSession.collect { session ->
                 if (testMode) return@collect
@@ -660,6 +667,24 @@ class GameViewModel(
         }
     }
 
+    fun returnToActiveGameHub() {
+        workflowController.reset()
+        transientWorkflow.resetToReady()
+        locationWorkflowHolder.clear()
+        sessionManager.currentSession()?.let { updateFromSession(it) }
+        _uiState.update {
+            it.copy(
+                workflowState = GameplayWorkflowState.Ready,
+                result = null,
+                scanRequest = null,
+                scanPrompt = null,
+                expectedCardType = null,
+                message = null,
+                cardPresentation = null,
+            )
+        }
+    }
+
     fun requestEndGame() {
         if (!ActiveGameCardUiPolicy.showGameTerminationActions(
                 workflowState = _uiState.value.workflowState,
@@ -754,6 +779,19 @@ class GameViewModel(
                 is WorkflowAction.NavigateToAuction -> {
                     workflowController.reset()
                     transientWorkflow.resetToReady()
+                    locationWorkflowHolder.clear()
+                    sessionManager.currentSession()?.let { updateFromSession(it) }
+                    _uiState.update {
+                        it.copy(
+                            workflowState = GameplayWorkflowState.Ready,
+                            result = null,
+                            scanRequest = null,
+                            scanPrompt = null,
+                            expectedCardType = null,
+                            message = null,
+                            cardPresentation = null,
+                        )
+                    }
                     _events.tryEmit(
                         GameEvent.NavigateToAuction(
                             propertyId = action.propertyId,
@@ -1150,6 +1188,7 @@ class GameViewModelFactory(
     private val definitions: GameDefinitions,
     private val transientWorkflow: TransientScanWorkflowHolder,
     private val locationWorkflowHolder: LocationWorkflowHolder,
+    private val activeGameHubReturnSignal: ActiveGameHubReturnSignal,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModelProvider.Factory {
@@ -1161,6 +1200,7 @@ class GameViewModelFactory(
                 definitions,
                 transientWorkflow,
                 locationWorkflowHolder,
+                activeGameHubReturnSignal,
                 gameAudioFeedback,
                 gameEndAudioCoordinator,
             ) as T

@@ -18,7 +18,30 @@ data class PlayerDetailsActionAvailability(
             commandInFlight: Boolean,
             step: PlayerDetailsStep,
         ): PlayerDetailsActionAvailability {
-            if (commandInFlight || step != PlayerDetailsStep.Hub) {
+            if (commandInFlight) {
+                return allDisabled()
+            }
+            if (step == PlayerDetailsStep.GetOutOfJailChoice) {
+                if (!isCurrentPlayer) {
+                    val reason = activePlayerName?.let { name ->
+                        "Actions are disabled because it is $name's turn."
+                    } ?: "Actions are disabled because it is another player's turn."
+                    return PlayerDetailsActionAvailability(
+                        collectGoEnabled = false,
+                        locationEnabled = false,
+                        goToJailEnabled = false,
+                        getOutOfJailEnabled = false,
+                        actionsDisabledReason = reason,
+                    )
+                }
+                return PlayerDetailsActionAvailability(
+                    collectGoEnabled = false,
+                    locationEnabled = false,
+                    goToJailEnabled = false,
+                    getOutOfJailEnabled = inJail,
+                )
+            }
+            if (step != PlayerDetailsStep.Hub) {
                 return allDisabled()
             }
             if (!isCurrentPlayer) {

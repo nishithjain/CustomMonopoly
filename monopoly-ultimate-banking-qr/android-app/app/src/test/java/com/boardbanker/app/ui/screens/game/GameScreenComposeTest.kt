@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.theme.BankingQRTheme
 import com.boardbanker.core.model.EditionIds
 import org.junit.Rule
@@ -138,6 +140,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -161,6 +164,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -179,6 +183,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -196,6 +201,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -216,6 +222,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -238,6 +245,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -263,6 +271,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -289,6 +298,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -361,6 +371,43 @@ class GameScreenComposeTest {
         composeRule.onNodeWithTag("active_game_end_turn_button").assertIsDisplayed()
     }
 
+    private fun iconTag(icon: CommonUiIcon): String = "common_ui_icon_${icon.name.lowercase()}"
+
+    @Test
+    fun propertyPurchaseScreenShowsAuctionIconWithoutDuplicateSymbols() {
+        val viewModel = GameViewModel(
+            sessionManager = AppTestSupport.sessionManager(),
+            definitions = indiaDefinitions,
+            transientWorkflow = TransientScanWorkflowHolder(),
+            locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
+            gameAudioFeedback = RecordingGameAudioFeedback(),
+            gameEndAudioCoordinator = GameEndAudioCoordinator(),
+        )
+        viewModel.setTestUiState(
+            GameUiState(
+                loading = false,
+                editionId = EditionIds.INDIA,
+                workflowState = GameplayWorkflowState.UnownedPropertyDecision("PRP_01"),
+                cardPresentation = CardPresentationUi(
+                    cardTypeLabel = "PROPERTY",
+                    title = "Old Kent Road",
+                    body = "Purchase Price:\n₹6,000\n\nStatus:\nUNOWNED",
+                    buyAmount = 6000,
+                ),
+            ),
+        )
+
+        render(viewModel)
+
+        composeRule.onNodeWithTag("property_auction_button").performScrollTo()
+        composeRule.onNodeWithTag(iconTag(CommonUiIcon.AUCTION), useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("AUCTION").assertIsDisplayed()
+        composeRule.onNodeWithText("BUY ₹6,000", useUnmergedTree = true).assertIsDisplayed()
+        assertTrue(composeRule.onAllNodesWithText("✓ BUY ₹6,000").fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("✕ CANCEL").fetchSemanticsNodes().isEmpty())
+    }
+
     @Test
     fun propertyPurchaseScreenHidesTerminationActions() {
         val viewModel = GameViewModel(
@@ -368,6 +415,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -398,6 +446,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -417,7 +466,7 @@ class GameScreenComposeTest {
 
         render(viewModel)
 
-        composeRule.onNodeWithText("✓ BUY ₹20,000").assertIsDisplayed()
+        composeRule.onNodeWithText("BUY ₹20,000").assertIsDisplayed()
         assertTextDoesNotExist("End Game")
         assertTextDoesNotExist("Abandon Game")
     }
@@ -429,6 +478,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -450,7 +500,7 @@ class GameScreenComposeTest {
         render(viewModel)
 
         composeRule.onNodeWithText("Get out of Jail before purchasing.").assertIsDisplayed()
-        composeRule.onNodeWithText("✓ BUY ₹20,000").assertIsNotEnabled()
+        composeRule.onNodeWithText("BUY ₹20,000").assertIsNotEnabled()
     }
 
     @Test
@@ -460,6 +510,7 @@ class GameScreenComposeTest {
             definitions = AppTestSupport.definitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -494,6 +545,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -532,6 +584,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -570,6 +623,7 @@ class GameScreenComposeTest {
             definitions = indiaDefinitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )

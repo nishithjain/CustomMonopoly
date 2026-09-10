@@ -17,6 +17,7 @@ import com.boardbanker.core.rules.GoRules
 import com.boardbanker.core.rules.JailGameplayGuard
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.RentLevelOperations
+import com.boardbanker.core.rules.TurnScheduler
 import com.boardbanker.core.transaction.TransactionFactory
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -26,6 +27,7 @@ class EventEngine(
     private val transactionFactory: TransactionFactory,
     private val jailRules: JailRules,
     private val debtRules: DebtRules,
+    private val turnScheduler: TurnScheduler,
 ) {
     private val rules = definitions.rules
     private val policies = definitions.policies
@@ -35,6 +37,7 @@ class EventEngine(
         debtRules = debtRules,
         jailRules = jailRules,
         goRules = GoRules(definitions, transactionFactory),
+        turnScheduler = turnScheduler,
     )
 
     companion object {
@@ -110,6 +113,9 @@ class EventEngine(
         val accumulatedPhysical = mutableListOf<PhysicalAction>()
         var pendingMessage: String? = null
         var needsDebtResolution = false
+        var skippedTurnPlayerIds = emptyList<String>()
+        var extraTurnStartedPlayerId: String? = null
+        var extraTurnCancelledBySkipPlayerId: String? = null
 
         var actionIndex = existingPending?.currentActionIndex ?: 0
         while (actionIndex < event.actions.size) {
@@ -168,6 +174,11 @@ class EventEngine(
             currentSession = actionResult.session!!
             pendingMessage = actionResult.pendingMessage ?: pendingMessage
             needsDebtResolution = needsDebtResolution || actionResult.needsDebtResolution
+            if (actionResult.skippedTurnPlayerIds.isNotEmpty()) {
+                skippedTurnPlayerIds = actionResult.skippedTurnPlayerIds
+            }
+            actionResult.extraTurnStartedPlayerId?.let { extraTurnStartedPlayerId = it }
+            actionResult.extraTurnCancelledBySkipPlayerId?.let { extraTurnCancelledBySkipPlayerId = it }
 
             if (currentSession.pendingEventChoice != null) {
                 val nextIndex = actionIndex + 1
@@ -190,6 +201,9 @@ class EventEngine(
                     physicalActions = accumulatedPhysical,
                     pendingMessage = pendingMessage,
                     needsDebtResolution = needsDebtResolution,
+                    skippedTurnPlayerIds = skippedTurnPlayerIds,
+                    extraTurnStartedPlayerId = extraTurnStartedPlayerId,
+                    extraTurnCancelledBySkipPlayerId = extraTurnCancelledBySkipPlayerId,
                 )
             }
 
@@ -202,6 +216,9 @@ class EventEngine(
             physicalActions = accumulatedPhysical,
             pendingMessage = pendingMessage,
             needsDebtResolution = needsDebtResolution,
+            skippedTurnPlayerIds = skippedTurnPlayerIds,
+            extraTurnStartedPlayerId = extraTurnStartedPlayerId,
+            extraTurnCancelledBySkipPlayerId = extraTurnCancelledBySkipPlayerId,
         )
     }
 
@@ -853,6 +870,9 @@ class EventEngine(
         val physicalActions: List<PhysicalAction> = emptyList(),
         val pendingMessage: String? = null,
         val needsDebtResolution: Boolean = false,
+        val skippedTurnPlayerIds: List<String> = emptyList(),
+        val extraTurnStartedPlayerId: String? = null,
+        val extraTurnCancelledBySkipPlayerId: String? = null,
         val error: String? = null,
     ) {
         companion object {
@@ -862,7 +882,20 @@ class EventEngine(
                 physicalActions: List<PhysicalAction> = emptyList(),
                 pendingMessage: String? = null,
                 needsDebtResolution: Boolean = false,
-            ) = EventResult(session, transactions, physicalActions, pendingMessage, needsDebtResolution, null)
+                skippedTurnPlayerIds: List<String> = emptyList(),
+                extraTurnStartedPlayerId: String? = null,
+                extraTurnCancelledBySkipPlayerId: String? = null,
+            ) = EventResult(
+                session = session,
+                transactions = transactions,
+                physicalActions = physicalActions,
+                pendingMessage = pendingMessage,
+                needsDebtResolution = needsDebtResolution,
+                skippedTurnPlayerIds = skippedTurnPlayerIds,
+                extraTurnStartedPlayerId = extraTurnStartedPlayerId,
+                extraTurnCancelledBySkipPlayerId = extraTurnCancelledBySkipPlayerId,
+                error = null,
+            )
 
             fun failure(message: String) = EventResult(null, emptyList(), error = message)
         }

@@ -163,8 +163,14 @@ class IndiaEventTests {
     }
 
     @Test fun evt12_trafficCourt() {
-        val result = apply("EVT_12")
-        assertTrue(result.session.players["USR_01"]!!.jailStatus)
+        var session = indiaGame(listOf("USR_01", "USR_02"))
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine = engine)
+        val balanceBefore = session.players["USR_02"]!!.balance
+        val result = engine.process(session, GameCommand.ApplyEvent("EVT_12", "USR_02"))
+        assertTrue(result.session.players["USR_02"]!!.jailStatus)
+        assertEquals(balanceBefore, result.session.players["USR_02"]!!.balance)
+        assertEquals("USR_01", result.session.turnState!!.activePlayerId)
+        assertFalse(result.transactions.any { it.transactionType == TransactionType.BANK_CREDIT })
     }
 
     @Test fun evt13_localMarketBoom() {

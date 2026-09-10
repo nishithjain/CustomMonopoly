@@ -135,28 +135,28 @@ fun HomeScreen(
                     }
                 }
                 GameStatus.ACTIVE -> {
-                    Button(
+                    CommonFilledActionButton(
+                        icon = CommonUiIcon.RESUME_GAME,
+                        label = "RESUME GAME",
                         onClick = onResumeGame,
                         enabled = resumeEnabled,
+                        testTag = "home_resume_game_button",
                         modifier = Modifier
-                            .fillMaxWidth()
                             .padding(top = 12.dp)
                             .semantics { contentDescription = "Resume game" },
-                    ) {
-                        Text("RESUME GAME")
-                    }
+                    )
                 }
                 else -> {
-                    Button(
+                    CommonFilledActionButton(
+                        icon = CommonUiIcon.RESUME_GAME,
+                        label = "RESUME GAME (no save)",
                         onClick = {},
                         enabled = false,
+                        testTag = "home_resume_game_button",
                         modifier = Modifier
-                            .fillMaxWidth()
                             .padding(top = 12.dp)
                             .semantics { contentDescription = "Resume saved game" },
-                    ) {
-                        Text("RESUME GAME (no save)")
-                    }
+                    )
                 }
             }
 

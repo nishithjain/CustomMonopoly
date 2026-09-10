@@ -283,101 +283,81 @@ private fun PlayerDetailsBankActions(
                 )
             }
             PlayerDetailsStep.GetOutOfJailChoice -> {
-                DisplayIdentityIcon(
-                    identity = DisplayIdentity.Jail,
-                    iconSize = PlayerIconSize.Small,
-                )
-                Text(
-                    "How would ${uiState.playerName} like to get out of Jail?",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                if (!viewModel.supportsJailPassScan()) {
-                    Text(
-                        "This edition does not include a Get out of Jail Pass Event Card.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                val jailPassLabel = viewModel.jailPassActionLabel()
-                BankingActionBar(
-                    confirmLabel = BankingActionLabels.confirm("Pay ${viewModel.jailFeeText()}"),
-                    onConfirm = viewModel::onPayJailFee,
-                    extraActions = buildList {
-                        if (viewModel.supportsJailPassScan()) {
-                            add(
-                                BankingExtraAction(
-                                    label = "Scan Get Out of Jail Pass",
-                                    onClick = viewModel::onScanJailPass,
-                                    contentDescription = "Scan Get out of Jail Pass Event Card",
-                                ),
-                            )
-                        }
-                        if (jailPassLabel != null) {
-                            add(
-                                BankingExtraAction(
-                                    label = jailPassLabel,
-                                    onClick = viewModel::onUseJailPass,
-                                    contentDescription = "Use stored Get Out of Jail pass",
-                                ),
-                            )
-                        }
-                        add(
-                            BankingExtraAction(
-                                label = "More Options",
-                                onClick = viewModel::onOpenJailOptions,
-                                contentDescription = "Show additional jail release options",
-                            ),
-                        )
-                    },
-                    cancelLabel = BankingActionLabels.cancel("Cancel"),
-                    onCancel = viewModel::onBack,
-                )
-            }
-            PlayerDetailsStep.JailOptions -> {
-                Text("In Jail", style = MaterialTheme.typography.titleMedium)
-                val jailPassLabel = viewModel.jailPassActionLabel()
-                BankingActionBar(
-                    confirmLabel = BankingActionLabels.confirm("Pay ${viewModel.jailFeeText()} to Leave Jail"),
-                    onConfirm = viewModel::onPayJailFee,
-                    extraActions = buildList {
-                        if (jailPassLabel != null) {
-                            add(
-                                BankingExtraAction(
-                                    label = jailPassLabel,
-                                    onClick = viewModel::onUseJailPass,
-                                    contentDescription = "Use Get Out of Jail pass",
-                                ),
-                            )
-                        }
-                        add(
-                            BankingExtraAction(
-                                label = "Release After Doubles",
-                                onClick = viewModel::onJailDoubles,
-                                contentDescription = "Release player after rolling doubles",
-                            ),
-                        )
-                        add(
-                            BankingExtraAction(
-                                label = "Record Failed Doubles",
-                                onClick = viewModel::onFailedDoublesInfo,
-                                contentDescription = "Show failed doubles guidance",
-                            ),
-                        )
-                    },
-                    cancelLabel = BankingActionLabels.cancel("Back"),
-                    onCancel = viewModel::onBack,
-                )
-            }
-            PlayerDetailsStep.JailDoublesConfirm -> {
-                Text("Did the player roll doubles?", style = MaterialTheme.typography.bodyLarge)
-                BankingActionBar(
-                    confirmLabel = BankingActionLabels.confirm("Yes — Release"),
-                    onConfirm = viewModel::onConfirmJailDoubles,
-                    cancelLabel = BankingActionLabels.cancel("No"),
+                GetOutOfJailChoiceContent(
+                    playerName = uiState.playerName,
+                    jailFeeText = viewModel.jailFeeText(),
+                    supportsJailPassScan = viewModel.supportsJailPassScan(),
+                    actionAvailability = actionAvailability,
+                    onPayJailFee = viewModel::onPayJailFee,
+                    onScanJailPass = viewModel::onScanJailPass,
+                    onReleaseAfterDoubles = viewModel::onReleaseAfterDoubles,
                     onCancel = viewModel::onBack,
                 )
             }
         }
     }
+}
+
+@Composable
+internal fun GetOutOfJailChoiceContent(
+    playerName: String,
+    jailFeeText: String,
+    supportsJailPassScan: Boolean,
+    actionAvailability: PlayerDetailsActionAvailability,
+    onPayJailFee: () -> Unit,
+    onScanJailPass: () -> Unit,
+    onReleaseAfterDoubles: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    DisplayIdentityIcon(
+        identity = DisplayIdentity.Jail,
+        iconSize = PlayerIconSize.Small,
+    )
+    Text(
+        "How would $playerName like to get out of Jail?",
+        style = MaterialTheme.typography.bodyLarge,
+    )
+    if (!supportsJailPassScan) {
+        Text(
+            "This edition does not include a Get out of Jail Pass Event Card.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+    BankingActionBar(
+        confirmLabel = "Pay $jailFeeText",
+        confirmIcon = CommonUiIcon.MONEY_TRANSFER,
+        confirmTestTag = PlayerDetailsTestTags.JAIL_PAY,
+        onConfirm = onPayJailFee,
+        confirmEnabled = actionAvailability.getOutOfJailEnabled,
+        extraActions = buildList {
+            if (supportsJailPassScan) {
+                add(
+                    BankingExtraAction(
+                        label = "Scan Get Out of Jail Pass",
+                        icon = CommonUiIcon.EVENT_CARD,
+                        onClick = onScanJailPass,
+                        enabled = actionAvailability.getOutOfJailEnabled,
+                        contentDescription = "Scan Get out of Jail Pass Event Card",
+                        testTag = PlayerDetailsTestTags.JAIL_SCAN_PASS,
+                    ),
+                )
+            }
+            add(
+                BankingExtraAction(
+                    label = "Release After Doubles",
+                    icon = CommonUiIcon.DICE,
+                    onClick = onReleaseAfterDoubles,
+                    enabled = actionAvailability.getOutOfJailEnabled,
+                    contentDescription = "Release player after rolling doubles",
+                    testTag = PlayerDetailsTestTags.JAIL_DOUBLES_RELEASE,
+                ),
+            )
+        },
+        cancelLabel = BankingActionLabels.cancel("Cancel"),
+        cancelTestTag = PlayerDetailsTestTags.JAIL_CANCEL,
+        onCancel = onCancel,
+        cancelEnabled = true,
+    )
 }
 
 @Composable

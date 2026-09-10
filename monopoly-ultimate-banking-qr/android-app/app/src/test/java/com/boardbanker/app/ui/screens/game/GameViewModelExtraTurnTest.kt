@@ -5,6 +5,7 @@ import com.boardbanker.app.audio.GameEndAudioCoordinator
 import com.boardbanker.app.audio.RecordingGameAudioFeedback
 import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.core.command.GameCommand
@@ -68,6 +69,7 @@ class GameViewModelExtraTurnTest {
             definitions = AppTestSupport.editionRepository.load(EditionIds.INDIA),
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )

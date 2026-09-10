@@ -12,6 +12,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.core.model.EntityRef
 
 @Composable
@@ -40,6 +41,7 @@ fun GameplayResultPresentation(
         if (result.primaryPlayerId != null && result.secondaryPlayerId != null && primaryName != null && secondaryName != null) {
             val toIdentity = when (result.secondaryPlayerId) {
                 EntityRef.BANK -> DisplayIdentity.Bank
+                EntityRef.JAIL -> DisplayIdentity.Jail
                 else -> DisplayIdentity.Player(result.secondaryPlayerId, secondaryName)
             }
             val fromIdentity = when (result.primaryPlayerId) {
@@ -49,7 +51,10 @@ fun GameplayResultPresentation(
             PlayerTransferRow(
                 fromPlayerId = result.primaryPlayerId,
                 fromPlayerName = primaryName,
-                toPlayerId = if (result.secondaryPlayerId == EntityRef.BANK) null else result.secondaryPlayerId,
+                toPlayerId = when (result.secondaryPlayerId) {
+                    EntityRef.BANK, EntityRef.JAIL -> null
+                    else -> result.secondaryPlayerId
+                },
                 toPlayerName = secondaryName,
                 iconSize = highlightIconSize,
                 fromIdentity = fromIdentity,
@@ -72,6 +77,28 @@ fun GameplayResultPresentation(
 
         if (result.primaryMessage.isNotBlank()) {
             Text(result.primaryMessage, style = MaterialTheme.typography.bodyLarge)
+        }
+
+        val nextTurnPlayerId = result.nextTurnPlayerId
+        val nextTurnPlayerName = result.nextTurnPlayerName
+        if (nextTurnPlayerId != null && nextTurnPlayerName != null) {
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text("Next turn:", style = MaterialTheme.typography.bodyLarge)
+                CommonUiIconImage(
+                    icon = CommonUiIcon.CURRENT_TURN,
+                    size = highlightIconSize.size,
+                    contentDescription = "Current turn",
+                )
+                PlayerIdentity(
+                    playerId = nextTurnPlayerId,
+                    playerName = nextTurnPlayerName,
+                    iconSize = highlightIconSize,
+                )
+            }
         }
 
         result.balanceChanges.forEach { change ->

@@ -8,6 +8,7 @@ import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.app.ui.screens.game.GameViewModel
 import com.boardbanker.core.command.GameCommand
@@ -80,6 +81,7 @@ class ActiveGameSessionRefreshTest {
             definitions = AppTestSupport.definitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -101,6 +103,7 @@ class ActiveGameSessionRefreshTest {
             definitions = AppTestSupport.definitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )
@@ -120,6 +123,7 @@ class ActiveGameSessionRefreshTest {
             definitions = AppTestSupport.definitions,
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )

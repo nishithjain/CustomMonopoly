@@ -1,7 +1,10 @@
 package com.boardbanker.app.ui.screens.auction
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewModelScope
 import com.boardbanker.app.audio.CommitAudioTrigger
 import com.boardbanker.app.audio.GameAudioFeedback
@@ -37,6 +40,7 @@ class AuctionViewModel(
     private val startedByPlayerId: String,
     private val gameAudioFeedback: GameAudioFeedback,
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val executor = BankingCommandExecutor(sessionManager)
     private val resultMapper = BankingResultMapper(definitions)
@@ -54,6 +58,7 @@ class AuctionViewModel(
     private var timerJob: Job? = null
     private var scanPromptToken: Long = 0L
     private var auctionEndingPlayed = false
+    private var auctionFinalized = false
 
     private val isEnergyGrid: Boolean = propertyId.startsWith("ENG_")
 
@@ -79,7 +84,7 @@ class AuctionViewModel(
         val auction = session.auction
         if (auction != null && (auction.propertyId == propertyId || auction.energyGridId == propertyId)) {
             syncFromSession()
-            startTimer()
+            resumeOrStartTimer()
             return
         }
         viewModelScope.launch {
@@ -101,7 +106,7 @@ class AuctionViewModel(
                         CommitAudioTrigger.AuctionStarted,
                     )
                     syncFromSession()
-                    startTimer()
+                    resumeOrStartTimer(resetDuration = true)
                 }
                 else -> {
                     _uiState.update {
@@ -127,31 +132,60 @@ class AuctionViewModel(
                 currentBid = auction.currentBid,
                 highestBidderId = auction.currentBidderId,
                 highestBidderName = bidderName,
-                auctionRunning = true,
+                auctionRunning = !auctionFinalized,
             )
         }
     }
 
-    private fun startTimer() {
+    private fun resumeOrStartTimer(resetDuration: Boolean = false) {
+        if (auctionFinalized || _uiState.value.result != null) return
+        val existingEndsAt = savedStateHandle.get<Long>(auctionEndsAtKey())
+        if (!resetDuration && existingEndsAt != null) {
+            runTimerUntil(existingEndsAt)
+            return
+        }
+        val endsAt = System.currentTimeMillis() + auctionTimerSeconds * 1_000L
+        savedStateHandle[auctionEndsAtKey()] = endsAt
+        runTimerUntil(endsAt)
+    }
+
+    private fun runTimerUntil(endsAtEpochMs: Long) {
         timerJob?.cancel()
-        _uiState.update {
-            it.copy(
-                remainingSeconds = auctionTimerSeconds,
-                auctionRunning = true,
+        _uiState.update { state ->
+            val remaining = remainingSecondsUntil(endsAtEpochMs)
+            state.copy(
+                remainingSeconds = remaining,
+                auctionRunning = remaining > 0 && !auctionFinalized,
             )
         }
         timerJob = viewModelScope.launch {
-            var remaining = auctionTimerSeconds
-            while (remaining > 0) {
+            while (true) {
+                val remaining = remainingSecondsUntil(endsAtEpochMs)
+                _uiState.update { state ->
+                    state.copy(
+                        remainingSeconds = remaining,
+                        auctionRunning = remaining > 0 && !auctionFinalized,
+                    )
+                }
+                if (remaining <= 0) break
                 delay(1_000)
-                remaining -= 1
-                _uiState.update { state -> state.copy(remainingSeconds = remaining) }
             }
             onTimerExpired()
         }
     }
 
+    private fun remainingSecondsUntil(endsAtEpochMs: Long): Int =
+        ((endsAtEpochMs - System.currentTimeMillis()) / 1_000L).toInt().coerceAtLeast(0)
+
+    private fun auctionEndsAtKey(): String = "auction_ends_at_$propertyId"
+
+    private fun clearTimerState() {
+        timerJob?.cancel()
+        savedStateHandle.remove<Long>(auctionEndsAtKey())
+    }
+
     fun onBidRequested() {
+        if (!canAcceptBids()) return
         scanPromptToken = ScanPromptAudio.beginPromptSession()
         ScanPromptAudio.playOnce(gameAudioFeedback, scanPromptToken)
         _uiState.update { it.copy(awaitingBidScan = true) }
@@ -160,7 +194,10 @@ class AuctionViewModel(
 
     fun onPlayerScanned(playerId: String) {
         ScanPromptAudio.endPromptSession(scanPromptToken)
-        if (!_uiState.value.awaitingBidScan) return
+        if (!_uiState.value.awaitingBidScan || !canAcceptBids()) {
+            _uiState.update { it.copy(awaitingBidScan = false) }
+            return
+        }
         val session = sessionManager.currentSession() ?: return
         val player = session.players[playerId]
         if (player == null) {
@@ -184,7 +221,7 @@ class AuctionViewModel(
             when (val outcome = executor.execute(GameCommand.PlaceAuctionBid(playerId, nextBid))) {
                 is BankingCommitOutcome.Success -> {
                     syncFromSession()
-                    startTimer()
+                    resumeOrStartTimer(resetDuration = true)
                 }
                 is BankingCommitOutcome.Rejected -> {
                     InvalidUserActionAudio.notifyInvalidUserActionForGameError(
@@ -201,9 +238,19 @@ class AuctionViewModel(
         }
     }
 
+    private fun canAcceptBids(): Boolean =
+        _uiState.value.auctionRunning &&
+            !auctionFinalized &&
+            _uiState.value.result == null &&
+            !_uiState.value.commandInFlight &&
+            sessionManager.currentSession()?.auction != null
+
     private fun onTimerExpired() {
+        if (auctionFinalized) return
         val session = sessionManager.currentSession() ?: return
         val auction = session.auction ?: return
+        auctionFinalized = true
+        clearTimerState()
         if (auction.currentBidderId == null) {
             finalizeNoBidAuction()
         } else {
@@ -214,7 +261,7 @@ class AuctionViewModel(
     private fun finalizeNoBidAuction() {
         if (auctionEndingPlayed) return
         viewModelScope.launch {
-            _uiState.update { it.copy(commandInFlight = true) }
+            _uiState.update { it.copy(commandInFlight = true, auctionRunning = false) }
             val sessionBefore = sessionManager.currentSession() ?: return@launch
             when (val outcome = executor.execute(GameCommand.CancelAuction)) {
                 is BankingCommitOutcome.Success -> {
@@ -250,12 +297,15 @@ class AuctionViewModel(
         if ((session.auction?.currentBid ?: 0) > 0) return
         viewModelScope.launch {
             executor.execute(GameCommand.CancelAuction)
-            _events.emit(AuctionEvent.NavigateBack)
+            returnToActiveGame()
         }
     }
 
     fun onRestartAuction() {
-        _uiState.update { it.copy(showNoBids = false) }
+        auctionFinalized = false
+        auctionEndingPlayed = false
+        clearTimerState()
+        _uiState.update { it.copy(showNoBids = false, result = null, auctionRunning = true) }
         viewModelScope.launch {
             executor.execute(GameCommand.CancelAuction)
             startAuctionIfNeeded()
@@ -265,14 +315,14 @@ class AuctionViewModel(
     fun onLeaveUnowned() {
         viewModelScope.launch {
             executor.execute(GameCommand.CancelAuction)
-            _events.emit(AuctionEvent.NavigateBack)
+            returnToActiveGame()
         }
     }
 
     private fun completeAuction() {
         if (auctionEndingPlayed) return
         viewModelScope.launch {
-            _uiState.update { it.copy(commandInFlight = true) }
+            _uiState.update { it.copy(commandInFlight = true, auctionRunning = false) }
             val sessionBefore = sessionManager.currentSession()
             val winnerId = sessionBefore?.auction?.currentBidderId
             when (val outcome = executor.execute(GameCommand.CompleteAuction)) {
@@ -307,6 +357,7 @@ class AuctionViewModel(
                     _events.emit(AuctionEvent.NavigateToGameOver)
                 }
                 is BankingCommitOutcome.Rejected -> {
+                    auctionFinalized = false
                     _uiState.update {
                         it.copy(
                             commandInFlight = false,
@@ -320,7 +371,14 @@ class AuctionViewModel(
     }
 
     fun onDone() {
-        _events.tryEmit(AuctionEvent.NavigateBack)
+        clearTimerState()
+        _uiState.update { it.copy(result = null, showNoBids = false, message = null) }
+        returnToActiveGame()
+    }
+
+    private fun returnToActiveGame() {
+        clearTimerState()
+        _events.tryEmit(AuctionEvent.NavigateToActiveGame)
     }
 
     fun dismissMessage() {
@@ -342,7 +400,7 @@ class AuctionViewModelFactory(
     private val gameEndAudioCoordinator: GameEndAudioCoordinator,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(AuctionViewModel::class.java)) {
             return AuctionViewModel(
                 sessionManager,
@@ -351,6 +409,7 @@ class AuctionViewModelFactory(
                 startedByPlayerId,
                 gameAudioFeedback,
                 gameEndAudioCoordinator,
+                extras.createSavedStateHandle(),
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

@@ -132,6 +132,28 @@ class GameplayOutcomeAudioTest {
     }
 
     @Test
+    fun evt12_playsGoToJailOnceNotEventApplied() {
+        val indiaDefinitions = AppTestSupport.editionRepository.load(
+            com.boardbanker.core.model.EditionIds.INDIA,
+        )
+        val indiaEngine = com.boardbanker.core.engine.DefaultGameEngine(indiaDefinitions)
+        var session = AppTestSupport.newGameForEdition(
+            editionId = com.boardbanker.core.model.EditionIds.INDIA,
+            playerIds = listOf("USR_01", "USR_02"),
+        )
+        session = AppTestSupport.sessionWithActivePlayer(session, "USR_02")
+        val before = session
+        val result = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_12", "USR_02"))
+        val context = WorkflowCommandContext.ApplyEvent("EVT_12")
+        assertEquals(
+            GameplayAudioCue.GO_TO_JAIL,
+            cue(result, before, CommitAudioTrigger.GameWorkflow(context)),
+        )
+        GameplayOutcomeAudio.playCommittedOutcome(audio, result, before, CommitAudioTrigger.GameWorkflow(context))
+        assertEquals(listOf("GO_TO_JAIL"), audio.gameplayCalls)
+    }
+
+    @Test
     fun evt14_playsGoToJailOnce() {
         val session = AppTestSupport.newGame()
         val before = session

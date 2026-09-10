@@ -39,6 +39,18 @@ class CommonIconRegistryTest {
         )
     }
 
+    @Test
+    fun resumeGameAndAuctionMapToExpectedDrawables() {
+        assertEquals(
+            com.boardbanker.app.R.drawable.common_resume_game,
+            CommonIconRegistry.iconResId(CommonUiIcon.RESUME_GAME),
+        )
+        assertEquals(
+            com.boardbanker.app.R.drawable.common_auction,
+            CommonIconRegistry.iconResId(CommonUiIcon.AUCTION),
+        )
+    }
+
     private fun assertTrue(message: String, condition: Boolean) {
         org.junit.Assert.assertTrue(message, condition)
     }

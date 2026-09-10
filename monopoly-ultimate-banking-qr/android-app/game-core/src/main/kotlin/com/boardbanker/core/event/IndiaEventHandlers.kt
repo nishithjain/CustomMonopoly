@@ -16,8 +16,10 @@ import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.model.TurnKind
 import com.boardbanker.core.rules.DebtRules
 import com.boardbanker.core.rules.GoRules
+import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.rules.JailRules
 import com.boardbanker.core.rules.RentLevelOperations
+import com.boardbanker.core.rules.TurnScheduler
 import com.boardbanker.core.transaction.TransactionFactory
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
@@ -31,6 +33,7 @@ class IndiaEventHandlers(
     private val debtRules: DebtRules,
     private val jailRules: JailRules,
     private val goRules: GoRules,
+    private val turnScheduler: TurnScheduler,
 ) {
     private val rules = definitions.rules
 
@@ -367,15 +370,51 @@ class IndiaEventHandlers(
         rule: EventActionDefinition,
         timestamp: Long,
     ): EventEngine.EventResult {
+        val player = session.players[actingPlayerId]
+            ?: return EventEngine.EventResult.failure("Unknown player")
+        if (player.jailStatus) {
+            return EventEngine.EventResult.failure("Player is already in Jail")
+        }
+
+        val preActionSnapshot = session.snapshot()
         val jailResult = jailRules.sendToJail(session, actingPlayerId, timestamp)
         if (!jailResult.isSuccess) return EventEngine.EventResult.failure(jailResult.error ?: "Jail failed")
-        val updatedSession = jailResult.session!!
+
+        var updatedSession = jailResult.session!!
+        val transactions = jailResult.transactions.toMutableList()
+        var skippedTurnPlayerIds = emptyList<String>()
+        var extraTurnStartedPlayerId: String? = null
+        var extraTurnCancelledBySkipPlayerId: String? = null
+
+        val wasNewlyJailed = transactions.any {
+            it.transactionType == TransactionType.JAIL_STATUS_CHANGE &&
+                JailStatusSnapshot.enteredJail(it)
+        }
+        if (rule.booleanParam("endCurrentTurn") == true && wasNewlyJailed) {
+            val turnResult = turnScheduler.endTurn(updatedSession, actingPlayerId, timestamp)
+            if (!turnResult.isSuccess) {
+                return EventEngine.EventResult.failure(turnResult.error ?: "Turn advance failed")
+            }
+            updatedSession = turnResult.session!!
+            transactions += turnResult.transactions
+            skippedTurnPlayerIds = turnResult.skippedTurnPlayerIds
+            extraTurnStartedPlayerId = turnResult.extraTurnStartedPlayerId
+            extraTurnCancelledBySkipPlayerId = turnResult.extraTurnCancelledBySkipPlayerId
+        }
+
         val physical = PhysicalAction(
             instruction = "Move directly to Jail without collecting GO salary. End your current turn.",
             affectedPlayerIds = listOf(actingPlayerId),
             targetSpace = "JAIL",
         )
-        return EventEngine.EventResult.success(updatedSession, jailResult.transactions, listOf(physical))
+        return EventEngine.EventResult.success(
+            session = updatedSession.copy(undoSnapshot = preActionSnapshot),
+            transactions = transactions,
+            physicalActions = listOf(physical),
+            skippedTurnPlayerIds = skippedTurnPlayerIds,
+            extraTurnStartedPlayerId = extraTurnStartedPlayerId,
+            extraTurnCancelledBySkipPlayerId = extraTurnCancelledBySkipPlayerId,
+        )
     }
 
     private fun handleSelectedPropertyRentChange(

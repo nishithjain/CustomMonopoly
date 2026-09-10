@@ -152,6 +152,7 @@ fun AppNavigation(
                     definitions = app.gameDefinitions,
                     transientWorkflow = app.transientScanWorkflow,
                     locationWorkflowHolder = app.locationWorkflowHolder,
+                    activeGameHubReturnSignal = app.activeGameHubReturnSignal,
                     gameAudioFeedback = app.gameAudioFeedback,
                     gameEndAudioCoordinator = app.gameEndAudioCoordinator,
                 ),
@@ -345,7 +346,10 @@ fun AppNavigation(
 
             AuctionScreen(
                 viewModel = auctionViewModel,
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateToActiveGame = {
+                    app.activeGameHubReturnSignal.requestReturnToActiveGameHub()
+                    navController.popBackStack(AppDestination.Game.route, inclusive = false)
+                },
                 onOpenScanner = {
                     app.scanResultDeliverer.prepareConsumer(
                         ScanResultConsumer.AUCTION,

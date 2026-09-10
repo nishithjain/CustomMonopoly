@@ -102,6 +102,49 @@ class CommonUiIconComposeTest {
         }
 
         composeRule.onNodeWithTag(iconTag(CommonUiIcon.START_GAME), useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithText(BankingActionLabels.confirm("START GAME")).assertIsDisplayed()
+        composeRule.onNodeWithText("START GAME").assertIsDisplayed()
+    }
+
+    @Test
+    fun auctionExtraActionShowsAuctionIcon() {
+        composeRule.setContent {
+            BankingQRTheme {
+                BankingActionBar(
+                    confirmLabel = BankingActionLabels.confirm("BUY"),
+                    onConfirm = {},
+                    extraActions = listOf(
+                        BankingExtraAction(
+                            label = "AUCTION",
+                            onClick = {},
+                            icon = CommonUiIcon.AUCTION,
+                            testTag = "property_auction_button",
+                        ),
+                    ),
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(iconTag(CommonUiIcon.AUCTION), useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("AUCTION").assertIsDisplayed()
+        composeRule.onNodeWithText("✓ BUY").assertDoesNotExist()
+    }
+
+    @Test
+    fun resumeGameButtonShowsResumeGameIcon() {
+        var clicked = false
+        composeRule.setContent {
+            BankingQRTheme {
+                CommonFilledActionButton(
+                    icon = CommonUiIcon.RESUME_GAME,
+                    label = "RESUME GAME",
+                    onClick = { clicked = true },
+                    testTag = "home_resume_game_button",
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(iconTag(CommonUiIcon.RESUME_GAME), useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("RESUME GAME").performClick()
+        assertTrue(clicked)
     }
 }

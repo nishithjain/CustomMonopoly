@@ -25,9 +25,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.components.BankingActionBar
 import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.GameplayResultPresentation
+import com.boardbanker.app.ui.components.TopBarIconTitle
 import com.boardbanker.app.ui.components.PlayerIdentity
 import com.boardbanker.app.ui.components.PlayerIconSize
 
@@ -35,7 +37,7 @@ import com.boardbanker.app.ui.components.PlayerIconSize
 @Composable
 fun AuctionScreen(
     viewModel: AuctionViewModel,
-    onNavigateBack: () -> Unit,
+    onNavigateToActiveGame: () -> Unit,
     onOpenScanner: () -> Unit,
     onNavigateToDebt: () -> Unit,
     onNavigateToGameOver: () -> Unit,
@@ -45,7 +47,9 @@ fun AuctionScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                AuctionEvent.NavigateBack -> onNavigateBack()
+                AuctionEvent.NavigateBack,
+                AuctionEvent.NavigateToActiveGame,
+                -> onNavigateToActiveGame()
                 AuctionEvent.OpenScanner -> onOpenScanner()
                 AuctionEvent.NavigateToDebt -> onNavigateToDebt()
                 AuctionEvent.NavigateToGameOver -> onNavigateToGameOver()
@@ -77,7 +81,16 @@ fun AuctionScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("AUCTION") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    TopBarIconTitle(
+                        icon = CommonUiIcon.AUCTION,
+                        title = "AUCTION",
+                    )
+                },
+            )
+        },
     ) { innerPadding ->
         if (uiState.commandInFlight && uiState.result == null) {
             Column(

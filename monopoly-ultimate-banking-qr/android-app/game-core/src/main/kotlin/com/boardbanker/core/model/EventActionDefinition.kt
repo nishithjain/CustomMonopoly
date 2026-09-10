@@ -2,6 +2,8 @@ package com.boardbanker.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
 enum class EventActionType {
@@ -82,4 +84,8 @@ data class EventActionDefinition(
     fun parsedTargetType(): EventTargetType =
         runCatching { EventTargetType.valueOf(targetType) }
             .getOrDefault(EventTargetType.NONE)
+
+    fun endsCurrentTurnAfterJail(): Boolean =
+        actionType == "MOVE_TO_JAIL" &&
+            parameters["endCurrentTurn"]?.jsonPrimitive?.booleanOrNull == true
 }

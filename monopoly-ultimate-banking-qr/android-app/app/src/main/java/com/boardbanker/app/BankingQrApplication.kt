@@ -11,6 +11,7 @@ import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
 import com.boardbanker.app.scanner.delivery.ScanResultDeliverer
 import com.boardbanker.app.persistence.db.BoardBankerDatabaseFactory
 import com.boardbanker.app.persistence.repository.EditionAwareGameSessionRepository
@@ -38,6 +39,8 @@ class BankingQrApplication : Application() {
     val transientScanWorkflow: TransientScanWorkflowHolder = TransientScanWorkflowHolder()
 
     val locationWorkflowHolder: LocationWorkflowHolder = LocationWorkflowHolder()
+
+    val activeGameHubReturnSignal: ActiveGameHubReturnSignal = ActiveGameHubReturnSignal()
 
     val scanResultDeliverer: ScanResultDeliverer = ScanResultDeliverer()
 

@@ -20,6 +20,7 @@ data class AuctionUiState(
 
 sealed class AuctionEvent {
     data object NavigateBack : AuctionEvent()
+    data object NavigateToActiveGame : AuctionEvent()
     data object OpenScanner : AuctionEvent()
     data object NavigateToDebt : AuctionEvent()
     data object NavigateToGameOver : AuctionEvent()

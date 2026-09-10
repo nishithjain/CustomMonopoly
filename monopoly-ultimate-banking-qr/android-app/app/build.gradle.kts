@@ -133,6 +133,12 @@ dependencies {
 
 val monopolyRoot = rootProject.projectDir.parentFile
 
+tasks.register<Exec>("syncAndroidIcons") {
+    group = "build setup"
+    workingDir = monopolyRoot
+    commandLine("python", "tools/sync_android_icons.py")
+}
+
 tasks.register<Exec>("syncCardFrontAssets") {
     group = "build setup"
     workingDir = monopolyRoot
@@ -147,5 +153,5 @@ tasks.register<Exec>("validateCardFrontAssets") {
 }
 
 tasks.named("preBuild") {
-    dependsOn("validateCardFrontAssets")
+    dependsOn("syncAndroidIcons", "validateCardFrontAssets")
 }

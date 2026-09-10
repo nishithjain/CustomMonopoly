@@ -1,6 +1,7 @@
 package com.boardbanker.app.ui.screens.history
 
 import com.boardbanker.app.AppTestSupport
+import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.ui.components.DisplayIdentity
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EntityRef
@@ -182,6 +183,30 @@ class BankJailHistoryIconTests {
 
         assertEquals(1, entries.size)
         assertTrue(entries.single().detail is HistoryDetail.PlayerMention || entries.single().detail is HistoryDetail.Text)
+    }
+
+    @Test
+    fun auctionWinHistoryUsesAuctionIcon() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = listOf(
+                Transaction(
+                    transactionId = "${base.gameId}_TX_1",
+                    gameId = base.gameId,
+                    timestamp = 1_000L,
+                    transactionType = TransactionType.AUCTION_WIN,
+                    fromEntity = EntityRef.BANK,
+                    toEntity = "USR_01",
+                    playerId = "USR_01",
+                    amount = 60,
+                    propertyId = "PRP_01",
+                ),
+            ),
+        )
+
+        val entry = TransactionHistoryEntries.build(session, definitions).single()
+        assertEquals(CommonUiIcon.AUCTION, entry.entryIcon)
+        assertEquals(CommonUiIcon.AUCTION, HistoryEntryIcons.forTransactionType(TransactionType.AUCTION_WIN))
     }
 
     @Test

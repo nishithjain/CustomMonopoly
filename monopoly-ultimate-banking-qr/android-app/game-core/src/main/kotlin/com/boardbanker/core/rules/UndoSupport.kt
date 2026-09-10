@@ -15,8 +15,10 @@ class UndoSupport(
     fun canUndo(session: GameSession): Boolean {
         if (undoPolicy.blockedDuringDebtResolution() && session.debtResolution != null) return false
         val lastTx = session.transactions.lastOrNull() ?: return false
-        if (undoPolicy.isIneligible(lastTx.transactionType)) return false
         if (session.undoSnapshot == null) return false
+        if (undoPolicy.isIneligible(lastTx.transactionType)) {
+            return trailingEventAppliedWithUndoableAction(session.transactions)
+        }
         return undoPolicy.isEligible(lastTx.transactionType) ||
             session.transactions.takeLast(2).any { undoPolicy.isEligible(it.transactionType) }
     }
@@ -28,7 +30,9 @@ class UndoSupport(
         val snapshot = session.undoSnapshot
             ?: return UndoResult.failure("No undo snapshot available")
         val lastTx = session.transactions.lastOrNull()
-        if (lastTx != null && undoPolicy.isIneligible(lastTx.transactionType)) {
+        if (lastTx != null && undoPolicy.isIneligible(lastTx.transactionType) &&
+            !trailingEventAppliedWithUndoableAction(session.transactions)
+        ) {
             return UndoResult.failure("Event transactions are not undoable")
         }
 
@@ -43,6 +47,12 @@ class UndoSupport(
             reversible = false,
         )
         return UndoResult.success(sessionAfterTx.copy(undoSnapshot = null), listOf(tx))
+    }
+
+    private fun trailingEventAppliedWithUndoableAction(transactions: List<Transaction>): Boolean {
+        val lastTx = transactions.lastOrNull() ?: return false
+        if (lastTx.transactionType != TransactionType.EVENT_APPLIED) return false
+        return transactions.dropLast(1).any { undoPolicy.isEligible(it.transactionType) }
     }
 
     data class UndoResult(

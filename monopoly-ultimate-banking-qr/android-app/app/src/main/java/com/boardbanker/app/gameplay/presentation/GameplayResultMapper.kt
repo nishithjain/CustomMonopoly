@@ -391,6 +391,11 @@ class GameplayResultMapper(
             return errorResult(result.error)
         }
         val event = definitions.events[eventId]!!
+        if (event.actions.any { it.endsCurrentTurnAfterJail() } &&
+            result.transactions.any { it.transactionType == TransactionType.TURN_ADVANCED }
+        ) {
+            return mapDirectJailWithTurnEndResult(result, eventId, event)
+        }
         val propertyChanges = result.transactions
             .filter { it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE }
             .mapNotNull { tx ->
@@ -445,6 +450,50 @@ class GameplayResultMapper(
             propertyChanges = propertyChanges,
             temporaryEffectMessage = temporaryMessage,
             physicalInstructions = physical,
+            lastTransactionSummary = summarizeLastTransaction(result),
+        )
+    }
+
+    private fun mapDirectJailWithTurnEndResult(
+        result: GameResult,
+        eventId: String,
+        event: com.boardbanker.core.model.EventDefinition,
+    ): GameplayResultUiModel {
+        val jailedPlayerId = result.transactions
+            .firstOrNull { it.transactionType == TransactionType.JAIL_STATUS_CHANGE }
+            ?.playerId
+            ?: result.session.turnState?.activePlayerId
+            ?: ""
+        val jailedPlayerName = resolvePlayerName(jailedPlayerId, result.session)
+        val nextTurnPlayerId = result.session.turnState?.activePlayerId
+        val nextTurnPlayerName = nextTurnPlayerId?.let { resolvePlayerName(it, result.session) }
+        val extraTurnJailLines = result.transactions
+            .filter { it.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL }
+            .mapNotNull { tx ->
+                tx.playerId?.let { playerId ->
+                    "${resolvePlayerName(playerId, result.session)}'s extra turn was cancelled by Jail"
+                }
+            }
+            .distinct()
+        return GameplayResultUiModel(
+            displayCardId = eventId,
+            title = event.name,
+            primaryPlayerId = jailedPlayerId,
+            primaryPlayerName = jailedPlayerName,
+            secondaryPlayerId = EntityRef.JAIL,
+            secondaryPlayerName = "Jail",
+            nextTurnPlayerId = nextTurnPlayerId,
+            nextTurnPlayerName = nextTurnPlayerName,
+            primaryMessage = buildString {
+                append("$jailedPlayerName was sent directly to Jail.\n")
+                append("No GO amount was collected.\n")
+                append("$jailedPlayerName's turn has ended.")
+                if (extraTurnJailLines.isNotEmpty()) {
+                    append("\n\n")
+                    append(extraTurnJailLines.joinToString("\n"))
+                }
+            },
+            physicalInstructions = result.physicalActions.map { it.instruction },
             lastTransactionSummary = summarizeLastTransaction(result),
         )
     }

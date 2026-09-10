@@ -22,7 +22,7 @@ class GameRulesValidatorTest {
         assertEquals(5, definitions.rules.rent.maximumRentLevel)
         assertEquals(1, definitions.rules.undo.undoDepth)
         assertEquals(3, definitions.rules.jail.exitByDoublesMaxAttempts)
-        assertEquals(30, definitions.rules.auction.timedAuctionSeconds)
+        assertEquals(15, definitions.rules.auction.timedAuctionSeconds)
         assertTrue(GameRulesValidator.validateAgainstEdition(definitions.rules, definitions).isEmpty())
     }
 

@@ -32,6 +32,8 @@ data class GameplayResultUiModel(
     val primaryPlayerName: String? = null,
     val secondaryPlayerId: String? = null,
     val secondaryPlayerName: String? = null,
+    val nextTurnPlayerId: String? = null,
+    val nextTurnPlayerName: String? = null,
     val playerRankings: List<PlayerRankingUi> = emptyList(),
     val balanceChanges: List<BalanceChangeUi> = emptyList(),
     val propertyChanges: List<PropertyChangeUi> = emptyList(),

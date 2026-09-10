@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -24,6 +25,7 @@ data class BankingExtraAction(
     val enabled: Boolean = true,
     val contentDescription: String = label,
     val icon: CommonUiIcon? = null,
+    val testTag: String? = null,
 )
 
 /**
@@ -38,12 +40,14 @@ fun BankingActionBar(
     onConfirm: (() -> Unit)? = null,
     confirmEnabled: Boolean = true,
     confirmIcon: CommonUiIcon = CommonUiIcon.CHECK,
+    confirmTestTag: String? = null,
     middleLabel: String? = null,
     onMiddle: (() -> Unit)? = null,
     middleEnabled: Boolean = true,
     cancelLabel: String? = null,
     onCancel: (() -> Unit)? = null,
     cancelEnabled: Boolean = true,
+    cancelTestTag: String? = null,
     extraActions: List<BankingExtraAction> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
@@ -77,6 +81,7 @@ fun BankingActionBar(
                     onClick = onConfirm!!,
                     enabled = confirmEnabled,
                     icon = confirmIcon,
+                    testTag = confirmTestTag,
                     modifier = Modifier.weight(1f),
                 )
                 BankingMiddleButton(
@@ -89,6 +94,7 @@ fun BankingActionBar(
                     label = cancelLabel!!,
                     onClick = onCancel!!,
                     enabled = cancelEnabled,
+                    testTag = cancelTestTag,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -99,6 +105,7 @@ fun BankingActionBar(
                     onClick = onConfirm!!,
                     enabled = confirmEnabled,
                     icon = confirmIcon,
+                    testTag = confirmTestTag,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -109,6 +116,7 @@ fun BankingActionBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 48.dp)
+                        .then(if (action.testTag != null) Modifier.testTag(action.testTag) else Modifier)
                         .semantics { contentDescription = action.contentDescription },
                 ) {
                     IconLabelRow(
@@ -132,6 +140,7 @@ fun BankingActionBar(
                     label = cancelLabel!!,
                     onClick = onCancel!!,
                     enabled = cancelEnabled,
+                    testTag = cancelTestTag,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -145,6 +154,7 @@ private fun BankingConfirmButton(
     onClick: () -> Unit,
     enabled: Boolean,
     icon: CommonUiIcon,
+    testTag: String? = null,
     modifier: Modifier = Modifier,
 ) {
     Button(
@@ -152,6 +162,7 @@ private fun BankingConfirmButton(
         enabled = enabled,
         modifier = modifier
             .heightIn(min = 48.dp)
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
             .semantics { contentDescription = accessibilityLabel(label, "Confirm") },
     ) {
         IconLabelRow(
@@ -195,6 +206,7 @@ private fun BankingCancelButton(
     label: String,
     onClick: () -> Unit,
     enabled: Boolean,
+    testTag: String? = null,
     modifier: Modifier = Modifier,
 ) {
     OutlinedButton(
@@ -202,6 +214,7 @@ private fun BankingCancelButton(
         enabled = enabled,
         modifier = modifier
             .heightIn(min = 48.dp)
+            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
             .semantics { contentDescription = accessibilityLabel(label, "Cancel") },
     ) {
         IconLabelRow(
@@ -214,10 +227,6 @@ private fun BankingCancelButton(
 }
 
 private fun accessibilityLabel(label: String, fallback: String): String {
-    val stripped = label
-        .removePrefix(BankingActionLabels.CONFIRM_SYMBOL)
-        .removePrefix(BankingActionLabels.MIDDLE_SYMBOL)
-        .removePrefix(BankingActionLabels.CANCEL_SYMBOL)
-        .trim()
-    return if (stripped.isNotEmpty()) stripped else fallback
+    val trimmed = label.trim()
+    return if (trimmed.isNotEmpty()) trimmed else fallback
 }

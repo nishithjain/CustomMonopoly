@@ -50,7 +50,7 @@ class DefaultGameEngine(
     private val jailRules = JailRules(definitions, transactionFactory)
     private val turnScheduler = TurnScheduler(transactionFactory)
     private val undoSupport = UndoSupport(definitions, transactionFactory)
-    private val eventEngine = EventEngine(definitions, transactionFactory, jailRules, debtRules)
+    private val eventEngine = EventEngine(definitions, transactionFactory, jailRules, debtRules, turnScheduler)
 
     private val rules = definitions.rules
     private val policies = definitions.policies
@@ -393,13 +393,15 @@ class DefaultGameEngine(
             result.pendingMessage != null -> GameOutcome.PENDING_ACTION
             else -> GameOutcome.SUCCESS
         }
-        var updatedSession = result.session!!
         return GameResult(
-            session = updatedSession,
+            session = result.session!!,
             outcome = outcome,
             transactions = result.transactions,
             physicalActions = result.physicalActions,
             pendingMessage = result.pendingMessage,
+            skippedTurnPlayerIds = result.skippedTurnPlayerIds,
+            extraTurnStartedPlayerId = result.extraTurnStartedPlayerId,
+            extraTurnCancelledBySkipPlayerId = result.extraTurnCancelledBySkipPlayerId,
         )
     }
 
@@ -460,6 +462,9 @@ class DefaultGameEngine(
             transactions = result.transactions,
             physicalActions = result.physicalActions,
             pendingMessage = result.pendingMessage,
+            skippedTurnPlayerIds = result.skippedTurnPlayerIds,
+            extraTurnStartedPlayerId = result.extraTurnStartedPlayerId,
+            extraTurnCancelledBySkipPlayerId = result.extraTurnCancelledBySkipPlayerId,
         )
     }
 

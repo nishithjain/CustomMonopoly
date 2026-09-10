@@ -57,7 +57,7 @@
     "requiredForUnownedLanding": true,
     "arbitraryBidAmountsAllowed": false,
     "jailedPlayersCannotBid": true,
-    "timedAuctionSeconds": 30,
+    "timedAuctionSeconds": 15,
     "lastBidBeforeTimerWins": true,
     "winnerInitialRentLevel": 1,
     "noBidsBehaviour": "CANCEL_REMAIN_UNOWNED"

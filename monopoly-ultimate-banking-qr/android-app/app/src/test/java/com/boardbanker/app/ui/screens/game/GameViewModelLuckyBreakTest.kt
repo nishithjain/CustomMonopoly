@@ -5,6 +5,7 @@ import com.boardbanker.app.audio.GameEndAudioCoordinator
 import com.boardbanker.app.audio.RecordingGameAudioFeedback
 import com.boardbanker.app.game.ProcessCommitResult
 import com.boardbanker.app.gameplay.location.LocationWorkflowHolder
+import com.boardbanker.app.navigation.ActiveGameHubReturnSignal
 import com.boardbanker.app.gameplay.presentation.DiceGambleStatus
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.persistence.FakeGameSessionRepository
@@ -77,6 +78,7 @@ class GameViewModelLuckyBreakTest {
             definitions = AppTestSupport.editionRepository.load(EditionIds.INDIA),
             transientWorkflow = TransientScanWorkflowHolder(),
             locationWorkflowHolder = LocationWorkflowHolder(),
+            activeGameHubReturnSignal = ActiveGameHubReturnSignal(),
             gameAudioFeedback = RecordingGameAudioFeedback(),
             gameEndAudioCoordinator = GameEndAudioCoordinator(),
         )

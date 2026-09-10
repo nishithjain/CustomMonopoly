@@ -1,21 +1,16 @@
 package com.boardbanker.app.ui.components
 
 /**
- * Label helpers for hardware-inspired banking action semantics.
+ * Label helpers for banking action buttons.
  *
- * Symbols provide familiarity with the physical Ultimate Banking unit;
- * trailing text makes the Android action explicit.
+ * Icons are rendered separately via [IconLabelRow]; labels are plain action text.
  */
 object BankingActionLabels {
-    const val CONFIRM_SYMBOL = "✓"
-    const val MIDDLE_SYMBOL = "M"
-    const val CANCEL_SYMBOL = "✕"
+    fun confirm(action: String): String = action
 
-    fun confirm(action: String): String = "$CONFIRM_SYMBOL $action"
+    fun middle(action: String): String = action
 
-    fun middle(action: String): String = "$MIDDLE_SYMBOL $action"
-
-    fun cancel(action: String = "CANCEL"): String = "$CANCEL_SYMBOL $action"
+    fun cancel(action: String = "CANCEL"): String = action
 
     fun hasMiddleAction(middleLabel: String?, onMiddle: (() -> Unit)?): Boolean =
         !middleLabel.isNullOrBlank() && onMiddle != null

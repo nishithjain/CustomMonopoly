@@ -28,6 +28,7 @@ internal object HistoryEntryIcons {
         TransactionType.JAIL_STATUS_CHANGE,
         TransactionType.JAIL_PASS_USED,
         -> CommonUiIcon.JAIL
+        TransactionType.TURN_ADVANCED -> CommonUiIcon.CURRENT_TURN
         TransactionType.BANK_CREDIT,
         TransactionType.BANK_DEBIT,
         -> CommonUiIcon.BANK
