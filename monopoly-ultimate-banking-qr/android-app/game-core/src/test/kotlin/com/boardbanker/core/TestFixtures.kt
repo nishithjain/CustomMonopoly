@@ -190,4 +190,21 @@ object TestFixtures {
 
     fun rentAmount(propertyId: String, level: Int): Int =
         definitions.properties[propertyId]!!.rentLevels.first { it.level == level }.amount
+
+    fun selectDiceGambleMode(
+        session: GameSession,
+        mode: com.boardbanker.core.model.DiceGambleMode,
+        engine: GameEngine = TestFixtures.engine,
+    ): GameSession {
+        val pending = session.pendingDiceGamble
+            ?: error("No pending dice gamble")
+        return engine.process(
+            session,
+            GameCommand.SelectDiceGambleMode(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+                mode = mode,
+            ),
+        ).session
+    }
 }

@@ -213,8 +213,13 @@ class IndiaEventTests {
         val engine = DefaultGameEngine(definitions, SequenceDiceRoller(3 to 3))
         val session = indiaGame()
         val started = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01"))
-        val rolled = engine.process(
+        val ready = TestFixtures.selectDiceGambleMode(
             started.session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            engine,
+        )
+        val rolled = engine.process(
+            ready,
             GameCommand.RollEventDice("EVT_17", "USR_01"),
         )
         assertEquals(session.players["USR_01"]!!.balance + 15000, rolled.session.players["USR_01"]!!.balance)
@@ -224,6 +229,11 @@ class IndiaEventTests {
         val engine = DefaultGameEngine(definitions, SequenceDiceRoller(1 to 2, 2 to 3, 4 to 5))
         var session = indiaGame(balances = mapOf("USR_01" to 50000))
         session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        session = TestFixtures.selectDiceGambleMode(
+            session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            engine,
+        )
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         val final = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))

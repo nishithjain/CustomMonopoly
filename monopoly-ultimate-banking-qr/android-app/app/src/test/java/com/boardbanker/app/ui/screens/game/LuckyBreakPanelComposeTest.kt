@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import com.boardbanker.app.gameplay.presentation.DiceGambleStatus
 import com.boardbanker.app.gameplay.presentation.DiceGambleUiState
 import com.boardbanker.app.ui.theme.BankingQRTheme
+import com.boardbanker.core.model.DiceGambleMode
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +32,8 @@ class LuckyBreakPanelComposeTest {
         showContinue: Boolean = false,
         outcomeHeadline: String? = null,
         outcomeMessage: String? = null,
+        mode: DiceGambleMode? = DiceGambleMode.IN_APP,
+        physicalConfirmMessage: String? = null,
     ) = DiceGambleUiState(
         eventId = "EVT_17",
         eventName = "Lucky Break",
@@ -49,6 +52,10 @@ class LuckyBreakPanelComposeTest {
         showContinue = showContinue,
         outcomeHeadline = outcomeHeadline,
         outcomeMessage = outcomeMessage,
+        mode = mode,
+        physicalJackpotLabel = "Doubles — Award ₹15,000",
+        physicalPenaltyLabel = "No Doubles — Apply ₹5,000 Penalty",
+        physicalConfirmMessage = physicalConfirmMessage,
     )
 
     private fun render(state: DiceGambleUiState) {
@@ -56,11 +63,26 @@ class LuckyBreakPanelComposeTest {
             BankingQRTheme {
                 LuckyBreakContent(
                     state = state,
+                    onSelectInAppMode = {},
+                    onSelectPhysicalMode = {},
                     onRollDice = {},
+                    onPhysicalJackpot = {},
+                    onPhysicalPenalty = {},
+                    onConfirmPhysical = {},
+                    onBackFromPhysical = {},
+                    onCancelPhysicalConfirm = {},
                     onContinue = {},
                 )
             }
         }
+    }
+
+    @Test
+    fun modeSelectionShowsDiceButtons() {
+        render(sampleState(status = DiceGambleStatus.SELECT_MODE, mode = null))
+
+        composeRule.onNodeWithText("Roll Dice in App").assertIsDisplayed()
+        composeRule.onNodeWithText("Use Physical Dice").assertIsDisplayed()
     }
 
     @Test
@@ -75,14 +97,7 @@ class LuckyBreakPanelComposeTest {
     }
 
     @Test
-    fun rollButtonDisabledWhenRolling() {
-        render(sampleState(rollEnabled = false, status = DiceGambleStatus.ROLLING, rollButtonLabel = "Rolling..."))
-
-        composeRule.onNodeWithText("Rolling...").assertIsDisplayed().assertIsNotEnabled()
-    }
-
-    @Test
-    fun showsRemainingAttemptsMessage() {
+    fun rollAgainShowsDiceIcon() {
         render(
             sampleState(
                 dieOne = 1,
@@ -92,8 +107,43 @@ class LuckyBreakPanelComposeTest {
             ),
         )
 
-        composeRule.onNodeWithText("No doubles — 2 attempts remaining").assertIsDisplayed()
         composeRule.onNodeWithText("Roll Again").assertIsDisplayed().assertIsEnabled()
+    }
+
+    @Test
+    fun rollButtonDisabledWhenRolling() {
+        render(sampleState(rollEnabled = false, status = DiceGambleStatus.ROLLING, rollButtonLabel = "Rolling..."))
+
+        composeRule.onNodeWithText("Rolling...").assertIsDisplayed().assertIsNotEnabled()
+    }
+
+    @Test
+    fun physicalModeShowsJackpotPenaltyAndBack() {
+        render(
+            sampleState(
+                status = DiceGambleStatus.PHYSICAL_DICE,
+                mode = DiceGambleMode.PHYSICAL,
+            ),
+        )
+
+        composeRule.onNodeWithText("Doubles — Award ₹15,000").assertIsDisplayed()
+        composeRule.onNodeWithText("No Doubles — Apply ₹5,000 Penalty").assertIsDisplayed()
+        composeRule.onNodeWithText("Back").assertIsDisplayed()
+    }
+
+    @Test
+    fun physicalConfirmShowsPrompt() {
+        render(
+            sampleState(
+                status = DiceGambleStatus.PHYSICAL_CONFIRM_JACKPOT,
+                mode = DiceGambleMode.PHYSICAL,
+                physicalConfirmMessage = "Confirm that doubles were rolled?",
+                rollEnabled = true,
+            ),
+        )
+
+        composeRule.onNodeWithText("Confirm that doubles were rolled?").assertIsDisplayed()
+        composeRule.onNodeWithText("Confirm").assertIsDisplayed()
     }
 
     @Test

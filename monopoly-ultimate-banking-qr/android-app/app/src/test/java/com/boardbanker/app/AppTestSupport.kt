@@ -122,6 +122,24 @@ object AppTestSupport {
         error("Could not advance turn to $playerId")
     }
 
+    fun selectDiceGambleMode(
+        session: GameSession,
+        mode: com.boardbanker.core.model.DiceGambleMode,
+        engine: com.boardbanker.core.engine.GameEngine = DefaultGameEngine(
+            editionRepository.load(session.editionId),
+        ),
+    ): GameSession {
+        val pending = session.pendingDiceGamble ?: error("No pending dice gamble")
+        return engine.process(
+            session,
+            GameCommand.SelectDiceGambleMode(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+                mode = mode,
+            ),
+        ).session
+    }
+
     private fun resolveDataDir(): Path = listOf(
         Path.of("../../data"),
         Path.of("../../../data"),

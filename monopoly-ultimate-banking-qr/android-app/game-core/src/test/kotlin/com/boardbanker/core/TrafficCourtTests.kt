@@ -2,8 +2,11 @@ package com.boardbanker.core
 
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.engine.DefaultGameEngine
+import com.boardbanker.core.model.DirectJailEventSnapshot
 import com.boardbanker.core.model.EditionIds
+import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.TransactionType
+import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -103,6 +106,62 @@ class TrafficCourtTests {
             .map { it.timestamp }
             .distinct()
         assertEquals(1, actionTimestamps.size)
+    }
+
+    @Test
+    fun trafficCourt_recordsDirectJailMetadataOnEventApplied() {
+        var session = TestFixtures.indiaGame(listOf("USR_01", "USR_02"))
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine = engine)
+
+        val result = engine.process(session, GameCommand.ApplyEvent("EVT_12", "USR_02"))
+        val eventApplied = result.transactions.single { it.transactionType == TransactionType.EVENT_APPLIED }
+        val metadata = DirectJailEventSnapshot.fromEventApplied(eventApplied)
+
+        assertNotNull(metadata)
+        assertEquals("USR_02", metadata!!.affectedPlayerId)
+        assertEquals(EntityRef.JAIL, metadata.destination)
+        assertFalse(metadata.collectedGo)
+        assertTrue(metadata.turnEnded)
+        assertEquals("EVT_12", eventApplied.eventId)
+    }
+
+    @Test
+    fun trafficCourt_luckyDrawRecordsDirectJailMetadata() {
+        var session = TestFixtures.indiaGame(listOf("USR_01", "USR_02"))
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine = engine)
+        session = engine.process(session, GameCommand.ApplyEvent("EVT_15", "USR_02")).session
+
+        val result = engine.process(session, GameCommand.ResolvePendingEventDraw("EVT_12", "USR_02"))
+        val eventApplied = result.transactions.single { it.transactionType == TransactionType.EVENT_APPLIED }
+        val metadata = DirectJailEventSnapshot.fromEventApplied(eventApplied)
+
+        assertNotNull(metadata)
+        assertEquals("USR_02", metadata!!.affectedPlayerId)
+        assertFalse(metadata.collectedGo)
+        assertTrue(metadata.turnEnded)
+    }
+
+    @Test
+    fun trafficCourt_undoAndResumePreserveDirectJailMetadata() {
+        var session = TestFixtures.indiaGame(listOf("USR_01", "USR_02"))
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine = engine)
+        val serializer = KotlinGameSessionSerializer()
+
+        val applied = engine.process(session, GameCommand.ApplyEvent("EVT_12", "USR_02"))
+        val resumed = serializer.deserialize(serializer.serialize(applied.session))
+        val metadataBeforeUndo = DirectJailEventSnapshot.fromEventApplied(
+            resumed.transactions.single { it.transactionType == TransactionType.EVENT_APPLIED },
+        )
+        assertEquals("USR_02", metadataBeforeUndo!!.affectedPlayerId)
+
+        val undone = engine.process(resumed, GameCommand.UndoLastAction)
+        val restored = engine.process(undone.session, GameCommand.ApplyEvent("EVT_12", "USR_02"))
+        val metadataAfterRedo = DirectJailEventSnapshot.fromEventApplied(
+            restored.transactions.last { it.transactionType == TransactionType.EVENT_APPLIED },
+        )
+
+        assertEquals("USR_02", metadataAfterRedo!!.affectedPlayerId)
+        assertTrue(metadataAfterRedo.turnEnded)
     }
 
     @Test

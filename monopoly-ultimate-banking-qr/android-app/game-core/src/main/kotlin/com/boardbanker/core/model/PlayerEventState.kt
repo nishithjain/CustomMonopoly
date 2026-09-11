@@ -20,4 +20,5 @@ data class PendingDiceGamble(
     val diceCount: Int,
     val lastRollResults: List<Int> = emptyList(),
     val completed: Boolean = false,
+    val mode: DiceGambleMode? = null,
 )

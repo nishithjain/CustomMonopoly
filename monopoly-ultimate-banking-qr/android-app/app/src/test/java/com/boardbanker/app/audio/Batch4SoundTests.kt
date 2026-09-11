@@ -6,6 +6,7 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameOutcome
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.EditionIds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,6 +33,15 @@ class Batch4SoundTests {
 
     private fun indiaSession() = AppTestSupport.newGameForEdition(EditionIds.INDIA)
 
+    private fun startLuckyBreakInApp(
+        engine: DefaultGameEngine,
+        session: com.boardbanker.core.model.GameSession,
+        playerId: String = "USR_01",
+    ): com.boardbanker.core.model.GameSession {
+        var current = engine.process(session, GameCommand.ApplyEvent("EVT_17", playerId)).session
+        return AppTestSupport.selectDiceGambleMode(current, DiceGambleMode.IN_APP, engine)
+    }
+
     private fun playWorkflow(
         result: com.boardbanker.core.engine.GameResult,
         before: com.boardbanker.core.model.GameSession,
@@ -47,8 +57,7 @@ class Batch4SoundTests {
 
     @Test
     fun acceptedLuckyBreakRollPlaysDiceRollOnce() {
-        var session = indiaSession()
-        session = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        var session = startLuckyBreakInApp(indiaEngine, indiaSession())
         val before = session
         val result = indiaEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         val cues = GameplayOutcomeAudio.resolveLuckyBreakRollCues(result)
@@ -59,9 +68,8 @@ class Batch4SoundTests {
 
     @Test
     fun intermediateLuckyBreakRollPlaysOnlyDiceRoll() {
-        var session = indiaSession()
-        session = indiaEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
         val engine = DefaultGameEngine(indiaDefinitions, SequenceDiceRoller(3 to 5))
+        var session = startLuckyBreakInApp(engine, indiaSession())
         val before = session
         val result = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         assertEquals(listOf(GameplayAudioCue.DICE_ROLL), GameplayOutcomeAudio.resolveLuckyBreakRollCues(result))
@@ -75,8 +83,7 @@ class Batch4SoundTests {
             indiaDefinitions,
             SequenceDiceRoller(3 to 5, 2 to 4, 1 to 6),
         )
-        var session = indiaSession()
-        session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        var session = startLuckyBreakInApp(engine, indiaSession())
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         val completed = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
@@ -87,12 +94,11 @@ class Batch4SoundTests {
 
     @Test
     fun finalFailedLuckyBreakRollSequencesDiceRollThenBankDebit() {
-        var session = indiaSession()
         val engine = DefaultGameEngine(
             indiaDefinitions,
             SequenceDiceRoller(3 to 5, 2 to 4, 1 to 6),
         )
-        session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        var session = startLuckyBreakInApp(engine, indiaSession())
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         val before = session

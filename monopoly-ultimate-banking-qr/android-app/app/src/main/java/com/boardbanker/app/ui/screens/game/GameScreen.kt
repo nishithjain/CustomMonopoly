@@ -339,7 +339,14 @@ fun GameScreen(
                         uiState.diceGamble?.let { gamble ->
                             LuckyBreakContent(
                                 state = gamble,
+                                onSelectInAppMode = viewModel::onSelectLuckyBreakInAppMode,
+                                onSelectPhysicalMode = viewModel::onSelectLuckyBreakPhysicalMode,
                                 onRollDice = viewModel::onRollLuckyBreakDice,
+                                onPhysicalJackpot = viewModel::onLuckyBreakPhysicalJackpot,
+                                onPhysicalPenalty = viewModel::onLuckyBreakPhysicalPenalty,
+                                onConfirmPhysical = viewModel::onConfirmLuckyBreakPhysical,
+                                onBackFromPhysical = viewModel::onBackFromLuckyBreakPhysical,
+                                onCancelPhysicalConfirm = viewModel::onCancelLuckyBreakPhysicalConfirm,
                                 onContinue = viewModel::onLuckyBreakContinue,
                             )
                         }

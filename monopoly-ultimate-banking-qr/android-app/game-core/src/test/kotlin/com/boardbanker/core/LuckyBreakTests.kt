@@ -4,7 +4,11 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
 import com.boardbanker.core.engine.GameOutcome
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.EditionIds
+import com.boardbanker.core.model.LuckyBreakEventSnapshot
+import com.boardbanker.core.model.LuckyBreakOutcome
+import com.boardbanker.core.model.PhysicalDiceGambleOutcome
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import org.junit.Assert.assertEquals
@@ -24,10 +28,15 @@ class LuckyBreakTests {
     private fun startLuckyBreak(
         engine: DefaultGameEngine,
         session: com.boardbanker.core.model.GameSession = TestFixtures.indiaGame(),
+        mode: DiceGambleMode? = DiceGambleMode.IN_APP,
     ): com.boardbanker.core.model.GameSession {
         val started = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01"))
         assertNotNull(started.session.pendingDiceGamble)
-        return started.session
+        return if (mode == null) {
+            started.session
+        } else {
+            TestFixtures.selectDiceGambleMode(started.session, mode, engine)
+        }
     }
 
     @Test
@@ -207,10 +216,80 @@ class LuckyBreakTests {
     @Test
     fun configuredJackpotAndPenaltyAmounts() {
         val engine = engineWithRolls()
-        val session = startLuckyBreak(engine)
+        val session = startLuckyBreak(engine, mode = null)
         assertEquals(15000, session.pendingDiceGamble!!.jackpotAmount)
         assertEquals(5000, session.pendingDiceGamble!!.penaltyAmount)
         assertEquals(3, session.pendingDiceGamble!!.maximumAttempts)
         assertEquals(2, session.pendingDiceGamble!!.diceCount)
+    }
+
+    @Test
+    fun physicalJackpotCreditsOnceWithMetadata() {
+        val engine = engineWithRolls()
+        var session = startLuckyBreak(engine, mode = DiceGambleMode.PHYSICAL)
+        val before = session.players["USR_01"]!!.balance
+        val resolved = engine.process(
+            session,
+            GameCommand.ResolvePhysicalDiceGamble("EVT_17", "USR_01", PhysicalDiceGambleOutcome.JACKPOT),
+        )
+        assertEquals(before + 15000, resolved.session.players["USR_01"]!!.balance)
+        val tx = resolved.transactions.single { it.transactionType == TransactionType.BANK_CREDIT }
+        val metadata = LuckyBreakEventSnapshot.fromTransaction(tx)
+        assertNotNull(metadata)
+        assertEquals("USR_01", metadata!!.playerId)
+        assertEquals(DiceGambleMode.PHYSICAL, metadata.mode)
+        assertEquals(LuckyBreakOutcome.JACKPOT, metadata.outcome)
+        assertEquals(null, metadata.dieOne)
+        assertEquals(null, metadata.dieTwo)
+    }
+
+    @Test
+    fun physicalPenaltyDebitsOnceWithMetadata() {
+        val engine = engineWithRolls()
+        var session = startLuckyBreak(
+            engine,
+            TestFixtures.newGameForEdition(EditionIds.INDIA, balances = mapOf("USR_01" to 50000)),
+            mode = DiceGambleMode.PHYSICAL,
+        )
+        val resolved = engine.process(
+            session,
+            GameCommand.ResolvePhysicalDiceGamble("EVT_17", "USR_01", PhysicalDiceGambleOutcome.PENALTY),
+        )
+        assertEquals(45000, resolved.session.players["USR_01"]!!.balance)
+        val metadata = LuckyBreakEventSnapshot.fromTransaction(
+            resolved.transactions.single { it.transactionType == TransactionType.BANK_DEBIT },
+        )
+        assertEquals(LuckyBreakOutcome.PENALTY, metadata!!.outcome)
+        assertEquals(3, metadata.attemptNumber)
+    }
+
+    @Test
+    fun inAppResolutionRecordsMetadataWithDiceAndAttempt() {
+        val engine = engineWithRolls(1 to 2, 5 to 5)
+        var session = startLuckyBreak(engine)
+        session = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
+        val resolved = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
+        val metadata = LuckyBreakEventSnapshot.fromTransaction(
+            resolved.transactions.single { it.transactionType == TransactionType.BANK_CREDIT },
+        )
+        assertEquals(DiceGambleMode.IN_APP, metadata!!.mode)
+        assertEquals(2, metadata.attemptNumber)
+        assertEquals(5, metadata.dieOne)
+        assertEquals(5, metadata.dieTwo)
+    }
+
+    @Test
+    fun duplicatePhysicalResolutionRejected() {
+        val engine = engineWithRolls()
+        var session = startLuckyBreak(engine, mode = DiceGambleMode.PHYSICAL)
+        session = engine.process(
+            session,
+            GameCommand.ResolvePhysicalDiceGamble("EVT_17", "USR_01", PhysicalDiceGambleOutcome.JACKPOT),
+        ).session
+        val duplicate = engine.process(
+            session,
+            GameCommand.ResolvePhysicalDiceGamble("EVT_17", "USR_01", PhysicalDiceGambleOutcome.JACKPOT),
+        )
+        assertFalse(duplicate.isSuccess)
     }
 }

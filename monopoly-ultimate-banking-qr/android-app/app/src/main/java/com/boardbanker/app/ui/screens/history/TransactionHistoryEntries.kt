@@ -4,7 +4,11 @@ import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.ui.components.DisplayIdentity
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.model.DiceGambleMode
+import com.boardbanker.core.model.DirectJailEventSnapshot
 import com.boardbanker.core.model.EnergyGridDisplayNames
+import com.boardbanker.core.model.LuckyBreakEventSnapshot
+import com.boardbanker.core.model.LuckyBreakOutcome
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
@@ -61,6 +65,13 @@ internal sealed interface HistoryDetail {
     }
 
     data class Text(val value: String) : HistoryDetail
+
+    data class LuckyBreakResolution(
+        val playerId: String?,
+        val playerName: String,
+        val diceDetail: String,
+        val transfer: PlayerTransfer,
+    ) : HistoryDetail
 }
 
 internal data class HistoryEntry(
@@ -252,6 +263,11 @@ internal object TransactionHistoryEntries {
         undone: Boolean = false,
     ): List<HistoryEntry> {
         val time = formatTime(group.first().timestamp, zone)
+        val luckyBreakTx = group.firstOrNull { LuckyBreakEventSnapshot.isLuckyBreakResolution(it) }
+        if (luckyBreakTx != null) {
+            val metadata = LuckyBreakEventSnapshot.fromTransaction(luckyBreakTx)!!
+            return listOf(buildLuckyBreakEntry(metadata, luckyBreakTx, session, definitions, time, undone))
+        }
         val rentTx = group.firstOrNull { it.transactionType == TransactionType.RENT_PAYMENT }
         val waivedTx = group.firstOrNull { it.transactionType == TransactionType.RENT_WAIVED }
         val levelTx = group.firstOrNull { it.transactionType == TransactionType.PROPERTY_RENT_LEVEL_CHANGE }
@@ -379,14 +395,18 @@ internal object TransactionHistoryEntries {
             )
         }
         if (jailStatusTx != null && JailStatusSnapshot.enteredJail(jailStatusTx)) {
-            val directJailWithTurnEnd = event?.actions?.any { it.endsCurrentTurnAfterJail() } == true
+            val directJailMetadata = eventTx?.let { DirectJailEventSnapshot.fromEventApplied(it) }
+            val directJailWithTurnEnd = directJailMetadata?.turnEnded == true ||
+                (directJailMetadata == null && event?.actions?.any { it.endsCurrentTurnAfterJail() } == true)
             if (directJailWithTurnEnd) {
+                val affectedPlayerId = directJailMetadata?.affectedPlayerId ?: jailStatusTx.playerId
                 val entries = mutableListOf(
                     HistoryEntry(
                         title = event?.name ?: label(TransactionType.JAIL_STATUS_CHANGE),
                         time = time,
+                        subtitle = DirectJailEventSnapshot.SUBTITLE,
                         detail = HistoryDetail.PlayerTransfer(
-                            from = playerIdentity(jailStatusTx.playerId, session, definitions),
+                            from = playerIdentity(affectedPlayerId, session, definitions),
                             to = DisplayIdentity.Jail,
                             amount = "",
                         ),
@@ -395,7 +415,7 @@ internal object TransactionHistoryEntries {
                 )
                 group.lastOrNull {
                     it.transactionType == TransactionType.TURN_ADVANCED &&
-                        it.fromEntity == jailStatusTx.playerId
+                        it.fromEntity == affectedPlayerId
                 }?.let { advanceTx ->
                     entries += HistoryEntry(
                         title = label(TransactionType.TURN_ADVANCED),
@@ -472,6 +492,75 @@ internal object TransactionHistoryEntries {
             ).withResolvedIcon(headlineTx.transactionType, event?.name),
         )
     }
+
+    private fun buildLuckyBreakEntry(
+        metadata: LuckyBreakEventSnapshot.Metadata,
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val amount = formatMoney(metadata.appliedAmount, definitions)
+        val transfer = when (metadata.outcome) {
+            LuckyBreakOutcome.JACKPOT -> HistoryDetail.PlayerTransfer(
+                from = DisplayIdentity.Bank,
+                to = playerIdentity(metadata.playerId, session, definitions),
+                amount = amount,
+            )
+            LuckyBreakOutcome.PENALTY -> HistoryDetail.PlayerTransfer(
+                from = playerIdentity(metadata.playerId, session, definitions),
+                to = DisplayIdentity.Bank,
+                amount = amount,
+            )
+        }
+        val diceDetail = luckyBreakDiceDetail(metadata)
+        val title = when (metadata.outcome) {
+            LuckyBreakOutcome.JACKPOT -> "Lucky Break — Jackpot"
+            LuckyBreakOutcome.PENALTY -> "Lucky Break — Penalty"
+        }
+        val entryIcon = when (metadata.outcome) {
+            LuckyBreakOutcome.JACKPOT -> CommonUiIcon.JACKPOT
+            LuckyBreakOutcome.PENALTY -> CommonUiIcon.PENALTY
+        }
+        return HistoryEntry(
+            title = title,
+            time = time,
+            subtitle = diceDetail,
+            detail = HistoryDetail.LuckyBreakResolution(
+                playerId = metadata.playerId,
+                playerName = playerDisplayName(metadata.playerId, session, definitions),
+                diceDetail = diceDetail,
+                transfer = transfer,
+            ),
+            undone = undone,
+            entryIcon = entryIcon,
+        )
+    }
+
+    private fun luckyBreakDiceDetail(metadata: LuckyBreakEventSnapshot.Metadata): String =
+        when (metadata.mode) {
+            DiceGambleMode.IN_APP -> {
+                val dieOne = metadata.dieOne
+                val dieTwo = metadata.dieTwo
+                if (dieOne != null && dieTwo != null) {
+                    val rollLabel = if (metadata.outcome == LuckyBreakOutcome.PENALTY &&
+                        metadata.attemptNumber >= 3
+                    ) {
+                        "Final roll: $dieOne + $dieTwo"
+                    } else {
+                        "In-app dice: $dieOne + $dieTwo"
+                    }
+                    "$rollLabel • Attempt ${metadata.attemptNumber} of 3"
+                } else {
+                    "In-app dice • Attempt ${metadata.attemptNumber} of 3"
+                }
+            }
+            DiceGambleMode.PHYSICAL -> when (metadata.outcome) {
+                LuckyBreakOutcome.JACKPOT -> "Physical dice • Doubles confirmed"
+                LuckyBreakOutcome.PENALTY -> "Physical dice • No doubles after 3 attempts"
+            }
+        }
 
     private fun buildPurchaseEntry(
         tx: Transaction,
@@ -622,6 +711,8 @@ internal object TransactionHistoryEntries {
                 is HistoryDetail.RentWaived ->
                     "${detail.landingPlayerName} • ${detail.propertyName} • ${detail.reason}"
                 is HistoryDetail.PlayerMention -> detail.displayText.takeIf { it.isNotBlank() }
+                is HistoryDetail.LuckyBreakResolution ->
+                    "${detail.diceDetail} ${detail.transfer.from.label} → ${detail.transfer.to.label} ${detail.transfer.amount}".trim()
                 is HistoryDetail.Text -> detail.value.takeIf { it.isNotBlank() }
             }
         }

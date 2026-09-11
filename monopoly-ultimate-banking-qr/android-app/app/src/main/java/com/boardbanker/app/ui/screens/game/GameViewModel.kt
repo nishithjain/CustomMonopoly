@@ -418,6 +418,211 @@ class GameViewModel(
         }
     }
 
+    fun onSelectLuckyBreakInAppMode() {
+        processLuckyBreakModeCommand { pending ->
+            GameCommand.SelectDiceGambleMode(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+                mode = com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            )
+        }
+    }
+
+    fun onSelectLuckyBreakPhysicalMode() {
+        processLuckyBreakModeCommand { pending ->
+            GameCommand.SelectDiceGambleMode(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+                mode = com.boardbanker.core.model.DiceGambleMode.PHYSICAL,
+            )
+        }
+    }
+
+    fun onBackFromLuckyBreakPhysical() {
+        processLuckyBreakModeCommand { pending ->
+            GameCommand.ResetDiceGambleMode(pending.eventId, pending.actingPlayerId)
+        }
+        _uiState.update { it.copy(luckyBreakPhysicalConfirm = null) }
+    }
+
+    fun onLuckyBreakPhysicalJackpot() {
+        _uiState.update { it.copy(luckyBreakPhysicalConfirm = com.boardbanker.app.gameplay.presentation.PhysicalDiceConfirm.JACKPOT) }
+        refreshDiceGambleUi()
+    }
+
+    fun onLuckyBreakPhysicalPenalty() {
+        _uiState.update { it.copy(luckyBreakPhysicalConfirm = com.boardbanker.app.gameplay.presentation.PhysicalDiceConfirm.PENALTY) }
+        refreshDiceGambleUi()
+    }
+
+    fun onCancelLuckyBreakPhysicalConfirm() {
+        _uiState.update { it.copy(luckyBreakPhysicalConfirm = null) }
+        refreshDiceGambleUi()
+    }
+
+    fun onConfirmLuckyBreakPhysical() {
+        if (_uiState.value.luckyBreakCompletedOutcome != null) return
+        if (!commandLock.compareAndSet(false, true)) return
+        val session = sessionManager.currentSession() ?: run {
+            commandLock.set(false)
+            return
+        }
+        val pending = session.pendingDiceGamble ?: run {
+            commandLock.set(false)
+            return
+        }
+        val confirm = _uiState.value.luckyBreakPhysicalConfirm ?: run {
+            commandLock.set(false)
+            return
+        }
+        val outcome = when (confirm) {
+            com.boardbanker.app.gameplay.presentation.PhysicalDiceConfirm.JACKPOT ->
+                com.boardbanker.core.model.PhysicalDiceGambleOutcome.JACKPOT
+            com.boardbanker.app.gameplay.presentation.PhysicalDiceConfirm.PENALTY ->
+                com.boardbanker.core.model.PhysicalDiceGambleOutcome.PENALTY
+        }
+        viewModelScope.launch {
+            val command = GameCommand.ResolvePhysicalDiceGamble(
+                eventId = pending.eventId,
+                actingPlayerId = pending.actingPlayerId,
+                outcome = outcome,
+            )
+            when (val commit = sessionManager.processCommand(session, command)) {
+                is ProcessCommitResult.Committed -> {
+                    when (commit.result.outcome) {
+                        GameOutcome.DEBT_RESOLUTION_REQUIRED -> {
+                            workflowController.reset()
+                            transientWorkflow.resetToReady()
+                            _uiState.update {
+                                it.copy(
+                                    luckyBreakPhysicalConfirm = null,
+                                    luckyBreakCompletedOutcome = null,
+                                    result = null,
+                                )
+                            }
+                            updateFromSession(commit.session)
+                            _events.emit(GameEvent.NavigateToDebt)
+                        }
+                        else -> {
+                            val completed = DiceGambleUiMapper.buildCompletedOutcome(
+                                session = commit.session,
+                                definitions = definitions,
+                                eventId = pending.eventId,
+                                actingPlayerId = pending.actingPlayerId,
+                                dieOne = null,
+                                dieTwo = null,
+                                transactions = commit.result.transactions,
+                                jackpotAmount = pending.jackpotAmount,
+                                penaltyAmount = pending.penaltyAmount,
+                                physicalMode = true,
+                            )
+                            updateFromSession(commit.session)
+                            _uiState.update {
+                                it.copy(
+                                    luckyBreakPhysicalConfirm = null,
+                                    luckyBreakCompletedOutcome = completed,
+                                    diceGamble = DiceGambleUiMapper.map(
+                                        session = commit.session,
+                                        definitions = definitions,
+                                        rollInProgress = false,
+                                        completedOutcome = completed,
+                                    ),
+                                    workflowState = workflowController.currentState(),
+                                    result = null,
+                                )
+                            }
+                        }
+                    }
+                }
+                is ProcessCommitResult.Rejected -> {
+                    InvalidUserActionAudio.notifyInvalidUserActionForGameError(
+                        gameAudioFeedback,
+                        commit.result.error,
+                    )
+                    _uiState.update {
+                        it.copy(
+                            message = commit.result.error?.let { resultMapper.errorResult(it).primaryMessage },
+                        )
+                    }
+                    updateFromSession(session)
+                }
+                is ProcessCommitResult.PersistenceFailed -> {
+                    _uiState.update {
+                        it.copy(message = "Unable to save the game.\nPlease try again.")
+                    }
+                    updateFromSession(session)
+                }
+                else -> updateFromSession(session)
+            }
+            commandLock.set(false)
+        }
+    }
+
+    private fun processLuckyBreakModeCommand(
+        buildCommand: (com.boardbanker.core.model.PendingDiceGamble) -> GameCommand,
+    ) {
+        if (_uiState.value.luckyBreakRollInProgress || _uiState.value.luckyBreakCompletedOutcome != null) return
+        if (!commandLock.compareAndSet(false, true)) return
+        val session = sessionManager.currentSession() ?: run {
+            commandLock.set(false)
+            return
+        }
+        val pending = session.pendingDiceGamble ?: run {
+            commandLock.set(false)
+            return
+        }
+        viewModelScope.launch {
+            val command = buildCommand(pending)
+            when (val commit = sessionManager.processCommand(session, command)) {
+                is ProcessCommitResult.Committed -> {
+                    handlePendingDiceGamble(commit.session)
+                    completeCommandUiSync(commit.session) {
+                        it.copy(
+                            luckyBreakPhysicalConfirm = null,
+                            result = null,
+                            workflowState = workflowController.currentState(),
+                        )
+                    }
+                }
+                is ProcessCommitResult.Rejected -> {
+                    InvalidUserActionAudio.notifyInvalidUserActionForGameError(
+                        gameAudioFeedback,
+                        commit.result.error,
+                    )
+                    _uiState.update {
+                        it.copy(
+                            message = commit.result.error?.let { resultMapper.errorResult(it).primaryMessage },
+                        )
+                    }
+                    updateFromSession(session)
+                }
+                is ProcessCommitResult.PersistenceFailed -> {
+                    _uiState.update {
+                        it.copy(message = "Unable to save the game.\nPlease try again.")
+                    }
+                    updateFromSession(session)
+                }
+                else -> updateFromSession(session)
+            }
+            commandLock.set(false)
+        }
+    }
+
+    private fun refreshDiceGambleUi() {
+        val session = sessionManager.currentSession() ?: return
+        _uiState.update { state ->
+            state.copy(
+                diceGamble = DiceGambleUiMapper.map(
+                    session = session,
+                    definitions = definitions,
+                    rollInProgress = state.luckyBreakRollInProgress,
+                    completedOutcome = state.luckyBreakCompletedOutcome,
+                    physicalConfirm = state.luckyBreakPhysicalConfirm,
+                ),
+            )
+        }
+    }
+
     fun onRollLuckyBreakDice() {
         if (_uiState.value.luckyBreakRollInProgress || _uiState.value.luckyBreakCompletedOutcome != null) return
         if (!commandLock.compareAndSet(false, true)) return
@@ -474,14 +679,18 @@ class GameViewModel(
                                 ),
                             )
                             val dice = commit.result.rolledDice
-                            if (commit.session.pendingDiceGamble == null && dice.size >= 2) {
+                            if (commit.session.pendingDiceGamble == null &&
+                                (dice.size >= 2 || commit.result.transactions.any {
+                                    com.boardbanker.core.model.LuckyBreakEventSnapshot.isLuckyBreakResolution(it)
+                                })
+                            ) {
                                 val completed = DiceGambleUiMapper.buildCompletedOutcome(
                                     session = commit.session,
                                     definitions = definitions,
                                     eventId = pending.eventId,
                                     actingPlayerId = pending.actingPlayerId,
-                                    dieOne = dice[0],
-                                    dieTwo = dice[1],
+                                    dieOne = dice.getOrNull(0),
+                                    dieTwo = dice.getOrNull(1),
                                     transactions = commit.result.transactions,
                                     jackpotAmount = pending.jackpotAmount,
                                     penaltyAmount = pending.penaltyAmount,
@@ -553,6 +762,7 @@ class GameViewModel(
             it.copy(
                 luckyBreakCompletedOutcome = null,
                 luckyBreakRollInProgress = false,
+                luckyBreakPhysicalConfirm = null,
                 workflowState = GameplayWorkflowState.Ready,
                 result = null,
                 diceGamble = null,
@@ -1134,6 +1344,7 @@ class GameViewModel(
                         session = session,
                         definitions = definitions,
                         rollInProgress = it.luckyBreakRollInProgress,
+                        physicalConfirm = it.luckyBreakPhysicalConfirm,
                     )
                     else -> null
                 },

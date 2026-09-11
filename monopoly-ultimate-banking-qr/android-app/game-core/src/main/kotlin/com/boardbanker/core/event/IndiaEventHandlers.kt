@@ -1,8 +1,12 @@
 package com.boardbanker.core.event
 
 import com.boardbanker.core.engine.PhysicalAction
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.EventActionDefinition
+import com.boardbanker.core.model.LuckyBreakEventSnapshot
+import com.boardbanker.core.model.LuckyBreakOutcome
+import com.boardbanker.core.model.PhysicalDiceGambleOutcome
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PendingDiceGamble
@@ -90,6 +94,91 @@ class IndiaEventHandlers(
         )
     }
 
+    fun resetDiceGambleMode(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        timestamp: Long,
+    ): EventEngine.EventResult {
+        val pending = session.pendingDiceGamble
+            ?: return EventEngine.EventResult.failure("No dice gamble in progress")
+        if (pending.eventId != eventId || pending.actingPlayerId != actingPlayerId) {
+            return EventEngine.EventResult.failure("Dice gamble state mismatch")
+        }
+        if (pending.completed) {
+            return EventEngine.EventResult.failure("Dice gamble already completed")
+        }
+        if (pending.mode == null || pending.attemptsUsed > 0) {
+            return EventEngine.EventResult.failure("Cannot reset dice gamble mode")
+        }
+        return EventEngine.EventResult.success(
+            session.copy(pendingDiceGamble = pending.copy(mode = null)),
+            emptyList(),
+        )
+    }
+
+    fun selectDiceGambleMode(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        mode: DiceGambleMode,
+        timestamp: Long,
+    ): EventEngine.EventResult {
+        val pending = session.pendingDiceGamble
+            ?: return EventEngine.EventResult.failure("No dice gamble in progress")
+        if (pending.eventId != eventId || pending.actingPlayerId != actingPlayerId) {
+            return EventEngine.EventResult.failure("Dice gamble state mismatch")
+        }
+        if (pending.completed) {
+            return EventEngine.EventResult.failure("Dice gamble already completed")
+        }
+        if (pending.mode != null) {
+            return EventEngine.EventResult.failure("Dice gamble mode already selected")
+        }
+        return EventEngine.EventResult.success(
+            session.copy(pendingDiceGamble = pending.copy(mode = mode)),
+            emptyList(),
+        )
+    }
+
+    fun resolvePhysicalDiceGamble(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        outcome: PhysicalDiceGambleOutcome,
+        timestamp: Long,
+    ): EventEngine.EventResult {
+        val pending = session.pendingDiceGamble
+            ?: return EventEngine.EventResult.failure("No dice gamble in progress")
+        if (pending.eventId != eventId || pending.actingPlayerId != actingPlayerId) {
+            return EventEngine.EventResult.failure("Dice gamble state mismatch")
+        }
+        if (pending.completed) {
+            return EventEngine.EventResult.failure("Dice gamble already completed")
+        }
+        if (pending.mode != DiceGambleMode.PHYSICAL) {
+            return EventEngine.EventResult.failure("Physical dice mode not selected")
+        }
+        return when (outcome) {
+            PhysicalDiceGambleOutcome.JACKPOT -> completeGambleSuccess(
+                session = session,
+                pending = pending,
+                diceResults = emptyList(),
+                timestamp = timestamp,
+                mode = DiceGambleMode.PHYSICAL,
+                attemptNumber = 1,
+            )
+            PhysicalDiceGambleOutcome.PENALTY -> completeGambleFailure(
+                session = session,
+                pending = pending,
+                diceResults = emptyList(),
+                timestamp = timestamp,
+                mode = DiceGambleMode.PHYSICAL,
+                attemptNumber = pending.maximumAttempts,
+            )
+        }
+    }
+
     fun rollDiceGamble(
         session: GameSession,
         eventId: String,
@@ -105,6 +194,9 @@ class IndiaEventHandlers(
         if (pending.completed) {
             return EventEngine.EventResult.failure("Dice gamble already completed")
         }
+        if (pending.mode != DiceGambleMode.IN_APP) {
+            return EventEngine.EventResult.failure("In-app dice mode not selected")
+        }
         if (diceResults.size != pending.diceCount) {
             return EventEngine.EventResult.failure("Expected ${pending.diceCount} dice values")
         }
@@ -114,10 +206,24 @@ class IndiaEventHandlers(
         val attemptsUsed = pending.attemptsUsed + 1
         val doubles = diceResults.size >= 2 && diceResults.distinct().size == 1
         if (doubles) {
-            return completeGambleSuccess(session, pending, diceResults, timestamp)
+            return completeGambleSuccess(
+                session = session,
+                pending = pending,
+                diceResults = diceResults,
+                timestamp = timestamp,
+                mode = DiceGambleMode.IN_APP,
+                attemptNumber = attemptsUsed,
+            )
         }
         if (attemptsUsed >= pending.maximumAttempts) {
-            return completeGambleFailure(session, pending, diceResults, timestamp)
+            return completeGambleFailure(
+                session = session,
+                pending = pending,
+                diceResults = diceResults,
+                timestamp = timestamp,
+                mode = DiceGambleMode.IN_APP,
+                attemptNumber = attemptsUsed,
+            )
         }
         val updated = session.copy(
             pendingDiceGamble = pending.copy(
@@ -573,9 +679,27 @@ class IndiaEventHandlers(
         pending: PendingDiceGamble,
         diceResults: List<Int>,
         timestamp: Long,
+        mode: DiceGambleMode,
+        attemptNumber: Int,
     ): EventEngine.EventResult {
         val cleared = session.copy(pendingDiceGamble = pending.copy(lastRollResults = diceResults, completed = true))
-        val credit = handleBankCredit(cleared, pending.eventId, pending.actingPlayerId, pending.jackpotAmount, timestamp)
+        val eventName = definitions.events[pending.eventId]?.name ?: "Lucky Break"
+        val resolutionId = "${session.gameId}_LB_${session.transactionCounter + 1}"
+        val credit = transferLuckyBreakBank(
+            session = cleared,
+            eventId = pending.eventId,
+            eventName = eventName,
+            playerId = pending.actingPlayerId,
+            amount = pending.jackpotAmount,
+            credit = true,
+            mode = mode,
+            outcome = LuckyBreakOutcome.JACKPOT,
+            attemptNumber = attemptNumber,
+            resolutionId = resolutionId,
+            dieOne = diceResults.getOrNull(0),
+            dieTwo = diceResults.getOrNull(1),
+            timestamp = timestamp,
+        )
         return credit.copy(
             session = credit.session?.copy(pendingDiceGamble = null),
         )
@@ -586,12 +710,95 @@ class IndiaEventHandlers(
         pending: PendingDiceGamble,
         diceResults: List<Int>,
         timestamp: Long,
+        mode: DiceGambleMode,
+        attemptNumber: Int,
     ): EventEngine.EventResult {
         val cleared = session.copy(pendingDiceGamble = pending.copy(lastRollResults = diceResults, completed = true))
-        val debit = handleBankDebit(cleared, pending.eventId, pending.actingPlayerId, pending.penaltyAmount, timestamp)
+        val eventName = definitions.events[pending.eventId]?.name ?: "Lucky Break"
+        val resolutionId = "${session.gameId}_LB_${session.transactionCounter + 1}"
+        val debit = transferLuckyBreakBank(
+            session = cleared,
+            eventId = pending.eventId,
+            eventName = eventName,
+            playerId = pending.actingPlayerId,
+            amount = pending.penaltyAmount,
+            credit = false,
+            mode = mode,
+            outcome = LuckyBreakOutcome.PENALTY,
+            attemptNumber = attemptNumber,
+            resolutionId = resolutionId,
+            dieOne = diceResults.getOrNull(0),
+            dieTwo = diceResults.getOrNull(1),
+            timestamp = timestamp,
+        )
         return debit.copy(
             session = debit.session?.copy(pendingDiceGamble = null),
         )
+    }
+
+    private fun transferLuckyBreakBank(
+        session: GameSession,
+        eventId: String,
+        eventName: String,
+        playerId: String,
+        amount: Int,
+        credit: Boolean,
+        mode: DiceGambleMode,
+        outcome: LuckyBreakOutcome,
+        attemptNumber: Int,
+        resolutionId: String,
+        dieOne: Int?,
+        dieTwo: Int?,
+        timestamp: Long,
+    ): EventEngine.EventResult {
+        if (amount <= 0) return EventEngine.EventResult.success(session, emptyList())
+        val player = session.players[playerId] ?: return EventEngine.EventResult.failure("Unknown player")
+        if (!credit && player.balance < amount) {
+            val debtResult = debtRules.enterDebtResolution(
+                session = session,
+                debtorId = playerId,
+                creditorId = EntityRef.BANK,
+                amount = amount,
+                timestamp = timestamp,
+            )
+            if (!debtResult.isSuccess) return EventEngine.EventResult.failure(debtResult.error ?: "Debt failed")
+            val debtSession = debtResult.session!!
+            val existingResolution = debtSession.transactions.any {
+                LuckyBreakEventSnapshot.fromTransaction(it)?.resolutionId == resolutionId
+            }
+            if (existingResolution) {
+                return EventEngine.EventResult.failure("Lucky Break already resolved")
+            }
+            return EventEngine.EventResult.success(debtSession, debtResult.transactions, needsDebtResolution = true)
+        }
+        val updatedPlayer = player.copy(balance = if (credit) player.balance + amount else player.balance - amount)
+        var updatedSession = session.copy(players = session.players + (playerId to updatedPlayer))
+        val txType = if (credit) TransactionType.BANK_CREDIT else TransactionType.BANK_DEBIT
+        val stateAfter = LuckyBreakEventSnapshot.stateAfter(
+            playerId = playerId,
+            eventId = eventId,
+            eventName = eventName,
+            mode = mode,
+            outcome = outcome,
+            appliedAmount = amount,
+            attemptNumber = attemptNumber,
+            resolutionId = resolutionId,
+            dieOne = dieOne,
+            dieTwo = dieTwo,
+        )
+        val (tx, sessionAfter) = transactionFactory.create(
+            session = updatedSession,
+            type = txType,
+            timestamp = timestamp,
+            fromEntity = if (credit) EntityRef.BANK else playerId,
+            toEntity = if (credit) playerId else EntityRef.BANK,
+            playerId = playerId,
+            eventId = eventId,
+            amount = amount,
+            stateAfter = stateAfter,
+            reversible = true,
+        )
+        return EventEngine.EventResult.success(sessionAfter.copy(undoSnapshot = session.snapshot()), listOf(tx))
     }
 
     private fun handleSkipNextTurn(

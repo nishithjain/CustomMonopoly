@@ -2,6 +2,7 @@ package com.boardbanker.app.ui.screens.game
 
 import com.boardbanker.app.gameplay.presentation.DiceGambleUiState
 import com.boardbanker.app.gameplay.presentation.EventDrawUiState
+import com.boardbanker.app.gameplay.presentation.PhysicalDiceConfirm
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
@@ -54,6 +55,7 @@ data class GameUiState(
     val turnKind: TurnKind? = null,
     val diceGamble: DiceGambleUiState? = null,
     val luckyBreakRollInProgress: Boolean = false,
+    val luckyBreakPhysicalConfirm: PhysicalDiceConfirm? = null,
     val luckyBreakCompletedOutcome: com.boardbanker.app.gameplay.presentation.LuckyBreakCompletedOutcome? = null,
     val eventDraw: EventDrawUiState? = null,
     val luckyDrawScannerLaunchInProgress: Boolean = false,

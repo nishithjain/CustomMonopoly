@@ -27,9 +27,11 @@ enum class CommonUiIcon {
     EVENT_CARD,
     GAME_STATUS,
     JAIL,
+    JACKPOT,
     LOCATION,
     LUCKY_DRAW,
     MONEY_TRANSFER,
+    PENALTY,
     PLAYER_DETAILS,
     PROPERTY,
     RECENT_BANKING,
@@ -69,9 +71,11 @@ object CommonIconRegistry {
         CommonUiIcon.EVENT_CARD -> R.drawable.common_event_card
         CommonUiIcon.GAME_STATUS -> R.drawable.common_game_status
         CommonUiIcon.JAIL -> R.drawable.common_jail
+        CommonUiIcon.JACKPOT -> R.drawable.common_jackpot
         CommonUiIcon.LOCATION -> R.drawable.common_location
         CommonUiIcon.LUCKY_DRAW -> R.drawable.common_lucky_draw
         CommonUiIcon.MONEY_TRANSFER -> R.drawable.common_money_transfer
+        CommonUiIcon.PENALTY -> R.drawable.common_penalty
         CommonUiIcon.PLAYER_DETAILS -> R.drawable.common_player_details
         CommonUiIcon.PROPERTY -> R.drawable.common_property
         CommonUiIcon.RECENT_BANKING -> R.drawable.common_recent_banking

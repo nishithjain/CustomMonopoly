@@ -72,6 +72,11 @@ class IndiaSpecialWorkflowIntegrationTest {
             balances = mapOf("USR_01" to 50000, "USR_02" to 150000),
         )
         session = successEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        session = TestFixtures.selectDiceGambleMode(
+            session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            successEngine,
+        )
         val success = successEngine.process(
             session,
             GameCommand.RollEventDice("EVT_17", "USR_01"),
@@ -81,6 +86,11 @@ class IndiaSpecialWorkflowIntegrationTest {
 
         val failureEngine = DefaultGameEngine(definitions, SequenceDiceRoller(1 to 2, 2 to 3, 4 to 5))
         session = failureEngine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        session = TestFixtures.selectDiceGambleMode(
+            session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            failureEngine,
+        )
         val failure = failureEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         session = failure.session
         session = failureEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
@@ -103,8 +113,13 @@ class IndiaSpecialWorkflowIntegrationTest {
         assertNull(luckyBreak.session.pendingEventDraw)
         assertNotNull(luckyBreak.session.pendingDiceGamble)
 
-        val rolled = luckyBreakEngine.process(
+        val ready = TestFixtures.selectDiceGambleMode(
             luckyBreak.session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            luckyBreakEngine,
+        )
+        val rolled = luckyBreakEngine.process(
+            ready,
             GameCommand.RollEventDice("EVT_17", "USR_01"),
         )
         assertNull(rolled.session.pendingDiceGamble)

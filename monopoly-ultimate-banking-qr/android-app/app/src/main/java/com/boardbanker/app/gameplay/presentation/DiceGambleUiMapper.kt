@@ -2,6 +2,7 @@ package com.boardbanker.app.gameplay.presentation
 
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.TransactionType
@@ -15,6 +16,7 @@ object DiceGambleUiMapper {
         definitions: GameDefinitions,
         rollInProgress: Boolean,
         completedOutcome: LuckyBreakCompletedOutcome? = null,
+        physicalConfirm: PhysicalDiceConfirm? = null,
     ): DiceGambleUiState? {
         if (completedOutcome != null) {
             val event = definitions.events[completedOutcome.eventId] ?: return null
@@ -43,6 +45,64 @@ object DiceGambleUiMapper {
         val pending = session.pendingDiceGamble ?: return null
         val event = definitions.events[pending.eventId] ?: return null
         val playerName = PlayerDisplayNames.displayName(session, pending.actingPlayerId, definitions)
+        val jackpotText = formatMoney(pending.jackpotAmount, definitions)
+        val penaltyText = formatMoney(pending.penaltyAmount, definitions)
+        val physicalJackpotLabel = "Doubles — Award $jackpotText"
+        val physicalPenaltyLabel = "No Doubles — Apply $penaltyText Penalty"
+
+        if (pending.mode == null) {
+            return DiceGambleUiState(
+                eventId = pending.eventId,
+                eventName = event.name,
+                playerId = pending.actingPlayerId,
+                playerName = playerName,
+                attemptLabel = "",
+                maximumAttempts = pending.maximumAttempts,
+                dieOne = null,
+                dieTwo = null,
+                jackpotText = jackpotText,
+                penaltyText = penaltyText,
+                instruction = INSTRUCTION,
+                status = DiceGambleStatus.SELECT_MODE,
+                rollEnabled = true,
+                mode = null,
+                physicalJackpotLabel = physicalJackpotLabel,
+                physicalPenaltyLabel = physicalPenaltyLabel,
+            )
+        }
+
+        if (pending.mode == DiceGambleMode.PHYSICAL) {
+            val confirmMessage = when (physicalConfirm) {
+                PhysicalDiceConfirm.JACKPOT -> "Confirm that doubles were rolled?"
+                PhysicalDiceConfirm.PENALTY -> "Confirm that all three physical attempts failed?"
+                null -> null
+            }
+            val status = when (physicalConfirm) {
+                PhysicalDiceConfirm.JACKPOT -> DiceGambleStatus.PHYSICAL_CONFIRM_JACKPOT
+                PhysicalDiceConfirm.PENALTY -> DiceGambleStatus.PHYSICAL_CONFIRM_PENALTY
+                null -> DiceGambleStatus.PHYSICAL_DICE
+            }
+            return DiceGambleUiState(
+                eventId = pending.eventId,
+                eventName = event.name,
+                playerId = pending.actingPlayerId,
+                playerName = playerName,
+                attemptLabel = "",
+                maximumAttempts = pending.maximumAttempts,
+                dieOne = null,
+                dieTwo = null,
+                jackpotText = jackpotText,
+                penaltyText = penaltyText,
+                instruction = INSTRUCTION,
+                status = status,
+                rollEnabled = physicalConfirm != null,
+                mode = DiceGambleMode.PHYSICAL,
+                physicalJackpotLabel = physicalJackpotLabel,
+                physicalPenaltyLabel = physicalPenaltyLabel,
+                physicalConfirmMessage = confirmMessage,
+            )
+        }
+
         val attemptsRemaining = pending.maximumAttempts - pending.attemptsUsed
         val dieOne = pending.lastRollResults.getOrNull(0)
         val dieTwo = pending.lastRollResults.getOrNull(1)
@@ -81,12 +141,13 @@ object DiceGambleUiMapper {
             maximumAttempts = pending.maximumAttempts,
             dieOne = dieOne,
             dieTwo = dieTwo,
-            jackpotText = formatMoney(pending.jackpotAmount, definitions),
-            penaltyText = formatMoney(pending.penaltyAmount, definitions),
+            jackpotText = jackpotText,
+            penaltyText = penaltyText,
             instruction = INSTRUCTION,
             status = status,
             rollEnabled = rollEnabled,
             rollButtonLabel = rollButtonLabel,
+            mode = DiceGambleMode.IN_APP,
         )
     }
 
@@ -95,14 +156,19 @@ object DiceGambleUiMapper {
         definitions: GameDefinitions,
         eventId: String,
         actingPlayerId: String,
-        dieOne: Int,
-        dieTwo: Int,
+        dieOne: Int?,
+        dieTwo: Int?,
         transactions: List<com.boardbanker.core.model.Transaction>,
         jackpotAmount: Int,
         penaltyAmount: Int,
+        physicalMode: Boolean = false,
     ): LuckyBreakCompletedOutcome {
         val playerName = PlayerDisplayNames.displayName(session, actingPlayerId, definitions)
-        val headline = if (dieOne == dieTwo) "Doubles!" else "No doubles"
+        val headline = when {
+            physicalMode && dieOne == null -> "Physical dice resolved"
+            dieOne != null && dieTwo != null && dieOne == dieTwo -> "Doubles!"
+            else -> "No doubles"
+        }
         val creditTx = transactions.lastOrNull { it.transactionType == TransactionType.BANK_CREDIT }
         val debitTx = transactions.lastOrNull { it.transactionType == TransactionType.BANK_DEBIT }
         val outcomeMessage = when {
@@ -130,4 +196,9 @@ object DiceGambleUiMapper {
 
     private fun pluralize(count: Int, word: String): String =
         if (count == 1) word else "${word}s"
+}
+
+enum class PhysicalDiceConfirm {
+    JACKPOT,
+    PENALTY,
 }

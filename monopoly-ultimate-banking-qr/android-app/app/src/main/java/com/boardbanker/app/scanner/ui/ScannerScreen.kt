@@ -321,14 +321,29 @@ private fun PermissionContent(
     onAllowCamera: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    Text("Camera permission is required to scan game cards.")
-    if (permanentlyDenied) {
-        Button(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
-            Text("OPEN APP SETTINGS")
-        }
-    } else {
-        Button(onClick = onAllowCamera, modifier = Modifier.fillMaxWidth()) {
-            Text("ALLOW CAMERA")
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Camera access is needed to scan game cards.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = "The app only uses the camera while you are on the scan screen.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        if (permanentlyDenied) {
+            Button(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
+                IconLabelRow(icon = CommonUiIcon.CAMERA, label = "Enable Camera in Settings")
+            }
+        } else {
+            Button(onClick = onAllowCamera, modifier = Modifier.fillMaxWidth()) {
+                IconLabelRow(icon = CommonUiIcon.CAMERA, label = "Allow Camera")
+            }
         }
     }
 }

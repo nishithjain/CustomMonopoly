@@ -143,6 +143,23 @@ sealed class GameCommand {
         val actingPlayerId: String,
     ) : GameCommand()
 
+    data class SelectDiceGambleMode(
+        val eventId: String,
+        val actingPlayerId: String,
+        val mode: com.boardbanker.core.model.DiceGambleMode,
+    ) : GameCommand()
+
+    data class ResetDiceGambleMode(
+        val eventId: String,
+        val actingPlayerId: String,
+    ) : GameCommand()
+
+    data class ResolvePhysicalDiceGamble(
+        val eventId: String,
+        val actingPlayerId: String,
+        val outcome: com.boardbanker.core.model.PhysicalDiceGambleOutcome,
+    ) : GameCommand()
+
     data class ResolvePendingEventDraw(
         val eventId: String,
         val actingPlayerId: String,

@@ -4,6 +4,7 @@ import com.boardbanker.app.AppTestSupport
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.dice.SequenceDiceRoller
 import com.boardbanker.core.engine.DefaultGameEngine
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.TransactionType
@@ -34,13 +35,24 @@ class DiceGambleUiMapperTest {
     }
 
     @Test
-    fun mapsPendingGambleToUiState() {
+    fun mapsPendingGambleToModeSelection() {
         val session = sessionWithPendingGamble()
         val ui = DiceGambleUiMapper.map(session, definitions, rollInProgress = false)
         requireNotNull(ui)
         assertEquals("EVT_17", ui.eventId)
         assertEquals("Lucky Break", ui.eventName)
         assertEquals("USR_01", ui.playerId)
+        assertEquals(DiceGambleStatus.SELECT_MODE, ui.status)
+        assertEquals(null, ui.mode)
+        assertTrue(ui.rollEnabled)
+    }
+
+    @Test
+    fun mapsInAppModeToRollState() {
+        var session = sessionWithPendingGamble()
+        session = AppTestSupport.selectDiceGambleMode(session, DiceGambleMode.IN_APP, engine)
+        val ui = DiceGambleUiMapper.map(session, definitions, rollInProgress = false)!!
+        assertEquals(DiceGambleMode.IN_APP, ui.mode)
         assertEquals("Attempt 1 of 3", ui.attemptLabel)
         assertEquals("Roll Dice", ui.rollButtonLabel)
         assertTrue(ui.rollEnabled)
@@ -50,6 +62,7 @@ class DiceGambleUiMapperTest {
     fun showsRemainingAttemptsAfterFailedRoll() {
         val rollingEngine = DefaultGameEngine(definitions, SequenceDiceRoller(1 to 2))
         var session = sessionWithPendingGamble()
+        session = AppTestSupport.selectDiceGambleMode(session, DiceGambleMode.IN_APP, rollingEngine)
         session = rollingEngine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01")).session
         val ui = DiceGambleUiMapper.map(session, definitions, rollInProgress = false)!!
         assertEquals("No doubles — 2 attempts remaining", ui.attemptLabel)
@@ -69,7 +82,8 @@ class DiceGambleUiMapperTest {
 
     @Test
     fun rollDisabledWhileRollInProgress() {
-        val session = sessionWithPendingGamble()
+        var session = sessionWithPendingGamble()
+        session = AppTestSupport.selectDiceGambleMode(session, DiceGambleMode.IN_APP, engine)
         val ui = DiceGambleUiMapper.map(session, definitions, rollInProgress = true)!!
         assertFalse(ui.rollEnabled)
         assertEquals(DiceGambleStatus.ROLLING, ui.status)

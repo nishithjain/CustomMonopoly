@@ -2,16 +2,19 @@ package com.boardbanker.core.event
 
 import com.boardbanker.core.engine.PhysicalAction
 import com.boardbanker.core.model.ColorGroupState
+import com.boardbanker.core.model.DirectJailEventSnapshot
 import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.EventActionDefinition
+import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.model.PendingEventChoice
 import com.boardbanker.core.model.PendingEventExecution
 import com.boardbanker.core.model.RentLevelChangeSnapshot
 import com.boardbanker.core.model.TemporaryEffect
 import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
+import kotlinx.serialization.json.JsonObject
 import com.boardbanker.core.rules.DebtRules
 import com.boardbanker.core.rules.GoRules
 import com.boardbanker.core.rules.JailGameplayGuard
@@ -74,6 +77,29 @@ class EventEngine(
         diceResults: List<Int>,
         timestamp: Long = System.currentTimeMillis(),
     ): EventResult = indiaHandlers.rollDiceGamble(session, eventId, actingPlayerId, diceResults, timestamp)
+
+    fun selectDiceGambleMode(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        mode: com.boardbanker.core.model.DiceGambleMode,
+        timestamp: Long = System.currentTimeMillis(),
+    ): EventResult = indiaHandlers.selectDiceGambleMode(session, eventId, actingPlayerId, mode, timestamp)
+
+    fun resetDiceGambleMode(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        timestamp: Long = System.currentTimeMillis(),
+    ): EventResult = indiaHandlers.resetDiceGambleMode(session, eventId, actingPlayerId, timestamp)
+
+    fun resolvePhysicalDiceGamble(
+        session: GameSession,
+        eventId: String,
+        actingPlayerId: String,
+        outcome: com.boardbanker.core.model.PhysicalDiceGambleOutcome,
+        timestamp: Long = System.currentTimeMillis(),
+    ): EventResult = indiaHandlers.resolvePhysicalDiceGamble(session, eventId, actingPlayerId, outcome, timestamp)
 
     fun apply(
         session: GameSession,
@@ -392,6 +418,19 @@ class EventEngine(
         if (!finalizeEvent || transactions.any { it.transactionType == TransactionType.EVENT_APPLIED }) {
             return session to transactions
         }
+        val jailTx = transactions.firstOrNull {
+            it.transactionType == TransactionType.JAIL_STATUS_CHANGE &&
+                JailStatusSnapshot.enteredJail(it)
+        }
+        val turnEndedAfterJail = jailTx?.playerId != null && transactions.any {
+            it.transactionType == TransactionType.TURN_ADVANCED &&
+                it.fromEntity == jailTx.playerId
+        }
+        val stateAfter = if (jailTx?.playerId != null && turnEndedAfterJail) {
+            DirectJailEventSnapshot.stateAfter(affectedPlayerId = jailTx.playerId)
+        } else {
+            JsonObject(emptyMap())
+        }
         val (tx, sessionAfter) = transactionFactory.create(
             session = session,
             type = TransactionType.EVENT_APPLIED,
@@ -399,6 +438,7 @@ class EventEngine(
             eventId = eventId,
             playerId = actingPlayerId,
             propertyId = propertyId,
+            stateAfter = stateAfter,
         )
         return sessionAfter to (transactions + tx)
     }

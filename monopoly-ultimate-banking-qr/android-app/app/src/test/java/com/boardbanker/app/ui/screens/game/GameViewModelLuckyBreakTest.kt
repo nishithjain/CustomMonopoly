@@ -12,6 +12,7 @@ import com.boardbanker.app.persistence.FakeGameSessionRepository
 import com.boardbanker.app.persistence.TransientScanWorkflowHolder
 import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.dice.SequenceDiceRoller
+import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.TransactionType
 import kotlinx.coroutines.Dispatchers
@@ -67,9 +68,18 @@ class GameViewModelLuckyBreakTest {
         sessionManager.processCommand(session, GameCommand.StartGame)
     }
 
-    private suspend fun applyLuckyBreak() {
-        val session = sessionManager.currentSession()!!
-        sessionManager.processCommand(session, GameCommand.ApplyEvent("EVT_17", "USR_01"))
+    private suspend fun applyLuckyBreak(selectInAppMode: Boolean = true) {
+        var session = sessionManager.currentSession()!!
+        session = (
+            sessionManager.processCommand(session, GameCommand.ApplyEvent("EVT_17", "USR_01"))
+                as ProcessCommitResult.Committed
+            ).session
+        if (selectInAppMode) {
+            sessionManager.processCommand(
+                session,
+                GameCommand.SelectDiceGambleMode("EVT_17", "USR_01", DiceGambleMode.IN_APP),
+            )
+        }
     }
 
     private fun createViewModel(): GameViewModel =

@@ -149,6 +149,33 @@ private fun HistoryDetailRow(detail: HistoryDetail) {
         is HistoryDetail.RentLevelChange -> InlineRentLevelChangeDetail(detail = detail)
         is HistoryDetail.RentWaived -> InlineRentWaivedDetail(detail = detail)
         is HistoryDetail.PlayerMention -> InlinePlayerMentionDetail(detail = detail)
+        is HistoryDetail.LuckyBreakResolution -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CommonUiIconImage(
+                    icon = CommonUiIcon.DICE,
+                    size = 20.dp,
+                    contentDescription = null,
+                )
+                Text(
+                    text = detail.diceDetail,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+            DisplayIdentityTransferRow(
+                from = detail.transfer.from,
+                to = detail.transfer.to,
+                amount = detail.transfer.amount,
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+        }
         is HistoryDetail.Text -> {
             Text(
                 text = detail.value,

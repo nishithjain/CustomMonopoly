@@ -60,6 +60,11 @@ class DiceRollerTest {
         val engine = DefaultGameEngine(definitions, SequenceDiceRoller(3 to 5))
         var session = TestFixtures.indiaGame()
         session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        session = TestFixtures.selectDiceGambleMode(
+            session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            engine,
+        )
         val rolled = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         assertEquals(GameOutcome.PENDING_ACTION, rolled.outcome)
         assertEquals(listOf(3, 5), rolled.rolledDice)
@@ -72,6 +77,11 @@ class DiceRollerTest {
         val engine = DefaultGameEngine(definitions, SequenceDiceRoller(4 to 4))
         var session = TestFixtures.indiaGame()
         session = engine.process(session, GameCommand.ApplyEvent("EVT_17", "USR_01")).session
+        session = TestFixtures.selectDiceGambleMode(
+            session,
+            com.boardbanker.core.model.DiceGambleMode.IN_APP,
+            engine,
+        )
         val before = session.players["USR_01"]!!.balance
         val rolled = engine.process(session, GameCommand.RollEventDice("EVT_17", "USR_01"))
         assertEquals(listOf(4, 4), rolled.rolledDice)

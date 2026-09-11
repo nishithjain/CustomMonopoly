@@ -177,6 +177,20 @@
       "drawableResource": "common_dice",
       "runtimePath": "res/drawable/common_dice.png"
     },
+    "JACKPOT": {
+      "iconId": "JACKPOT",
+      "name": "Jackpot",
+      "sourceIconPath": "Resources/Common/Icons/jackpot.png",
+      "drawableResource": "common_jackpot",
+      "runtimePath": "res/drawable/common_jackpot.png"
+    },
+    "PENALTY": {
+      "iconId": "PENALTY",
+      "name": "Penalty",
+      "sourceIconPath": "Resources/Common/Icons/penalty.png",
+      "drawableResource": "common_penalty",
+      "runtimePath": "res/drawable/common_penalty.png"
+    },
     "DO_NOTHING": {
       "iconId": "DO_NOTHING",
       "name": "Do Nothing",

@@ -41,6 +41,8 @@ COMMON_ICON_MAPPINGS = [
     ("CURRENT_TURN", "Current Turn", "Resources/Common/Icons/current_turn.png", "common_current_turn.png"),
     ("DEBT", "Debt", "Resources/Common/Icons/debt.png", "common_debt.png"),
     ("DICE", "Dice", "Resources/Common/Icons/dice.png", "common_dice.png"),
+    ("JACKPOT", "Jackpot", "Resources/Common/Icons/jackpot.png", "common_jackpot.png"),
+    ("PENALTY", "Penalty", "Resources/Common/Icons/penalty.png", "common_penalty.png"),
     ("DO_NOTHING", "Do Nothing", "Resources/Common/Icons/do_nothing.png", "common_do_nothing.png"),
     ("ENERGY_GRID", "Energy Grid", "Resources/Common/Icons/energy_grid.png", "common_energy_grid.png"),
     ("ERROR", "Error", "Resources/Common/Icons/error.png", "common_error.png"),

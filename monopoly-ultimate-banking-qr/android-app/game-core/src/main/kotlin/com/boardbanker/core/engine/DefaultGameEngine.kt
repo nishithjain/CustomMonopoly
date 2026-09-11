@@ -90,6 +90,9 @@ class DefaultGameEngine(
             is GameCommand.ConcludeGame -> handleConcludeGame(session)
             is GameCommand.EndTurn -> handleEndTurn(session, command)
             is GameCommand.RollEventDice -> handleRollEventDice(session, command)
+            is GameCommand.SelectDiceGambleMode -> handleSelectDiceGambleMode(session, command)
+            is GameCommand.ResetDiceGambleMode -> handleResetDiceGambleMode(session, command)
+            is GameCommand.ResolvePhysicalDiceGamble -> handleResolvePhysicalDiceGamble(session, command)
             is GameCommand.ResolvePendingEventDraw -> handleResolvePendingEventDraw(session, command)
         }
     }
@@ -468,12 +471,75 @@ class DefaultGameEngine(
         )
     }
 
+    private fun handleResetDiceGambleMode(
+        session: GameSession,
+        command: GameCommand.ResetDiceGambleMode,
+    ): GameResult {
+        val result = eventEngine.resetDiceGambleMode(
+            session = session,
+            eventId = command.eventId,
+            actingPlayerId = command.actingPlayerId,
+        )
+        if (!result.isSuccess) {
+            return reject(session, GameError.EventError(result.error!!))
+        }
+        return GameResult(session = result.session!!, transactions = result.transactions)
+    }
+
+    private fun handleSelectDiceGambleMode(
+        session: GameSession,
+        command: GameCommand.SelectDiceGambleMode,
+    ): GameResult {
+        val result = eventEngine.selectDiceGambleMode(
+            session = session,
+            eventId = command.eventId,
+            actingPlayerId = command.actingPlayerId,
+            mode = command.mode,
+        )
+        if (!result.isSuccess) {
+            return reject(session, GameError.EventError(result.error!!))
+        }
+        return GameResult(session = result.session!!, transactions = result.transactions)
+    }
+
+    private fun handleResolvePhysicalDiceGamble(
+        session: GameSession,
+        command: GameCommand.ResolvePhysicalDiceGamble,
+    ): GameResult {
+        val pending = session.pendingDiceGamble
+            ?: return reject(session, GameError.InvalidState("No dice gamble in progress"))
+        if (session.turnState?.activePlayerId != command.actingPlayerId) {
+            return reject(session, GameError.InvalidState("Only the active player can resolve Lucky Break"))
+        }
+        val result = eventEngine.resolvePhysicalDiceGamble(
+            session = session,
+            eventId = command.eventId,
+            actingPlayerId = command.actingPlayerId,
+            outcome = command.outcome,
+        )
+        if (!result.isSuccess) {
+            return reject(session, GameError.EventError(result.error!!))
+        }
+        val outcome = when {
+            result.needsDebtResolution -> GameOutcome.DEBT_RESOLUTION_REQUIRED
+            else -> GameOutcome.SUCCESS
+        }
+        return GameResult(
+            session = result.session!!,
+            outcome = outcome,
+            transactions = result.transactions,
+        )
+    }
+
     private fun handleRollEventDice(
         session: GameSession,
         command: GameCommand.RollEventDice,
     ): GameResult {
         val pending = session.pendingDiceGamble
             ?: return reject(session, GameError.InvalidState("No dice gamble in progress"))
+        if (session.turnState?.activePlayerId != command.actingPlayerId) {
+            return reject(session, GameError.InvalidState("Only the active player can roll Lucky Break dice"))
+        }
         val rolled = diceRoller.roll()
         val diceResults = if (pending.diceCount == 2) {
             rolled.asList()
