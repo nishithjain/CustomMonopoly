@@ -19,6 +19,7 @@ import com.boardbanker.core.error.GameError
 import com.boardbanker.core.model.EditionCatalog
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PlayerOrder
 import com.boardbanker.core.model.GameStatus
 import com.boardbanker.core.persistence.SavedGameLoadResult
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -400,7 +401,8 @@ class GameSetupViewModel(
     }
 
     private fun updateFromSession(session: GameSession, editionSelectionLocked: Boolean) {
-        val players = session.players.map { (playerId, playerState) ->
+        val players = PlayerOrder.displayOrder(session).map { playerId ->
+            val playerState = session.players[playerId]!!
             RegisteredPlayerUi(
                 playerId = playerId,
                 playerName = PlayerDisplayNames.displayName(session, playerId, activeDefinitions),

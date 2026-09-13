@@ -1,5 +1,6 @@
 package com.boardbanker.app.persistence.repository
 
+import android.util.Log
 import com.boardbanker.app.persistence.db.SavedGameDao
 import com.boardbanker.app.persistence.mapper.SavedGameMapper
 import com.boardbanker.core.model.GameSession
@@ -11,6 +12,8 @@ import com.boardbanker.core.persistence.RawSavedGameReader
 import com.boardbanker.core.persistence.SavedGameLoadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+
+private const val TAG = "RoomGameSessionRepository"
 
 class RoomGameSessionRepository(
     private val dao: SavedGameDao,
@@ -30,6 +33,7 @@ class RoomGameSessionRepository(
             dao.upsertGame(entity)
             SaveSessionResult.Success(session)
         } catch (ex: Exception) {
+            Log.e(TAG, "Failed to serialize or persist game session ${session.gameId}", ex)
             SaveSessionResult.Failure(ex.message ?: "Failed to save game session")
         }
     }

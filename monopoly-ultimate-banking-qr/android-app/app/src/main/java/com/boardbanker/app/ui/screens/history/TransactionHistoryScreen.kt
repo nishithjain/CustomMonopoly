@@ -176,6 +176,83 @@ private fun HistoryDetailRow(detail: HistoryDetail) {
                 showFallbackPlayerIcon = true,
             )
         }
+        is HistoryDetail.DebtPropertySettlement -> {
+            DisplayIdentityTransferRow(
+                from = detail.transfer.from,
+                to = detail.transfer.to,
+                amount = detail.transfer.amount,
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+            Text(
+                text = detail.valueLabel,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        is HistoryDetail.EventMultiPlayerTransfer -> {
+            DisplayIdentityRow(
+                identity = DisplayIdentity.Player(detail.payerPlayerId, detail.payerName),
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+            Text(
+                text = detail.summaryText,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            detail.transfers.forEach { transfer ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CommonUiIconImage(
+                        icon = CommonUiIcon.MONEY_TRANSFER,
+                        size = 20.dp,
+                        contentDescription = null,
+                    )
+                    DisplayIdentityTransferRow(
+                        from = transfer.from,
+                        to = transfer.to,
+                        amount = transfer.amount,
+                        iconSize = PlayerIconSize.Compact,
+                        showFallbackPlayerIcon = true,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                }
+            }
+            Text(
+                text = detail.totalLabel,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        is HistoryDetail.EventBankruptcy -> {
+            DisplayIdentityRow(
+                identity = DisplayIdentity.Player(detail.playerId, detail.playerName),
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+            Text(
+                text = detail.summaryText,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        is HistoryDetail.RentDebtSettled -> {
+            DisplayIdentityTransferRow(
+                from = detail.transfer.from,
+                to = detail.transfer.to,
+                amount = detail.transfer.amount,
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+            Text(
+                text = buildString {
+                    append("Amount due: ${detail.amountDue}")
+                    append("\nCash used: ${detail.cashUsed} • Property value used: ${detail.propertyValueUsed}")
+                    append("\nRemaining due: ${detail.remainingDue}")
+                },
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         is HistoryDetail.Text -> {
             Text(
                 text = detail.value,

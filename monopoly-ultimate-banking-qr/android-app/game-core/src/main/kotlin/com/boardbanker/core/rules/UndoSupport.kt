@@ -16,6 +16,11 @@ class UndoSupport(
         if (undoPolicy.blockedDuringDebtResolution() && session.debtResolution != null) return false
         val lastTx = session.transactions.lastOrNull() ?: return false
         if (session.undoSnapshot == null) return false
+        if (lastTx.transactionType == TransactionType.RENT_DEBT_SETTLED ||
+            lastTx.transactionType == TransactionType.EVENT_MULTI_PLAYER_TRANSFER
+        ) {
+            return true
+        }
         if (undoPolicy.isIneligible(lastTx.transactionType)) {
             return trailingEventAppliedWithUndoableAction(session.transactions)
         }
@@ -52,7 +57,11 @@ class UndoSupport(
     private fun trailingEventAppliedWithUndoableAction(transactions: List<Transaction>): Boolean {
         val lastTx = transactions.lastOrNull() ?: return false
         if (lastTx.transactionType != TransactionType.EVENT_APPLIED) return false
-        return transactions.dropLast(1).any { undoPolicy.isEligible(it.transactionType) }
+        return transactions.dropLast(1).any { tx ->
+            tx.transactionType == TransactionType.RENT_DEBT_SETTLED ||
+                tx.transactionType == TransactionType.EVENT_MULTI_PLAYER_TRANSFER ||
+                undoPolicy.isEligible(tx.transactionType)
+        }
     }
 
     data class UndoResult(

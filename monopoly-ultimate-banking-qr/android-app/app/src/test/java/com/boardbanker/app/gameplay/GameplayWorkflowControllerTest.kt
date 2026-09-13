@@ -195,7 +195,7 @@ class GameplayWorkflowControllerTest {
         val session = AppTestSupport.newGame()
         controller.onEventScanned("EVT_01", session)
         controller.onEventContinue(session)
-        val actions = controller.onEventPropertyScanned("PRP_01")
+        val actions = controller.onEventPropertyScanned("PRP_01", session)
         assertTrue(actions.any { it is WorkflowAction.ExecuteCommand })
         assertTrue(actions.none { it is WorkflowAction.RequestScan })
     }
@@ -213,8 +213,8 @@ class GameplayWorkflowControllerTest {
         controller.onEventScanned("EVT_06", session)
         assertEquals("Scan a Player Card", controller.onEventContinue(session).scanInstruction())
         assertEquals("Scan a Property Card", controller.onUserScanned("USR_02", session).scanInstruction())
-        assertEquals("Scan a Property Card", controller.onEventPropertyScanned("PRP_01").scanInstruction())
-        val afterSecondProperty = controller.onEventPropertyScanned("PRP_02")
+        assertEquals("Scan a Property Card", controller.onEventPropertyScanned("PRP_01", session).scanInstruction())
+        val afterSecondProperty = controller.onEventPropertyScanned("PRP_02", session)
         assertTrue(afterSecondProperty.none { it is WorkflowAction.RequestScan })
         assertTrue(controller.currentState() is GameplayWorkflowState.EventConfirm)
     }

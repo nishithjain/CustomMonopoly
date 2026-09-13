@@ -1,0 +1,60 @@
+{
+    "schemaVersion": 1,
+    "mode": "BUILDER",
+    "presetId": "india-rent-before-payment",
+    "name": "India rent debt before payment",
+    "description": "A lands on D's level-2 Qutub Minar rent before any payment is made.",
+    "editionId": "india",
+    "startDestination": "ACTIVE_GAME",
+    "currentPlayerId": "USR_01",
+    "players": [
+        {
+            "playerId": "USR_01",
+            "name": "A",
+            "token": "Car",
+            "balance": 100000,
+            "ownedPropertyIds": [
+                "PRP_01"
+            ],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_03",
+            "name": "B",
+            "token": "Ship",
+            "balance": 50000,
+            "ownedPropertyIds": [],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_02",
+            "name": "C",
+            "token": "Helicopter",
+            "balance": 50000,
+            "ownedPropertyIds": [],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_04",
+            "name": "D",
+            "token": "Aeroplane",
+            "balance": 50000,
+            "ownedPropertyIds": [
+                "PRP_12"
+            ],
+            "ownedEnergyGridIds": []
+        }
+    ],
+    "properties": [
+        {
+            "propertyId": "PRP_01",
+            "ownerPlayerId": "USR_01",
+            "rentLevel": 1
+        },
+        {
+            "propertyId": "PRP_12",
+            "ownerPlayerId": "USR_04",
+            "rentLevel": 2
+        }
+    ]
+}

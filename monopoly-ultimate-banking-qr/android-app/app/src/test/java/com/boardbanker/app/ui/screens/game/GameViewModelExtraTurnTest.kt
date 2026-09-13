@@ -96,7 +96,7 @@ class GameViewModelExtraTurnTest {
 
         assertEquals(TurnKind.EXTRA, viewModel.uiState.value.turnKind)
         assertEquals("USR_01", viewModel.uiState.value.activePlayerId)
-        assertTrue(viewModel.uiState.value.result!!.primaryMessage.contains("Nishith's Extra Turn"))
+        assertNull(viewModel.uiState.value.result)
     }
 
     @Test
@@ -139,9 +139,14 @@ class GameViewModelExtraTurnTest {
         viewModel.onEndTurn()
         advanceUntilIdle()
 
-        val message = viewModel.uiState.value.result!!.primaryMessage
-        assertEquals(1, message.split("skipped turn cancelled the extra turn", ignoreCase = true).size - 1)
-        assertTrue(message.contains("Nishith's skipped turn cancelled the extra turn"))
+        assertNull(viewModel.uiState.value.result)
+        val cancelledEntry = com.boardbanker.app.ui.screens.history.TransactionHistoryEntries.build(
+            sessionManager.currentSession()!!,
+            AppTestSupport.editionRepository.load(EditionIds.INDIA),
+        ).single { it.title == "Extra turn cancelled" }
+        val detail = cancelledEntry.detail as com.boardbanker.app.ui.screens.history.HistoryDetail.PlayerMention
+        assertEquals("USR_01", detail.playerId)
+        assertEquals("extra turn cancelled by skip", detail.suffix)
     }
 
     @Test

@@ -9,6 +9,7 @@ import com.boardbanker.app.audio.GameplayOutcomeAudio
 import com.boardbanker.app.audio.InvalidUserActionAudio
 import com.boardbanker.app.audio.CommitAudioTrigger
 import com.boardbanker.app.audio.ScanPromptAudio
+import com.boardbanker.app.BuildConfig
 import com.boardbanker.app.game.ActiveGamePresentation
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.game.ProcessCommitResult
@@ -34,6 +35,7 @@ import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
+import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.persistence.SavedGameLoadResult
 import com.boardbanker.core.rules.JailGameplayGuard
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -92,6 +94,14 @@ class GameViewModel(
                     _events.emit(GameEvent.NavigateToDebt)
                 }
                 invalidateIncompatiblePropertyWorkflow(session)
+                if (session.debtResolution == null &&
+                    session.pendingEventExecution == null &&
+                    session.pendingEventMultiContributorSettlement == null &&
+                    workflowController.hasMandatoryEventActionPending()
+                ) {
+                    workflowController.reset()
+                    _uiState.update { it.copy(workflowState = workflowController.currentState()) }
+                }
                 refreshDashboardFromSession(session)
             }
         }
@@ -299,7 +309,7 @@ class GameViewModel(
         val actions = when (cardType) {
             CardType.PROPERTY -> {
                 if (_uiState.value.workflowState is GameplayWorkflowState.EventCollectingTargets) {
-                    workflowController.onEventPropertyScanned(cardId)
+                    workflowController.onEventPropertyScanned(cardId, session)
                 } else {
                     workflowController.onPropertyScanned(cardId, session)
                 }
@@ -814,7 +824,7 @@ class GameViewModel(
                     completeCommandUiSync(commit.session) {
                         it.copy(
                             workflowState = GameplayWorkflowState.Ready,
-                            result = resultMapper.mapTurnTransitionResult(commit.result, commit.session),
+                            result = null,
                             cardPresentation = null,
                             scanRequest = null,
                             scanPrompt = null,
@@ -849,11 +859,83 @@ class GameViewModel(
     }
 
     fun onCancelWorkflow() {
+        val preview = when (val current = _uiState.value.workflowState) {
+            is GameplayWorkflowState.EventIntro -> current.eventId to current.pendingEventParentId
+            is GameplayWorkflowState.EventCollectingTargets -> current.eventId to null
+            is GameplayWorkflowState.EventConfirm -> current.eventId to null
+            else -> null
+        }
+        if (preview != null) {
+            cancelEventPreview(preview.first, preview.second)
+            return
+        }
         if (_uiState.value.workflowState is GameplayWorkflowState.LocationWaitingForDestinationProperty) {
             locationWorkflowHolder.clear()
         }
         handleWorkflowActions(workflowController.onCancel())
         transientWorkflow.resetToReady()
+    }
+
+    private fun cancelEventPreview(eventId: String, pendingEventParentId: String?) {
+        if (!commandLock.compareAndSet(false, true)) return
+        val session = sessionManager.currentSession() ?: run {
+            commandLock.set(false)
+            return
+        }
+        val actingPlayerId = session.pendingEventDraw?.actingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+            ?: run {
+                commandLock.set(false)
+                return
+            }
+        _uiState.update { it.copy(commandInFlight = true) }
+        viewModelScope.launch {
+            when (val commit = sessionManager.processCommand(
+                session,
+                GameCommand.CancelEventPreview(eventId, actingPlayerId),
+            )) {
+                is ProcessCommitResult.Committed -> {
+                    workflowController.reset()
+                    transientWorkflow.resetToReady()
+                    locationWorkflowHolder.clear()
+                    updateFromSession(commit.session)
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            result = null,
+                            cardPresentation = null,
+                            message = null,
+                        ).withScanRequest(null)
+                    }
+                    if (pendingEventParentId != null) {
+                        handleWorkflowActions(
+                            workflowController.enterEventDrawScan(
+                                parentEventId = pendingEventParentId,
+                                actingPlayerId = actingPlayerId,
+                            ),
+                        )
+                        onScanLuckyDrawEventRequested()
+                    }
+                }
+                is ProcessCommitResult.Rejected -> {
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            message = commit.result.error?.let { error -> resultMapper.errorResult(error).primaryMessage },
+                        )
+                    }
+                }
+                is ProcessCommitResult.PersistenceFailed -> {
+                    _uiState.update {
+                        it.copy(
+                            commandInFlight = false,
+                            message = "Unable to save the cancelled Event.\nPlease try again.",
+                        )
+                    }
+                }
+            }
+            commandLock.set(false)
+        }
     }
 
     fun dismissMessage() {
@@ -1090,10 +1172,34 @@ class GameViewModel(
         sessionManager.currentSession()?.let { refreshDashboardFromSession(it) }
     }
 
+    private fun shouldSkipPendingEventResume(session: GameSession): Boolean {
+        val pending = session.pendingEventExecution ?: return true
+        val resolution = session.pendingEventResolution
+        if (resolution?.isBankingRecordedFor(pending.eventId, pending.actingPlayerId) == true) return true
+        if (session.transactions.any {
+                it.transactionType == TransactionType.EVENT_APPLIED &&
+                    it.eventId == pending.eventId &&
+                    it.playerId == pending.actingPlayerId
+            }
+        ) {
+            return true
+        }
+        return session.transactions.any {
+            it.transactionType == TransactionType.EVENT_MULTI_PLAYER_TRANSFER &&
+                it.eventId == pending.eventId &&
+                it.playerId == pending.actingPlayerId
+        }
+    }
+
     private fun handlePendingEventExecution(session: GameSession, result: GameResult) {
         if (session.pendingEventChoice != null) return
-        if (session.pendingEventExecution != null) {
-            handleWorkflowActions(workflowController.resumePendingEventExecution(session))
+        if (session.pendingEventExecution != null && session.debtResolution == null) {
+            if (shouldSkipPendingEventResume(session)) {
+                workflowController.reset()
+                _uiState.update { it.copy(workflowState = workflowController.currentState()) }
+            } else {
+                handleWorkflowActions(workflowController.resumePendingEventExecution(session))
+            }
         } else if (result.outcome != GameOutcome.PENDING_ACTION) {
             workflowController.reset()
             _uiState.update { it.copy(workflowState = workflowController.currentState()) }
@@ -1321,6 +1427,7 @@ class GameViewModel(
             it.copy(
                 loading = false,
                 editionId = session.editionId,
+                debugPreset = BuildConfig.DEBUG && session.debugPresetId != null,
                 status = session.status,
                 players = ActiveGamePresentation.buildPlayerDashboard(session, definitions),
                 activePlayerId = activePlayerId,

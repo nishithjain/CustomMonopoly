@@ -8,7 +8,9 @@ import com.boardbanker.core.model.LuckyBreakEventSnapshot
 import com.boardbanker.core.model.LuckyBreakOutcome
 import com.boardbanker.core.model.PhysicalDiceGambleOutcome
 import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.EventMultiPlayerTransferSnapshot
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PlayerOrder
 import com.boardbanker.core.model.PendingDiceGamble
 import com.boardbanker.core.model.PendingEnergyGridLanding
 import com.boardbanker.core.model.PendingEventDraw
@@ -19,6 +21,7 @@ import com.boardbanker.core.model.Transaction
 import com.boardbanker.core.model.TransactionType
 import com.boardbanker.core.model.TurnKind
 import com.boardbanker.core.rules.DebtRules
+import com.boardbanker.core.rules.EventMultiPlayerTransferExecutor
 import com.boardbanker.core.rules.GoRules
 import com.boardbanker.core.model.JailStatusSnapshot
 import com.boardbanker.core.rules.JailRules
@@ -40,6 +43,7 @@ class IndiaEventHandlers(
     private val turnScheduler: TurnScheduler,
 ) {
     private val rules = definitions.rules
+    private val eventTransferExecutor = EventMultiPlayerTransferExecutor(definitions, transactionFactory)
 
     fun dispatch(
         session: GameSession,
@@ -304,11 +308,27 @@ class IndiaEventHandlers(
     ): EventEngine.EventResult {
         if (amount <= 0) return EventEngine.EventResult.success(session, emptyList())
         val player = session.players[playerId] ?: return EventEngine.EventResult.failure("Unknown player")
+        val resolution = session.pendingEventResolution
+        if (!credit &&
+            resolution?.eventId == eventId &&
+            resolution.actingPlayerId == playerId &&
+            resolution.bankDebitObligationPaid()
+        ) {
+            return EventEngine.EventResult.success(
+                session.copy(
+                    pendingEventExecution = null,
+                    pendingEventResolution = null,
+                ),
+                emptyList(),
+            )
+        }
         if (!credit && player.balance < amount) {
-            val debtResult = debtRules.enterDebtResolution(
+            val eventName = definitions.events[eventId]?.name ?: eventId
+            val debtResult = debtRules.enterEventBankDebitDebt(
                 session = session,
+                eventId = eventId,
+                eventName = eventName,
                 debtorId = playerId,
-                creditorId = EntityRef.BANK,
                 amount = amount,
                 timestamp = timestamp,
             )
@@ -363,49 +383,80 @@ class IndiaEventHandlers(
         timestamp: Long,
     ): EventEngine.EventResult {
         if (amount <= 0) return EventEngine.EventResult.success(session, emptyList())
-        var updatedSession = session
-        val transactions = mutableListOf<Transaction>()
+        session.pendingEventResolution?.let { resolution ->
+            if (resolution.isBankingRecordedFor(eventId, actingPlayerId)) {
+                return EventEngine.EventResult.success(
+                    session.copy(pendingEventExecution = null),
+                    emptyList(),
+                )
+            }
+        }
         val recipients = otherActivePlayers(session, actingPlayerId)
-        for (otherId in recipients) {
-            val payerId = if (payerIsActing) actingPlayerId else otherId
-            val receiverId = if (payerIsActing) otherId else actingPlayerId
-            val payer = updatedSession.players[payerId]!!
-            if (payer.balance < amount) {
-                val debtResult = debtRules.enterDebtResolution(
-                    session = updatedSession,
-                    debtorId = payerId,
-                    creditorId = receiverId,
-                    amount = amount,
+        if (recipients.isEmpty()) return EventEngine.EventResult.success(session, emptyList())
+        val direction = if (payerIsActing) {
+            EventMultiPlayerTransferSnapshot.Direction.PAY_EACH_PLAYER
+        } else {
+            EventMultiPlayerTransferSnapshot.Direction.COLLECT_FROM_EACH_PLAYER
+        }
+        val eventName = definitions.events[eventId]?.name ?: eventId
+
+        if (payerIsActing) {
+            val payer = session.players[actingPlayerId]!!
+            val totalDue = amount * recipients.size
+            if (payer.balance < totalDue) {
+                val debtResult = debtRules.enterEventMultiRecipientDebt(
+                    session = session,
+                    eventId = eventId,
+                    eventName = eventName,
+                    payerPlayerId = actingPlayerId,
+                    direction = direction,
+                    amountPerRecipient = amount,
+                    recipientPlayerIds = recipients,
                     timestamp = timestamp,
                 )
                 if (!debtResult.isSuccess) {
-                    return EventEngine.EventResult.failure(debtResult.error ?: "Debt failed for $payerId")
+                    return EventEngine.EventResult.failure(debtResult.error ?: "Debt failed for $actingPlayerId")
                 }
-                updatedSession = debtResult.session!!
-                transactions += debtResult.transactions
-                continue
+                return EventEngine.EventResult.success(
+                    debtResult.session!!,
+                    debtResult.transactions,
+                    needsDebtResolution = true,
+                )
             }
-            val receiver = updatedSession.players[receiverId]!!
-            updatedSession = updatedSession.copy(
-                players = updatedSession.players +
-                    (payerId to payer.copy(balance = payer.balance - amount)) +
-                    (receiverId to receiver.copy(balance = receiver.balance + amount)),
-            )
-            val (tx, sessionAfter) = transactionFactory.create(
-                session = updatedSession,
-                type = TransactionType.RENT_PAYMENT,
-                timestamp = timestamp,
-                fromEntity = payerId,
-                toEntity = receiverId,
-                playerId = payerId,
+            val transferResult = eventTransferExecutor.execute(
+                session = session,
                 eventId = eventId,
-                amount = amount,
-                reversible = true,
+                eventName = eventName,
+                payerPlayerId = actingPlayerId,
+                recipientPlayerIds = recipients,
+                amountPerRecipient = amount,
+                direction = direction,
+                timestamp = timestamp,
             )
-            updatedSession = sessionAfter
-            transactions += tx
+            return EventEngine.EventResult.success(
+                transferResult.session.copy(undoSnapshot = session.snapshot()),
+                transferResult.transactions,
+            )
         }
-        return EventEngine.EventResult.success(updatedSession.copy(undoSnapshot = session.snapshot()), transactions)
+
+        val settlementResult = debtRules.processEventMultiContributorSettlement(
+            session = session,
+            eventId = eventId,
+            eventName = eventName,
+            recipientPlayerId = actingPlayerId,
+            amountPerContributor = amount,
+            contributorPlayerIds = recipients,
+            timestamp = timestamp,
+        )
+        if (!settlementResult.isSuccess) {
+            return EventEngine.EventResult.failure(settlementResult.error ?: "Birthday settlement failed")
+        }
+        val needsDebt = settlementResult.session!!.debtResolution != null
+        return EventEngine.EventResult.success(
+            settlementResult.session!!.copy(undoSnapshot = session.snapshot()),
+            settlementResult.transactions,
+            needsDebtResolution = needsDebt,
+        )
     }
 
     private fun handlePerOwnedProperty(
@@ -829,16 +880,11 @@ class IndiaEventHandlers(
         rule: EventActionDefinition,
         timestamp: Long,
     ): EventEngine.EventResult {
-        val owned = session.properties.filter { it.value.ownerPlayerId == actingPlayerId }
-        if (owned.isEmpty()) return EventEngine.EventResult.success(session, emptyList())
-        val minPrice = owned.minOf { definitions.properties[it.key]!!.purchasePrice }
-        val candidates = owned.filter { definitions.properties[it.key]!!.purchasePrice == minPrice }.keys.toList()
-        val selectedId = when {
-            candidates.size == 1 -> candidates.first()
-            propertyId != null && propertyId in candidates -> propertyId
-            propertyId != null && propertyId in owned -> propertyId
-            else -> return EventEngine.EventResult.failure("Select one of your lowest-value properties")
-        }
+        val selection = ForcedPropertySellbackSelection.resolve(session, definitions, actingPlayerId)
+        if (selection.ownedPropertyIds.isEmpty()) return EventEngine.EventResult.success(session, emptyList())
+        val selectedId = selection.autoSelectedPropertyId
+            ?: propertyId?.takeIf { it in selection.lowestValueCandidates }
+            ?: return EventEngine.EventResult.failure("Select one of your lowest-value properties")
         val propertyDef = definitions.properties[selectedId]!!
         val multiplier = rule.doubleParam("payoutMultiplier") ?: 2.0
         val payout = (propertyDef.purchasePrice * multiplier).toInt()
@@ -1009,10 +1055,10 @@ class IndiaEventHandlers(
     }
 
     private fun otherActivePlayers(session: GameSession, actingPlayerId: String): List<String> =
-        session.players.values
-            .filter { it.active && !it.bankrupt && it.playerId != actingPlayerId }
-            .map { it.playerId }
-            .sorted()
+        PlayerOrder.displayOrder(session).filter { playerId ->
+            val player = session.players[playerId]
+            player != null && player.active && !player.bankrupt && playerId != actingPlayerId
+        }
 
     private fun EventActionDefinition.intParam(key: String): Int? =
         parameters[key]?.jsonPrimitive?.intOrNull

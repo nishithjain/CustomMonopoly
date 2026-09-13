@@ -21,9 +21,13 @@ internal object HistoryEntryIcons {
         TransactionType.ENERGY_GRID_OWNERSHIP_CHANGE,
         -> CommonUiIcon.ENERGY_GRID
         TransactionType.BANKRUPTCY -> CommonUiIcon.DEBT
+        TransactionType.RENT_DEBT_SETTLED -> CommonUiIcon.RENT
+        TransactionType.EVENT_PLAYER_TRANSFER,
+        TransactionType.EVENT_MULTI_PLAYER_TRANSFER,
+        -> CommonUiIcon.MONEY_TRANSFER
         TransactionType.UNDO -> CommonUiIcon.UNDO_LAST_ACTION
+        TransactionType.PROPERTY_OWNERSHIP_CHANGE -> CommonUiIcon.PROPERTY
         TransactionType.EVENT_APPLIED -> eventIcon(eventName)
-        TransactionType.PROPERTY_OWNERSHIP_CHANGE -> CommonUiIcon.MONEY_TRANSFER
         TransactionType.LOCATION_FEE -> CommonUiIcon.LOCATION
         TransactionType.JAIL_STATUS_CHANGE,
         TransactionType.JAIL_PASS_USED,

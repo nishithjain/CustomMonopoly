@@ -254,6 +254,57 @@ class IndiaEventTests {
         assertEquals(before + 12000, result.session.players["USR_01"]!!.balance)
     }
 
+    @Test fun evt19_eminentDomainAutoSelectsUniqueLowestProperty() {
+        var session = indiaGame()
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_01" -> state.copy(ownerPlayerId = "USR_01", currentRentLevel = 2)
+                    "PRP_12" -> state.copy(ownerPlayerId = "USR_01", currentRentLevel = 2)
+                    else -> state
+                }
+            },
+        )
+        val before = session.players["USR_01"]!!.balance
+        val result = engine.process(session, GameCommand.ApplyEvent("EVT_19", "USR_01"))
+        assertEquals(null, result.session.properties["PRP_01"]!!.ownerPlayerId)
+        assertEquals("USR_01", result.session.properties["PRP_12"]!!.ownerPlayerId)
+        assertEquals(before + 12000, result.session.players["USR_01"]!!.balance)
+    }
+
+    @Test fun evt19_eminentDomainRejectsHigherValuePropertyWhenTiedLowestExist() {
+        var session = indiaGame()
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_01", "PRP_02" -> state.copy(ownerPlayerId = "USR_01", currentRentLevel = 2)
+                    "PRP_12" -> state.copy(ownerPlayerId = "USR_01", currentRentLevel = 2)
+                    else -> state
+                }
+            },
+        )
+        val result = engine.process(session, GameCommand.ApplyEvent("EVT_19", "USR_01", propertyId = "PRP_12"))
+        assertNotNull(result.session.pendingEventExecution)
+        assertEquals("USR_01", result.session.properties["PRP_12"]!!.ownerPlayerId)
+        assertEquals("USR_01", result.session.properties["PRP_01"]!!.ownerPlayerId)
+        assertEquals("USR_01", result.session.properties["PRP_02"]!!.ownerPlayerId)
+    }
+
+    @Test fun evt19_eminentDomainAcceptsTiedLowestPropertySelection() {
+        var session = indiaGame()
+        session = session.copy(
+            properties = session.properties.mapValues { (id, state) ->
+                when (id) {
+                    "PRP_01", "PRP_02" -> state.copy(ownerPlayerId = "USR_01", currentRentLevel = 2)
+                    else -> state
+                }
+            },
+        )
+        val result = engine.process(session, GameCommand.ApplyEvent("EVT_19", "USR_01", propertyId = "PRP_02"))
+        assertEquals(null, result.session.properties["PRP_02"]!!.ownerPlayerId)
+        assertEquals("USR_01", result.session.properties["PRP_01"]!!.ownerPlayerId)
+    }
+
     @Test fun evt20_economicRelief_belowThreshold() {
         val session = indiaGame(balances = mapOf("USR_01" to 10000))
         val result = engine.process(session, GameCommand.ApplyEvent("EVT_20", "USR_01"))

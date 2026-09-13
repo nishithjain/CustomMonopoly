@@ -20,7 +20,10 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
+import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
+import com.boardbanker.app.ui.screens.history.HistoryDetail
+import com.boardbanker.app.ui.screens.history.TransactionHistoryEntries
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -86,10 +89,16 @@ class GameViewModelTurnTest {
 
         assertEquals("USR_01", sessionManager.currentSession()!!.turnState!!.activePlayerId)
         assertEquals("USR_01", viewModel.uiState.value.activePlayerId)
-        val result = viewModel.uiState.value.result
-        assertNotNull(result)
-        assertTrue(result!!.primaryMessage.contains("Aditya skips this turn"))
-        assertTrue(result.primaryMessage.contains("Nishith's turn."))
+        assertNull(viewModel.uiState.value.result)
+        assertEquals(GameplayWorkflowState.Ready, viewModel.uiState.value.workflowState)
+        val entries = TransactionHistoryEntries.build(
+            sessionManager.currentSession()!!,
+            AppTestSupport.editionRepository.load(EditionIds.INDIA),
+        )
+        val skipped = entries.first { it.title == "Turn skipped" }.detail as HistoryDetail.PlayerMention
+        val nextTurn = entries.first { it.title == "Next turn" }.detail as HistoryDetail.PlayerMention
+        assertEquals("USR_02", skipped.playerId)
+        assertEquals("USR_01", nextTurn.playerId)
     }
 
     @Test
@@ -134,9 +143,14 @@ class GameViewModelTurnTest {
         viewModel.onEndTurn()
         advanceUntilIdle()
 
-        val message = viewModel.uiState.value.result!!.primaryMessage
-        assertEquals(2, message.split("skips this turn").size - 1)
-        assertTrue(message.contains("Aditya skips this turn"))
-        assertTrue(message.contains("Rahul skips this turn"))
+        assertNull(viewModel.uiState.value.result)
+        val skippedEntries = TransactionHistoryEntries.build(
+            sessionManager.currentSession()!!,
+            AppTestSupport.editionRepository.load(EditionIds.INDIA),
+        ).filter { it.title == "Turn skipped" }
+        assertEquals(2, skippedEntries.size)
+        val skippedPlayerIds = skippedEntries.map { (it.detail as HistoryDetail.PlayerMention).playerId }
+        assertTrue(skippedPlayerIds.contains("USR_02"))
+        assertTrue(skippedPlayerIds.contains("USR_03"))
     }
 }

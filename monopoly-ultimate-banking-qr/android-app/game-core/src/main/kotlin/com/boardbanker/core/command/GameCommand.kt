@@ -45,6 +45,11 @@ sealed class GameCommand {
         val fromBoardPosition: Int? = null,
     ) : GameCommand()
 
+    data class CancelEventPreview(
+        val eventId: String,
+        val actingPlayerId: String,
+    ) : GameCommand()
+
     data class EventPropertyChoice(
         val actingPlayerId: String,
         val propertyId: String,
@@ -130,7 +135,11 @@ sealed class GameCommand {
         val energyGridIds: List<String> = emptyList(),
     ) : GameCommand()
 
-    object CheckBankruptcy : GameCommand()
+    data class CheckBankruptcy(
+        val eventResolutionId: String,
+        val debtId: String,
+        val debtorPlayerId: String,
+    ) : GameCommand()
 
     object UndoLastAction : GameCommand()
 

@@ -51,6 +51,7 @@ sealed class GameplayWorkflowState {
         val eventName: String,
         val eventSubtitle: String,
         val eventDescription: String,
+        val pendingEventParentId: String? = null,
     ) : GameplayWorkflowState()
 
     data class EventCollectingTargets(
@@ -202,6 +203,7 @@ class GameplayWorkflowController(
     }
 
     fun onPropertyScanned(propertyId: String, session: GameSession): List<WorkflowAction> {
+        rejectWhenEnergyGridCardRequired(session)?.let { return it }
         propertyPurchaseBlockedForActivePlayer(session)?.let { message ->
             state = GameplayWorkflowState.Error(message)
             return listOf(WorkflowAction.StateChanged(state))
@@ -488,6 +490,7 @@ class GameplayWorkflowController(
     }
 
     fun onEventScanned(eventId: String, session: GameSession): List<WorkflowAction> {
+        rejectWhenEnergyGridCardRequired(session)?.let { return it }
         activeJailedPlayerBoardActionMessage(session)?.let { message ->
             state = GameplayWorkflowState.Error(message)
             return listOf(WorkflowAction.StateChanged(state))
@@ -509,7 +512,25 @@ class GameplayWorkflowController(
     fun onEventContinue(session: GameSession): List<WorkflowAction> {
         val current = state
         if (current !is GameplayWorkflowState.EventIntro || eventContinueLocked) return emptyList()
+        current.pendingEventParentId?.let { parentEventId ->
+            val actingPlayerId = session.pendingEventDraw?.actingPlayerId
+                ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+                ?: return emptyList()
+            eventContinueLocked = true
+            return listOf(
+                WorkflowAction.ExecuteCommand(
+                    WorkflowCommandRequest(
+                        command = GameCommand.ResolvePendingEventDraw(
+                            eventId = current.eventId,
+                            actingPlayerId = actingPlayerId,
+                        ),
+                        context = WorkflowCommandContext.ResolvePendingEventDraw(current.eventId),
+                    ),
+                ),
+            )
+        }
         return beginEventActionCollection(
+            session = session,
             eventId = current.eventId,
             actionIndex = 0,
             actingPlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() },
@@ -519,6 +540,7 @@ class GameplayWorkflowController(
     fun resumePendingEventExecution(session: GameSession): List<WorkflowAction> {
         val pending = session.pendingEventExecution ?: return emptyList()
         return beginEventActionCollection(
+            session = session,
             eventId = pending.eventId,
             actionIndex = pending.currentActionIndex,
             actingPlayerId = pending.actingPlayerId,
@@ -555,7 +577,30 @@ class GameplayWorkflowController(
             )
             return listOf(WorkflowAction.StateChanged(state))
         }
+        if (session.debtResolution != null) {
+            reset()
+            return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Ready))
+        }
         session.pendingEventExecution?.let { pending ->
+            val resolution = session.pendingEventResolution
+            if (resolution?.isBankingRecordedFor(pending.eventId, pending.actingPlayerId) == true) {
+                reset()
+                return emptyList()
+            }
+            val eventAlreadyApplied = session.transactions.any {
+                it.transactionType == com.boardbanker.core.model.TransactionType.EVENT_APPLIED &&
+                    it.eventId == pending.eventId &&
+                    it.playerId == pending.actingPlayerId
+            }
+            val summaryAlreadyRecorded = session.transactions.any {
+                it.transactionType == com.boardbanker.core.model.TransactionType.EVENT_MULTI_PLAYER_TRANSFER &&
+                    it.eventId == pending.eventId &&
+                    it.playerId == pending.actingPlayerId
+            }
+            if (eventAlreadyApplied || summaryAlreadyRecorded) {
+                reset()
+                return emptyList()
+            }
             return resumePendingEventExecution(session)
         }
         session.pendingEnergyGridLanding?.let {
@@ -609,17 +654,14 @@ class GameplayWorkflowController(
                 ),
             )
         }
-        return listOf(
-            WorkflowAction.ExecuteCommand(
-                WorkflowCommandRequest(
-                    command = GameCommand.ResolvePendingEventDraw(
-                        eventId = eventId,
-                        actingPlayerId = pending.actingPlayerId,
-                    ),
-                    context = WorkflowCommandContext.ResolvePendingEventDraw(eventId),
-                ),
-            ),
+        state = GameplayWorkflowState.EventIntro(
+            eventId = eventId,
+            eventName = event.name,
+            eventSubtitle = event.eventSubtitle,
+            eventDescription = EventInstructionFormatter.formatDescription(event, definitions),
+            pendingEventParentId = pending.parentEventId,
         )
+        return listOf(WorkflowAction.StateChanged(state))
     }
 
     fun enterDiceGamble(eventId: String, actingPlayerId: String): List<WorkflowAction> {
@@ -628,6 +670,7 @@ class GameplayWorkflowController(
     }
 
     private fun beginEventActionCollection(
+        session: GameSession,
         eventId: String,
         actionIndex: Int,
         actingPlayerId: String? = null,
@@ -641,12 +684,24 @@ class GameplayWorkflowController(
         if (actionIndex !in event.actions.indices) {
             return listOf(WorkflowAction.StateChanged(GameplayWorkflowState.Error("Invalid event action index.")))
         }
+        val resolvedActingPlayerId = actingPlayerId
+            ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+        val resolvedPropertyId = propertyId
+            ?: resolvedActingPlayerId?.let { playerId ->
+                EventWorkflowPlanner.autoResolvedForcedSellbackPropertyId(
+                    session = session,
+                    definitions = definitions,
+                    event = event,
+                    actionIndex = actionIndex,
+                    actingPlayerId = playerId,
+                )
+            }
         val plan = EventWorkflowPlanner.planForEventAtAction(event, actionIndex)
         val startStep = EventWorkflowPlanner.initialStepIndex(
             plan = plan,
-            actingPlayerId = actingPlayerId,
+            actingPlayerId = resolvedActingPlayerId,
             targetPlayerId = targetPlayerId,
-            propertyId = propertyId,
+            propertyId = resolvedPropertyId,
             secondPropertyId = secondPropertyId,
         )
         val collecting = GameplayWorkflowState.EventCollectingTargets(
@@ -654,9 +709,9 @@ class GameplayWorkflowController(
             actionIndex = actionIndex,
             plan = plan,
             stepIndex = startStep,
-            actingPlayerId = actingPlayerId,
+            actingPlayerId = resolvedActingPlayerId,
             targetPlayerId = targetPlayerId,
-            propertyId = propertyId,
+            propertyId = resolvedPropertyId,
             secondPropertyId = secondPropertyId,
         )
         if (startStep >= plan.steps.size) {
@@ -666,7 +721,7 @@ class GameplayWorkflowController(
         state = collecting
         return listOf(
             WorkflowAction.StateChanged(collecting),
-            scanRequestForEventStep(collecting),
+            scanRequestForEventStep(collecting, session),
         )
     }
 
@@ -676,6 +731,7 @@ class GameplayWorkflowController(
         }
         return when (val current = state) {
             is GameplayWorkflowState.Ready -> {
+                rejectWhenEnergyGridCardRequired(session)?.let { return it }
                 state = GameplayWorkflowState.PlayerInfo(playerId)
                 listOf(WorkflowAction.StateChanged(state))
             }
@@ -765,7 +821,7 @@ class GameplayWorkflowController(
                     ),
                 )
             }
-            is GameplayWorkflowState.EventCollectingTargets -> handleEventUserScan(current, playerId)
+            is GameplayWorkflowState.EventCollectingTargets -> handleEventUserScan(current, playerId, session)
             is GameplayWorkflowState.LocationWaitingForDestinationProperty -> listOf(
                 WorkflowAction.WrongCardType(
                     expected = CardType.PROPERTY,
@@ -902,7 +958,7 @@ class GameplayWorkflowController(
         )
     }
 
-    fun onEventPropertyScanned(propertyId: String): List<WorkflowAction> {
+    fun onEventPropertyScanned(propertyId: String, session: GameSession): List<WorkflowAction> {
         val current = state
         if (current !is GameplayWorkflowState.EventCollectingTargets) {
             return listOf(
@@ -921,12 +977,33 @@ class GameplayWorkflowController(
                 ),
             )
         }
+        val event = definitions.events[current.eventId]
+        val action = event?.actions?.getOrNull(current.actionIndex)
+        if (action?.actionType == "FORCED_PROPERTY_SELLBACK") {
+            val actingPlayerId = current.actingPlayerId
+                ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+            if (actingPlayerId != null) {
+                val selection = com.boardbanker.core.event.ForcedPropertySellbackSelection.resolve(
+                    session = session,
+                    definitions = definitions,
+                    actingPlayerId = actingPlayerId,
+                )
+                if (propertyId !in selection.lowestValueCandidates) {
+                    return listOf(
+                        WorkflowAction.WrongCardType(
+                            expected = CardType.PROPERTY,
+                            message = "LOWEST-VALUE PROPERTY REQUIRED\n\nScan one of your lowest-value Property cards.",
+                        ),
+                    )
+                }
+            }
+        }
         val updated = when (step) {
             EventScanStep.PROPERTY -> current.copy(propertyId = propertyId, stepIndex = current.stepIndex + 1)
             EventScanStep.SECOND_PROPERTY -> current.copy(secondPropertyId = propertyId, stepIndex = current.stepIndex + 1)
             else -> current
         }
-        return advanceEventWorkflow(updated)
+        return advanceEventWorkflow(updated, session)
     }
 
     fun onCancel(): List<WorkflowAction> {
@@ -997,6 +1074,7 @@ class GameplayWorkflowController(
     private fun handleEventUserScan(
         current: GameplayWorkflowState.EventCollectingTargets,
         playerId: String,
+        session: GameSession,
     ): List<WorkflowAction> {
         val step = current.plan.steps.getOrNull(current.stepIndex)
         val updated = when (step) {
@@ -1009,10 +1087,13 @@ class GameplayWorkflowController(
                 ),
             )
         }
-        return advanceEventWorkflow(updated)
+        return advanceEventWorkflow(updated, session)
     }
 
-    private fun advanceEventWorkflow(current: GameplayWorkflowState.EventCollectingTargets): List<WorkflowAction> {
+    private fun advanceEventWorkflow(
+        current: GameplayWorkflowState.EventCollectingTargets,
+        session: GameSession,
+    ): List<WorkflowAction> {
         val nextStep = current.plan.steps.getOrNull(current.stepIndex)
         if (nextStep == EventScanStep.CONFIRM) {
             val acting = current.actingPlayerId ?: return error("Missing acting player.")
@@ -1031,7 +1112,7 @@ class GameplayWorkflowController(
         state = current
         return listOf(
             WorkflowAction.StateChanged(current),
-            scanRequestForEventStep(current),
+            scanRequestForEventStep(current, session),
         )
     }
 
@@ -1053,11 +1134,29 @@ class GameplayWorkflowController(
         )
     }
 
-    private fun scanRequestForEventStep(current: GameplayWorkflowState.EventCollectingTargets): WorkflowAction.RequestScan {
+    private fun scanRequestForEventStep(
+        current: GameplayWorkflowState.EventCollectingTargets,
+        session: GameSession,
+    ): WorkflowAction.RequestScan {
         val step = current.plan.steps[current.stepIndex]
-        return WorkflowAction.RequestScan(
-            WorkflowScanRequest(EventWorkflowPlanner.scanRequest(step)),
+        val base = EventWorkflowPlanner.scanRequest(step)
+        val instruction = EventWorkflowPlanner.scanPrompt(
+            step = step,
+            session = session,
+            definitions = definitions,
+            eventId = current.eventId,
+            actionIndex = current.actionIndex,
+            actingPlayerId = current.actingPlayerId,
         )
+        val scanRequest = if (instruction == base.instruction) {
+            base
+        } else {
+            base.copy(
+                instruction = instruction,
+                mismatchInstruction = "Please ${instruction.replaceFirst("Scan", "scan")}.",
+            )
+        }
+        return WorkflowAction.RequestScan(WorkflowScanRequest(scanRequest))
     }
 
     private fun error(message: String): List<WorkflowAction> =
@@ -1066,6 +1165,18 @@ class GameplayWorkflowController(
     private fun activeJailedPlayerBoardActionMessage(session: GameSession): String? {
         val activePlayerId = session.turnState?.activePlayerId?.takeIf { it.isNotBlank() } ?: return null
         return JailGameplayGuard.boardActionBlockedMessage(definitions, session, activePlayerId)
+    }
+
+    private fun rejectWhenEnergyGridCardRequired(session: GameSession): List<WorkflowAction>? {
+        val expectedGridId = session.pendingEnergyGridLanding?.energyGridId
+            ?: (state as? GameplayWorkflowState.WaitingForExpectedEnergyGridScan)?.energyGridId
+            ?: return null
+        return listOf(
+            WorkflowAction.WrongCardType(
+                expected = CardType.ENERGY_GRID,
+                message = "ENERGY GRID CARD EXPECTED\n\nPlease scan ${EnergyGridDisplayNames.displayNameWithNumber(expectedGridId, definitions)}.",
+            ),
+        )
     }
 
     private fun propertyPurchaseBlockedForActivePlayer(session: GameSession): String? {

@@ -402,6 +402,32 @@ class TransactionHistoryEntriesTest {
     }
 
     @Test
+    fun turnEndedAndNextTurnStoreBothPlayerIdsFromAdvanceTransaction() {
+        val base = AppTestSupport.newGame()
+        val session = base.copy(
+            transactions = base.transactions + Transaction(
+                transactionId = "${base.gameId}_TX_TURN",
+                gameId = base.gameId,
+                timestamp = 8_000L,
+                transactionType = TransactionType.TURN_ADVANCED,
+                fromEntity = "USR_01",
+                toEntity = "USR_02",
+                playerId = "USR_02",
+            ),
+        )
+
+        val entries = TransactionHistoryEntries.build(session, definitions)
+        val turnEnded = entries.first { it.title == TransactionHistoryEntries.TURN_ENDED_TITLE }
+            .detail as HistoryDetail.PlayerMention
+        val nextTurn = entries.first { it.title == "Next turn" }.detail as HistoryDetail.PlayerMention
+
+        assertEquals("USR_01", turnEnded.playerId)
+        assertEquals("Nishith", turnEnded.playerName)
+        assertEquals("USR_02", nextTurn.playerId)
+        assertEquals("Aditya", nextTurn.playerName)
+    }
+
+    @Test
     fun nextTurnShowsActivePlayerMentionWithPlayerId() {
         val base = AppTestSupport.newGame()
         val session = base.copy(
@@ -588,8 +614,16 @@ class TransactionHistoryEntriesTest {
 
         val entries = TransactionHistoryEntries.build(session, definitions)
 
-        assertEquals(2, entries.size)
-        assertTrue(entries.all { it.detail is HistoryDetail.Text })
+        assertEquals(3, entries.size)
+        assertEquals(
+            setOf(TransactionHistoryEntries.TURN_ENDED_TITLE, "Next turn", "Turn skipped"),
+            entries.map { it.title }.toSet(),
+        )
+        assertTrue(
+            entries.all {
+                it.detail is HistoryDetail.PlayerMention || it.detail is HistoryDetail.Text
+            },
+        )
     }
 
     @Test

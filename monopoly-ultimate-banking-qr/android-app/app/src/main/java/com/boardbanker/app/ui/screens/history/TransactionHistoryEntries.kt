@@ -4,6 +4,11 @@ import com.boardbanker.app.player.CommonUiIcon
 import com.boardbanker.app.player.PlayerDisplayNames
 import com.boardbanker.app.ui.components.DisplayIdentity
 import com.boardbanker.app.util.formatMoney
+import com.boardbanker.core.model.DebtPropertySettlementSnapshot
+import com.boardbanker.core.model.DebtSettlementSnapshot
+import com.boardbanker.core.model.EventContributorDebtSnapshot
+import com.boardbanker.core.model.EventMultiPlayerTransferSnapshot
+import com.boardbanker.core.model.EventMultiRecipientDebtSnapshot
 import com.boardbanker.core.model.DiceGambleMode
 import com.boardbanker.core.model.DirectJailEventSnapshot
 import com.boardbanker.core.model.EnergyGridDisplayNames
@@ -72,6 +77,35 @@ internal sealed interface HistoryDetail {
         val diceDetail: String,
         val transfer: PlayerTransfer,
     ) : HistoryDetail
+
+    data class DebtPropertySettlement(
+        val propertyName: String,
+        val transfer: PlayerTransfer,
+        val valueLabel: String,
+    ) : HistoryDetail
+
+    data class RentDebtSettled(
+        val transfer: PlayerTransfer,
+        val amountDue: String,
+        val cashUsed: String,
+        val propertyValueUsed: String,
+        val remainingDue: String,
+    ) : HistoryDetail
+
+    data class EventMultiPlayerTransfer(
+        val payerPlayerId: String?,
+        val payerName: String,
+        val summaryText: String,
+        val transfers: List<PlayerTransfer>,
+        val totalPaid: String,
+        val totalLabel: String,
+    ) : HistoryDetail
+
+    data class EventBankruptcy(
+        val playerId: String?,
+        val playerName: String,
+        val summaryText: String,
+    ) : HistoryDetail
 }
 
 internal data class HistoryEntry(
@@ -108,6 +142,7 @@ internal fun HistoryEntry.withResolvedIcon(
 internal object TransactionHistoryEntries {
 
     const val MAX_ENTRIES = 30
+    const val TURN_ENDED_TITLE = "Turn ended"
 
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
@@ -116,6 +151,8 @@ internal object TransactionHistoryEntries {
         TransactionType.PROPERTY_PURCHASE,
         TransactionType.ENERGY_GRID_PURCHASE,
         TransactionType.RENT_PAYMENT,
+        TransactionType.EVENT_PLAYER_TRANSFER,
+        TransactionType.EVENT_MULTI_PLAYER_TRANSFER,
         TransactionType.BANK_CREDIT,
         TransactionType.BANK_DEBIT,
         TransactionType.LOCATION_FEE,
@@ -129,6 +166,7 @@ internal object TransactionHistoryEntries {
     /** Which transaction in a group names the whole action. */
     private val headlineOrder = listOf(
         TransactionType.BANKRUPTCY,
+        TransactionType.RENT_DEBT_SETTLED,
         TransactionType.JAIL_STATUS_CHANGE,
         TransactionType.JAIL_PASS_USED,
         TransactionType.TURN_ADVANCED,
@@ -136,6 +174,7 @@ internal object TransactionHistoryEntries {
         TransactionType.EXTRA_TURN_STARTED,
         TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP,
         TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL,
+        TransactionType.EVENT_MULTI_PLAYER_TRANSFER,
         TransactionType.RENT_PAYMENT,
         TransactionType.RENT_WAIVED,
         TransactionType.PROPERTY_PURCHASE,
@@ -215,6 +254,9 @@ internal object TransactionHistoryEntries {
         TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL -> "Extra turn cancelled"
         TransactionType.EXTRA_TURN_GRANTED -> "Extra turn granted"
         TransactionType.BANKRUPTCY -> "Bankruptcy"
+        TransactionType.RENT_DEBT_SETTLED -> "Rent debt settled"
+        TransactionType.EVENT_PLAYER_TRANSFER -> "Event transfer"
+        TransactionType.EVENT_MULTI_PLAYER_TRANSFER -> "Event transfer"
         TransactionType.ENERGY_GRID_PURCHASE -> "Energy grid purchase"
         TransactionType.ENERGY_GRID_OWNERSHIP_CHANGE -> "Energy grid ownership transfer"
         TransactionType.UNDO -> "Undo"
@@ -267,6 +309,96 @@ internal object TransactionHistoryEntries {
         if (luckyBreakTx != null) {
             val metadata = LuckyBreakEventSnapshot.fromTransaction(luckyBreakTx)!!
             return listOf(buildLuckyBreakEntry(metadata, luckyBreakTx, session, definitions, time, undone))
+        }
+        val bankruptcyTx = group.firstOrNull { it.transactionType == TransactionType.BANKRUPTCY }
+        val eventBankruptcyName = bankruptcyTx?.let { EventMultiRecipientDebtSnapshot.fromBankruptcyTransaction(it)?.eventName }
+            ?: bankruptcyTx?.let { EventContributorDebtSnapshot.fromBankruptcyTransaction(it)?.eventName }
+        val eventMultiTransferTx = group.firstOrNull {
+            it.transactionType == TransactionType.EVENT_MULTI_PLAYER_TRANSFER
+        }
+        if (bankruptcyTx != null && eventBankruptcyName != null) {
+            val playerId = bankruptcyTx.playerId
+            val playerName = playerDisplayName(playerId, session, definitions)
+            val bankruptcyEntry = HistoryEntry(
+                title = "$eventBankruptcyName — Unable to Pay",
+                time = time,
+                detail = HistoryDetail.EventBankruptcy(
+                    playerId = playerId,
+                    playerName = playerName,
+                    summaryText = "$playerName declared bankrupt",
+                ),
+                undone = undone,
+                entryIcon = CommonUiIcon.EVENT_CARD,
+            )
+            val settlementEntry = eventMultiTransferTx?.let { summaryTx ->
+                EventMultiPlayerTransferSnapshot.fromTransaction(summaryTx)?.let { metadata ->
+                    buildEventMultiPlayerTransferEntry(
+                        metadata,
+                        session,
+                        definitions,
+                        time,
+                        undone,
+                    )
+                }
+            }
+            return listOfNotNull(bankruptcyEntry, settlementEntry)
+        }
+        if (eventMultiTransferTx != null) {
+            val metadata = EventMultiPlayerTransferSnapshot.fromTransaction(eventMultiTransferTx)
+            if (metadata != null) {
+                val propertyEntries = group
+                    .filter { DebtPropertySettlementSnapshot.isDebtSettlement(it) }
+                    .map { buildDebtPropertySettlementEntry(it, session, definitions, time, undone) }
+                return propertyEntries + buildEventMultiPlayerTransferEntry(
+                    metadata,
+                    session,
+                    definitions,
+                    time,
+                    undone,
+                )
+            }
+        }
+        val legacyEventTransfers = group.filter {
+            it.transactionType == TransactionType.RENT_PAYMENT &&
+                it.propertyId == null &&
+                it.eventId != null &&
+                it.fromEntity != null &&
+                it.toEntity != null &&
+                it.fromEntity != EntityRef.BANK &&
+                it.toEntity != EntityRef.BANK
+        }
+        if (legacyEventTransfers.size > 1) {
+            val event = legacyEventTransfers.first().eventId?.let { definitions.events[it] }
+            if (event != null) {
+                return listOf(
+                    buildLegacyEventMultiPlayerTransferEntry(
+                        eventName = event.name,
+                        eventId = event.eventId,
+                        transfers = legacyEventTransfers,
+                        session = session,
+                        definitions = definitions,
+                        time = time,
+                        undone = undone,
+                    ),
+                )
+            }
+        }
+        val settlementTx = group.firstOrNull { it.transactionType == TransactionType.RENT_DEBT_SETTLED }
+        if (settlementTx != null) {
+            return buildDebtSettlementEntries(
+                group = group,
+                settlementTx = settlementTx,
+                session = session,
+                definitions = definitions,
+                time = time,
+                undone = undone,
+            )
+        }
+        val debtPropertyTxs = group.filter { DebtPropertySettlementSnapshot.isDebtSettlement(it) }
+        if (debtPropertyTxs.isNotEmpty()) {
+            return debtPropertyTxs.map { tx ->
+                buildDebtPropertySettlementEntry(tx, session, definitions, time, undone)
+            }
         }
         val rentTx = group.firstOrNull { it.transactionType == TransactionType.RENT_PAYMENT }
         val waivedTx = group.firstOrNull { it.transactionType == TransactionType.RENT_WAIVED }
@@ -342,12 +474,8 @@ internal object TransactionHistoryEntries {
                 ).withResolvedIcon(TransactionType.TURN_SKIPPED)
             }.toMutableList()
             group.firstOrNull { it.transactionType == TransactionType.TURN_ADVANCED }?.let { advanceTx ->
-                entries += HistoryEntry(
-                    title = label(TransactionType.TURN_ADVANCED),
-                    time = time,
-                    detail = buildSingleDetail(advanceTx, session, definitions),
-                    undone = undone,
-                ).withResolvedIcon(TransactionType.TURN_ADVANCED)
+                entries += buildTurnEndedEntry(advanceTx, session, definitions, time, undone)
+                entries += buildNextTurnEntry(advanceTx, session, definitions, time, undone)
             }
             return entries
         }
@@ -417,12 +545,8 @@ internal object TransactionHistoryEntries {
                     it.transactionType == TransactionType.TURN_ADVANCED &&
                         it.fromEntity == affectedPlayerId
                 }?.let { advanceTx ->
-                    entries += HistoryEntry(
-                        title = label(TransactionType.TURN_ADVANCED),
-                        time = time,
-                        detail = buildSingleDetail(advanceTx, session, definitions),
-                        undone = undone,
-                    ).withResolvedIcon(TransactionType.TURN_ADVANCED)
+                    entries += buildTurnEndedEntry(advanceTx, session, definitions, time, undone)
+                    entries += buildNextTurnEntry(advanceTx, session, definitions, time, undone)
                 }
                 return entries
             }
@@ -454,6 +578,27 @@ internal object TransactionHistoryEntries {
                     undone = undone,
                 ).withResolvedIcon(TransactionType.JAIL_STATUS_CHANGE),
             )
+        }
+
+        val advanceTx = group.firstOrNull { it.transactionType == TransactionType.TURN_ADVANCED }
+        if (advanceTx != null && skipTxs.isEmpty() && group.isTurnTransitionOnly()) {
+            val entries = group
+                .filter {
+                    it.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP ||
+                        it.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL
+                }
+                .map { cancelTx ->
+                    HistoryEntry(
+                        title = label(cancelTx.transactionType),
+                        time = time,
+                        detail = buildSingleDetail(cancelTx, session, definitions),
+                        undone = undone,
+                    ).withResolvedIcon(cancelTx.transactionType)
+                }
+                .toMutableList()
+            entries += buildTurnEndedEntry(advanceTx, session, definitions, time, undone)
+            entries += buildNextTurnEntry(advanceTx, session, definitions, time, undone)
+            return entries
         }
 
         val title = if (event != null) {
@@ -490,6 +635,158 @@ internal object TransactionHistoryEntries {
                 detail = detail,
                 undone = undone,
             ).withResolvedIcon(headlineTx.transactionType, event?.name),
+        )
+    }
+
+    private fun buildDebtSettlementEntries(
+        group: List<Transaction>,
+        settlementTx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): List<HistoryEntry> {
+        val metadata = DebtSettlementSnapshot.fromTransaction(settlementTx) ?: return emptyList()
+        val propertyEntries = group
+            .filter { DebtPropertySettlementSnapshot.isDebtSettlement(it) }
+            .map { buildDebtPropertySettlementEntry(it, session, definitions, time, undone) }
+        val settlementEntry = HistoryEntry(
+            title = "Rent Debt Settled",
+            time = time,
+            detail = HistoryDetail.RentDebtSettled(
+                transfer = HistoryDetail.PlayerTransfer(
+                    from = playerIdentity(metadata.debtorPlayerId, session, definitions),
+                    to = entityToIdentity(metadata.creditorPlayerId, session, definitions),
+                    amount = "",
+                ),
+                amountDue = formatMoney(metadata.originalAmountDue, definitions),
+                cashUsed = formatMoney(metadata.cashAmountUsed, definitions),
+                propertyValueUsed = formatMoney(metadata.propertyValueUsed, definitions),
+                remainingDue = formatMoney(metadata.remainingDue, definitions),
+            ),
+            undone = undone,
+            entryIcon = CommonUiIcon.RENT,
+        )
+        return propertyEntries + settlementEntry
+    }
+
+    private fun buildDebtPropertySettlementEntry(
+        tx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val metadata = DebtPropertySettlementSnapshot.fromTransaction(tx)!!
+        val title = if (metadata.soldToBank) {
+            "Property Sold → ${metadata.propertyName}"
+        } else {
+            "Property Transferred → ${metadata.propertyName}"
+        }
+        val valueLabel = if (metadata.soldToBank) {
+            "Sale value: ${formatMoney(metadata.settlementValue, definitions)}"
+        } else {
+            "Settlement value: ${formatMoney(metadata.settlementValue, definitions)}"
+        }
+        return HistoryEntry(
+            title = title,
+            time = time,
+            detail = HistoryDetail.DebtPropertySettlement(
+                propertyName = metadata.propertyName,
+                transfer = HistoryDetail.PlayerTransfer(
+                    from = entityToIdentity(tx.fromEntity, session, definitions),
+                    to = entityToIdentity(metadata.destination, session, definitions),
+                    amount = "",
+                ),
+                valueLabel = valueLabel,
+            ),
+            undone = undone,
+            entryIcon = CommonUiIcon.PROPERTY,
+        )
+    }
+
+    private fun buildEventMultiPlayerTransferEntry(
+        metadata: EventMultiPlayerTransferSnapshot.Metadata,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val payerName = playerDisplayName(metadata.payerPlayerId, session, definitions)
+        val formattedTotal = formatMoney(metadata.totalAmount, definitions)
+        val transfers = metadata.transfers.map { transfer ->
+            HistoryDetail.PlayerTransfer(
+                from = playerIdentity(transfer.fromPlayerId, session, definitions),
+                to = playerIdentity(transfer.toPlayerId, session, definitions),
+                amount = formatMoney(transfer.amount, definitions),
+            )
+        }
+        return HistoryEntry(
+            title = metadata.eventName,
+            time = time,
+            detail = HistoryDetail.EventMultiPlayerTransfer(
+                payerPlayerId = metadata.payerPlayerId,
+                payerName = payerName,
+                summaryText = EventMultiPlayerTransferSnapshot.summaryText(metadata, payerName),
+                transfers = transfers,
+                totalPaid = formattedTotal,
+                totalLabel = EventMultiPlayerTransferSnapshot.totalLabel(metadata, payerName, formattedTotal),
+            ),
+            undone = undone,
+            entryIcon = CommonUiIcon.EVENT_CARD,
+        )
+    }
+
+    private fun buildLegacyEventMultiPlayerTransferEntry(
+        eventName: String,
+        eventId: String,
+        transfers: List<Transaction>,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val payerId = transfers.first().playerId ?: transfers.first().fromEntity
+        val payerName = playerDisplayName(payerId, session, definitions)
+        val transferDetails = transfers.map { tx ->
+            HistoryDetail.PlayerTransfer(
+                from = entityToIdentity(tx.fromEntity, session, definitions),
+                to = entityToIdentity(tx.toEntity, session, definitions),
+                amount = tx.amount?.let { formatMoney(it, definitions) } ?: "",
+            )
+        }
+        val total = transfers.sumOf { it.amount ?: 0 }
+        val direction = if (eventId == "EVT_07") {
+            EventMultiPlayerTransferSnapshot.Direction.COLLECT_FROM_EACH_PLAYER
+        } else {
+            EventMultiPlayerTransferSnapshot.Direction.PAY_EACH_PLAYER
+        }
+        val formattedTotal = formatMoney(total, definitions)
+        val summary = when (direction) {
+            EventMultiPlayerTransferSnapshot.Direction.COLLECT_FROM_EACH_PLAYER ->
+                "$payerName received birthday contributions"
+            EventMultiPlayerTransferSnapshot.Direction.PAY_EACH_PLAYER ->
+                "$payerName contributed to all other players"
+        }
+        val totalLabel = when (direction) {
+            EventMultiPlayerTransferSnapshot.Direction.COLLECT_FROM_EACH_PLAYER ->
+                "Total received by $payerName: $formattedTotal"
+            EventMultiPlayerTransferSnapshot.Direction.PAY_EACH_PLAYER ->
+                "Total paid: $formattedTotal"
+        }
+        return HistoryEntry(
+            title = eventName,
+            time = time,
+            detail = HistoryDetail.EventMultiPlayerTransfer(
+                payerPlayerId = payerId,
+                payerName = payerName,
+                summaryText = summary,
+                transfers = transferDetails,
+                totalPaid = formattedTotal,
+                totalLabel = totalLabel,
+            ),
+            undone = undone,
+            entryIcon = CommonUiIcon.EVENT_CARD,
         )
     }
 
@@ -713,6 +1010,13 @@ internal object TransactionHistoryEntries {
                 is HistoryDetail.PlayerMention -> detail.displayText.takeIf { it.isNotBlank() }
                 is HistoryDetail.LuckyBreakResolution ->
                     "${detail.diceDetail} ${detail.transfer.from.label} → ${detail.transfer.to.label} ${detail.transfer.amount}".trim()
+                is HistoryDetail.DebtPropertySettlement ->
+                    "${detail.transfer.from.label} → ${detail.transfer.to.label} • ${detail.valueLabel}"
+                is HistoryDetail.RentDebtSettled ->
+                    "${detail.transfer.from.label} → ${detail.transfer.to.label} • Amount due: ${detail.amountDue}"
+                is HistoryDetail.EventMultiPlayerTransfer ->
+                    "${detail.summaryText} • ${detail.totalLabel}"
+                is HistoryDetail.EventBankruptcy -> detail.summaryText.takeIf { it.isNotBlank() }
                 is HistoryDetail.Text -> detail.value.takeIf { it.isNotBlank() }
             }
         }
@@ -825,6 +1129,52 @@ internal object TransactionHistoryEntries {
 
     private fun List<Transaction>.isUndoOnly(): Boolean =
         isNotEmpty() && all { it.transactionType == TransactionType.UNDO }
+
+    private fun List<Transaction>.isTurnTransitionOnly(): Boolean = all { tx ->
+        tx.transactionType == TransactionType.TURN_ADVANCED ||
+            tx.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_SKIP ||
+            tx.transactionType == TransactionType.EXTRA_TURN_CANCELLED_BY_JAIL
+    }
+
+    private fun buildTurnEndedEntry(
+        advanceTx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val endingPlayerId = advanceTx.fromEntity
+        val endingPlayerName = playerDisplayName(endingPlayerId, session, definitions)
+        return HistoryEntry(
+            title = TURN_ENDED_TITLE,
+            time = time,
+            detail = HistoryDetail.PlayerMention(
+                playerId = endingPlayerId,
+                playerName = endingPlayerName,
+            ),
+            undone = undone,
+        )
+    }
+
+    private fun buildNextTurnEntry(
+        advanceTx: Transaction,
+        session: GameSession,
+        definitions: GameDefinitions,
+        time: String,
+        undone: Boolean,
+    ): HistoryEntry {
+        val nextPlayerId = advanceTx.toEntity ?: advanceTx.playerId
+        val nextPlayerName = playerDisplayName(nextPlayerId, session, definitions)
+        return HistoryEntry(
+            title = label(TransactionType.TURN_ADVANCED),
+            time = time,
+            detail = HistoryDetail.PlayerMention(
+                playerId = nextPlayerId,
+                playerName = nextPlayerName,
+            ),
+            undone = undone,
+        ).withResolvedIcon(TransactionType.TURN_ADVANCED)
+    }
 
     /**
      * Splits the log into one group per player action. Transactions written by a

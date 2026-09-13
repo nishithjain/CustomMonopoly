@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.boardbanker.app.persistence.CommittedGameSessionStore
 import com.boardbanker.app.persistence.repository.GameSessionRepository
 import com.boardbanker.app.player.PlayerDisplayNames
+import com.boardbanker.core.model.PlayerOrder
 import com.boardbanker.core.persistence.SavedGameLoadResult
 import java.text.DateFormat
 import java.util.Date
@@ -31,7 +32,7 @@ class ResumeGameViewModel(
                 is SavedGameLoadResult.Success -> {
                     loadedSession = result.session
                     lastSavedMillis = result.session.transactions.lastOrNull()?.timestamp ?: System.currentTimeMillis()
-                    val players = result.session.players.keys.sorted().map { playerId ->
+                    val players = PlayerOrder.displayOrder(result.session).map { playerId ->
                         ResumePlayerUi(
                             playerId = playerId,
                             playerName = PlayerDisplayNames.displayName(result.session, playerId, definitions),

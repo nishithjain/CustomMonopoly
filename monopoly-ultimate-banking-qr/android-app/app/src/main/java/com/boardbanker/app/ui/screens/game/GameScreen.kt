@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boardbanker.app.gameplay.presentation.GameplayResultUiModel
+import com.boardbanker.app.BuildConfig
 import com.boardbanker.app.gameplay.workflow.GameplayWorkflowState
 import com.boardbanker.app.scanner.ScanRequest
 import com.boardbanker.app.player.CommonUiIcon
@@ -52,6 +54,13 @@ fun GameScreen(
     onNavigateToPlayerDetails: (String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val eventPreviewActive = uiState.workflowState is GameplayWorkflowState.EventIntro ||
+        uiState.workflowState is GameplayWorkflowState.EventCollectingTargets ||
+        uiState.workflowState is GameplayWorkflowState.EventConfirm
+    BackHandler(enabled = eventPreviewActive && !uiState.commandInFlight) {
+        viewModel.onCancelWorkflow()
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -137,7 +146,18 @@ fun GameScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Active Game") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Active Game")
+                        if (BuildConfig.DEBUG && uiState.debugPreset) {
+                            Text("DEBUG PRESET", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                },
+            )
+        },
     ) { innerPadding ->
         if (uiState.loading) {
             Column(

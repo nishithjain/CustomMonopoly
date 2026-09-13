@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.remember
 import androidx.navigation.navArgument
 import com.boardbanker.app.BankingQrApplication
 import com.boardbanker.app.ui.screens.auction.AuctionScreen
@@ -34,6 +35,8 @@ import com.boardbanker.app.ui.screens.home.HomeScreen
 import com.boardbanker.app.ui.screens.home.HomeViewModel
 import com.boardbanker.app.ui.screens.home.HomeViewModelFactory
 import com.boardbanker.app.ui.screens.persistence.PersistenceDebugScreen
+import com.boardbanker.app.debugpreset.DebugPresetProviderFactory
+import com.boardbanker.app.ui.screens.debugpreset.DebugPresetScreen
 import com.boardbanker.app.ui.screens.resume.ResumeGameScreen
 import com.boardbanker.app.ui.screens.setup.GameSetupViewModel
 import com.boardbanker.app.ui.screens.setup.GameSetupViewModelFactory
@@ -51,6 +54,9 @@ fun AppNavigation(
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BankingQrApplication
+    val debugPresetProvider = remember {
+        DebugPresetProviderFactory.create(app)
+    }
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             sessionManager = app.activeGameSessionManager,
@@ -82,7 +88,25 @@ fun AppNavigation(
                 },
                 onTestQrScanner = { navController.navigate(AppDestination.QrScanner.route) },
                 onTestPersistence = { navController.navigate(AppDestination.PersistenceDebug.route) },
+                onLoadDebugGame = {
+                    if (debugPresetProvider.available) {
+                        navController.navigate(AppDestination.DebugPreset.route)
+                    }
+                },
                 viewModel = homeViewModel,
+            )
+        }
+
+        composable(AppDestination.DebugPreset.route) {
+            DebugPresetScreen(
+                provider = debugPresetProvider,
+                onStarted = {
+                    navController.navigate(AppDestination.Game.route) {
+                        popUpTo(AppDestination.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onCancel = { navController.popBackStack() },
             )
         }
 

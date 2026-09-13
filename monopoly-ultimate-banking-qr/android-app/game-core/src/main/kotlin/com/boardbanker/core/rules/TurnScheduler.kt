@@ -209,6 +209,7 @@ class TurnScheduler(
                 activePlayerId = nextActivePlayerId,
                 turnKind = TurnKind.NORMAL,
             ),
+            pendingEventResolution = null,
             undoSnapshot = undoSnapshot,
         )
 
@@ -272,8 +273,8 @@ class TurnScheduler(
     companion object {
         const val MAX_SCHEDULING_ITERATIONS = 16
 
-        fun initialTurnState(players: Map<String, PlayerState>): TurnState {
-            val order = players.keys.sorted()
+        fun initialTurnState(playerOrder: List<String>, players: Map<String, PlayerState>): TurnState {
+            val order = playerOrder.filter { players.containsKey(it) }
             require(order.isNotEmpty()) { "Cannot initialize turn order without players" }
             return TurnState(activePlayerId = order.first(), turnOrder = order, turnKind = TurnKind.NORMAL)
         }

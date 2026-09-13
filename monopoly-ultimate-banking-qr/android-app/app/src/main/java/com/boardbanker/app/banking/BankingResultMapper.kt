@@ -10,6 +10,8 @@ import com.boardbanker.core.error.GameError
 import com.boardbanker.core.engine.GameResult
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.EntityRef
+import com.boardbanker.core.model.DebtAssetSettlementMethod
+import com.boardbanker.core.model.DebtSettlementSnapshot
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PropertyDisplayNames
@@ -242,6 +244,12 @@ class BankingResultMapper(
         sessionBefore: GameSession,
     ): GameplayResultUiModel {
         val debt = sessionBefore.debtResolution ?: return errorResult("No debt context.")
+        val settlementMetadata = result.transactions
+            .lastOrNull { it.transactionType == TransactionType.RENT_DEBT_SETTLED }
+            ?.let(DebtSettlementSnapshot::fromTransaction)
+        val soldToBankFallback = settlementMetadata?.settlementMethod == DebtAssetSettlementMethod.SELL_TO_BANK &&
+            debt.creditorPlayerId != EntityRef.BANK
+        val assetsGoToBank = debt.creditorPlayerId == EntityRef.BANK || soldToBankFallback
         val debtorName = resolvePlayerName(debt.debtorPlayerId, result.session)
         val creditorName = if (debt.creditorPlayerId == EntityRef.BANK) {
             "Bank"
@@ -255,11 +263,13 @@ class BankingResultMapper(
             1 -> assetNames.single()
             else -> "${assetNames.size} assets"
         }
-        val transferMessage = when (assetNames.size) {
-            1 -> "$propertySummary was transferred to $creditorName."
+        val transferMessage = when {
+            assetsGoToBank && assetNames.size == 1 -> "$propertySummary was sold to the Bank."
+            assetsGoToBank -> "$propertySummary were sold to the Bank."
+            assetNames.size == 1 -> "$propertySummary was transferred to $creditorName."
             else -> "$propertySummary were transferred to $creditorName."
         }
-        val changeAmount = debtSettlementChangeAmount(result, debt)
+        val changeAmount = if (soldToBankFallback) 0 else debtSettlementChangeAmount(result, debt)
         val changeMessage = when {
             changeAmount <= 0 -> null
             debt.creditorPlayerId == EntityRef.BANK ->
@@ -269,7 +279,7 @@ class BankingResultMapper(
         val propertyChanges = propertyIds.mapNotNull { propertyId ->
             val property = definitions.properties[propertyId] ?: return@mapNotNull null
             val rentLevel = result.session.properties[propertyId]?.currentRentLevel ?: 1
-            if (debt.creditorPlayerId == EntityRef.BANK) {
+            if (assetsGoToBank) {
                 PropertyChangeUi(propertyName = property.displayNameWithNumber(), ownerName = null, rentLevelAfter = rentLevel)
             } else {
                 PropertyChangeUi(
@@ -281,7 +291,7 @@ class BankingResultMapper(
             }
         } + energyGridIds.mapNotNull { energyGridId ->
             val gridName = com.boardbanker.core.model.EnergyGridDisplayNames.displayNameWithNumber(energyGridId, definitions)
-            if (debt.creditorPlayerId == EntityRef.BANK) {
+            if (assetsGoToBank) {
                 PropertyChangeUi(propertyName = gridName, ownerName = null)
             } else {
                 PropertyChangeUi(
@@ -299,7 +309,7 @@ class BankingResultMapper(
             sessionBefore = sessionBefore,
             changeAmount = changeAmount,
         )
-        return if (debt.creditorPlayerId == EntityRef.BANK) {
+        return if (assetsGoToBank) {
             GameplayResultUiModel(
                 title = "DEBT SETTLED SUCCESSFULLY",
                 primaryPlayerId = debt.debtorPlayerId,

@@ -35,6 +35,7 @@ fun HomeScreen(
     onResumeGame: () -> Unit,
     onTestQrScanner: () -> Unit = {},
     onTestPersistence: () -> Unit = {},
+    onLoadDebugGame: () -> Unit = {},
     viewModel: HomeViewModel,
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
@@ -178,6 +179,15 @@ fun HomeScreen(
                         .semantics { contentDescription = "Test persistence" },
                 ) {
                     Text("TEST PERSISTENCE")
+                }
+                Button(
+                    onClick = onLoadDebugGame,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .semantics { contentDescription = "Load Debug Game" },
+                ) {
+                    IconLabelRow(icon = CommonUiIcon.GAME_STATUS, label = "Load Debug Game")
                 }
             }
         }

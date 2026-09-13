@@ -67,6 +67,7 @@ class DefaultGameEngine(
             is GameCommand.PurchaseProperty -> handlePurchase(session, command)
             is GameCommand.PurchaseEnergyGrid -> handlePurchaseEnergyGrid(session, command)
             is GameCommand.ApplyEvent -> handleApplyEvent(session, command)
+            is GameCommand.CancelEventPreview -> handleCancelEventPreview(session, command)
             is GameCommand.EventPropertyChoice -> handleEventPropertyChoice(session, command)
             is GameCommand.PayGoSalary -> handlePayGo(session, command)
             is GameCommand.PayLocationFee -> handleLocationFee(session, command)
@@ -85,7 +86,7 @@ class DefaultGameEngine(
             is GameCommand.CancelAuction -> handleCancelAuction(session)
             is GameCommand.ResolveDebt -> handleResolveDebt(session, command)
             is GameCommand.ResolveDebtWithProperties -> handleResolveDebtWithProperties(session, command)
-            is GameCommand.CheckBankruptcy -> handleCheckBankruptcy(session)
+            is GameCommand.CheckBankruptcy -> handleCheckBankruptcy(session, command)
             is GameCommand.UndoLastAction -> handleUndo(session)
             is GameCommand.ConcludeGame -> handleConcludeGame(session)
             is GameCommand.EndTurn -> handleEndTurn(session, command)
@@ -135,6 +136,7 @@ class DefaultGameEngine(
                     balance = banking.startingBalance,
                 )
             ),
+            playerJoinOrder = session.playerJoinOrder + command.playerId,
         )
         return GameResult(updated)
     }
@@ -193,7 +195,7 @@ class DefaultGameEngine(
             properties = properties,
             energyGrids = energyGrids,
             colorGroups = colorGroups,
-            turnState = TurnScheduler.initialTurnState(players),
+            turnState = TurnScheduler.initialTurnState(session.playerJoinOrder, players),
         )
         val (tx, sessionAfter) = transactionFactory.create(
             session = updated,
@@ -405,6 +407,58 @@ class DefaultGameEngine(
             skippedTurnPlayerIds = result.skippedTurnPlayerIds,
             extraTurnStartedPlayerId = result.extraTurnStartedPlayerId,
             extraTurnCancelledBySkipPlayerId = result.extraTurnCancelledBySkipPlayerId,
+        )
+    }
+
+    private fun handleCancelEventPreview(
+        session: GameSession,
+        command: GameCommand.CancelEventPreview,
+    ): GameResult {
+        if (!definitions.events.containsKey(command.eventId)) {
+            return reject(session, GameError.NotFound("Event", command.eventId))
+        }
+        val committedEventAction = session.transactions.any { transaction ->
+            transaction.eventId == command.eventId && transaction.playerId == command.actingPlayerId &&
+                transaction.transactionType in setOf(
+                    TransactionType.EVENT_APPLIED,
+                    TransactionType.EVENT_PLAYER_TRANSFER,
+                    TransactionType.EVENT_MULTI_PLAYER_TRANSFER,
+                    TransactionType.BANK_DEBIT,
+                    TransactionType.BANK_CREDIT,
+                    TransactionType.RENT_DEBT_SETTLED,
+                    TransactionType.BANKRUPTCY,
+                )
+        }
+        val resolutionBelongsToEvent = session.pendingEventResolution?.let { resolution ->
+            resolution.eventId == command.eventId && resolution.actingPlayerId == command.actingPlayerId
+        } == true
+        val debtBelongsToEvent = session.debtResolution?.let { debt ->
+            debt.eventDebt?.eventId == command.eventId ||
+                debt.eventContributorDebt?.eventId == command.eventId ||
+                debt.eventBankDebit?.eventId == command.eventId
+        } == true
+        if (committedEventAction || resolutionBelongsToEvent && session.pendingEventResolution?.bankingRecorded == true) {
+            return reject(
+                session,
+                GameError.InvalidState("This Event has already been applied and cannot be cancelled"),
+            )
+        }
+        if (debtBelongsToEvent) {
+            return reject(session, GameError.InvalidState("This Event has already created a debt and cannot be cancelled"))
+        }
+        if (session.debtResolution != null && !resolutionBelongsToEvent) {
+            return reject(session, GameError.InvalidState("Resolve the active debt before cancelling an Event"))
+        }
+        return GameResult(
+            session = session.copy(
+                debtResolution = null,
+                pendingEventChoice = null,
+                pendingEventExecution = null,
+                pendingEventResolution = null,
+                pendingEventMultiContributorSettlement = null,
+                pendingDiceGamble = null,
+                eventChainDepth = if (session.pendingEventDraw == null) 0 else session.eventChainDepth,
+            ),
         )
     }
 
@@ -1055,15 +1109,51 @@ class DefaultGameEngine(
         return GameResult(result.session, outcome = outcome, transactions = result.transactions)
     }
 
-    private fun handleCheckBankruptcy(session: GameSession): GameResult {
+    private fun handleCheckBankruptcy(
+        session: GameSession,
+        command: GameCommand.CheckBankruptcy,
+    ): GameResult {
+        val debt = session.debtResolution
+            ?: return reject(session, GameError.DebtError("No debt resolution in progress"))
+        val eventDebtId = debt.eventContributorDebt?.debtId
+            ?: debt.eventDebt?.debtId
+            ?: debt.eventBankDebit?.debtId
+        val identityMatches = debt.debtorPlayerId == command.debtorPlayerId &&
+            (eventDebtId == null ||
+                (eventDebtId == command.debtId &&
+                    session.pendingEventResolution?.resolutionId == command.eventResolutionId))
+        if (!identityMatches) {
+            return reject(session, GameError.DebtError("Bankruptcy request does not match the active debt"))
+        }
+        val contributorDebt = debt.eventContributorDebt
+        if (contributorDebt != null) {
+            val resolution = session.pendingEventResolution
+            val settlement = session.pendingEventMultiContributorSettlement
+            val obligation = resolution?.obligations?.firstOrNull {
+                it.payerId == command.debtorPlayerId &&
+                    it.recipientId == contributorDebt.recipientPlayerId
+            }
+            val validContributorObligation = resolution != null &&
+                settlement != null &&
+                resolution.resolutionId == command.eventResolutionId &&
+                resolution.eventId == contributorDebt.eventId &&
+                settlement.eventId == contributorDebt.eventId &&
+                settlement.recipientPlayerId == contributorDebt.recipientPlayerId &&
+                command.debtorPlayerId == contributorDebt.contributorPlayerId &&
+                command.debtorPlayerId !in settlement.skippedContributorIds &&
+                obligation?.status == com.boardbanker.core.model.EventObligationStatus.AWAITING_FUNDS
+            if (!validContributorObligation) {
+                return reject(session, GameError.DebtError("Bankruptcy request does not match the active Event obligation"))
+            }
+        }
         val result = debtRules.checkBankruptcyIfCannotResolve(session)
         if (!result.isSuccess) {
             return reject(session, GameError.DebtError(result.error!!))
         }
-        val outcome = if (result.session!!.status == GameStatus.FINISHED) {
-            GameOutcome.BANKRUPTCY
-        } else {
-            GameOutcome.SUCCESS
+        val outcome = when {
+            result.session!!.status == GameStatus.FINISHED -> GameOutcome.BANKRUPTCY
+            result.session.debtResolution != null -> GameOutcome.DEBT_RESOLUTION_REQUIRED
+            else -> GameOutcome.SUCCESS
         }
         return GameResult(result.session, outcome = outcome, transactions = result.transactions)
     }

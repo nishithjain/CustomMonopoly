@@ -80,6 +80,28 @@ class HospitalExpenseWorkflowTest {
     }
 
     @Test
+    fun luckyDrawChild_isPreviewedBeforeContinue() {
+        val session = indiaEngine.process(
+            indiaGame(balances = mapOf("USR_01" to 50000)),
+            GameCommand.ApplyEvent("EVT_15", "USR_01"),
+        ).session
+        controller.enterEventDrawScan("EVT_15", "USR_01")
+
+        val previewActions = controller.onPendingEventDrawScanned("EVT_05", session)
+        val preview = controller.currentState() as GameplayWorkflowState.EventIntro
+        assertEquals("EVT_05", preview.eventId)
+        assertEquals("EVT_15", preview.pendingEventParentId)
+        assertTrue(previewActions.any { it is WorkflowAction.StateChanged })
+
+        val continueActions = controller.onEventContinue(session)
+        val command = continueActions.filterIsInstance<WorkflowAction.ExecuteCommand>().single().request.command
+        assertTrue(command is GameCommand.ResolvePendingEventDraw)
+
+        controller.onCancel()
+        assertTrue(controller.currentState() is GameplayWorkflowState.Ready)
+    }
+
+    @Test
     fun buyProperty_usesActivePlayerWithoutScan() {
         val session = indiaGame()
         controller.onPropertyScanned("PRP_01", session)

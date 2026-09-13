@@ -1,6 +1,8 @@
 package com.boardbanker.core.rules
 
 import com.boardbanker.core.model.EntityRef
+import com.boardbanker.core.model.EventBankDebitDebtSnapshot
+import com.boardbanker.core.model.EventMultiRecipientDebtSnapshot
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
@@ -28,6 +30,9 @@ class BankruptcyRules(
             players = session.players + (bankruptPlayerId to updatedPlayer),
             status = GameStatus.FINISHED,
             debtResolution = null,
+            pendingEventExecution = null,
+            pendingEventResolution = null,
+            pendingEventMultiContributorSettlement = null,
         )
 
         if (creditorId != EntityRef.BANK && creditorId != bankruptPlayerId) {
@@ -45,12 +50,20 @@ class BankruptcyRules(
         val winnerId = winnerCalculator.determineWinner(updatedSession)
         updatedSession = updatedSession.copy(winnerPlayerId = winnerId)
 
+        val eventDebt = session.debtResolution?.eventDebt
+        val eventBankDebit = session.debtResolution?.eventBankDebit
         val (tx, sessionAfterTx) = transactionFactory.create(
             session = updatedSession,
             type = TransactionType.BANKRUPTCY,
             timestamp = timestamp,
             playerId = bankruptPlayerId,
+            eventId = eventDebt?.eventId ?: eventBankDebit?.eventId,
             amount = amountOwed,
+            stateAfter = eventDebt?.let {
+                EventMultiRecipientDebtSnapshot.bankruptcyStateAfter(it.eventId, it.eventName)
+            } ?: eventBankDebit?.let {
+                EventBankDebitDebtSnapshot.bankruptcyStateAfter(it.eventId, it.eventName)
+            } ?: kotlinx.serialization.json.JsonObject(emptyMap()),
         )
         return DebtRules.DebtResult.success(sessionAfterTx, listOf(tx))
     }

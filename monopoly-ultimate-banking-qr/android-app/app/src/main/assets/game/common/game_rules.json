@@ -262,6 +262,7 @@
     "undoDepth": 1,
     "eligibleTransactionTypes": [
       "RENT_PAYMENT",
+      "EVENT_PLAYER_TRANSFER",
       "RENT_WAIVED",
       "PROPERTY_PURCHASE",
       "BANK_CREDIT",

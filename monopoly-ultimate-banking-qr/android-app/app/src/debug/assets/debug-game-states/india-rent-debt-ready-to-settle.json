@@ -1,0 +1,69 @@
+{
+    "schemaVersion": 1,
+    "mode": "BUILDER",
+    "presetId": "india-rent-debt-ready-to-settle",
+    "name": "India rent debt ready to settle",
+    "description": "A has already paid ₹23,000 of D's ₹25,000 rent; the remaining ₹2,000 is pending.",
+    "editionId": "india",
+    "startDestination": "DEBT_RESOLUTION",
+    "currentPlayerId": "USR_01",
+    "players": [
+        {
+            "playerId": "USR_01",
+            "name": "A",
+            "token": "Car",
+            "balance": 0,
+            "ownedPropertyIds": [
+                "PRP_01"
+            ],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_03",
+            "name": "B",
+            "token": "Ship",
+            "balance": 50000,
+            "ownedPropertyIds": [],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_02",
+            "name": "C",
+            "token": "Helicopter",
+            "balance": 50000,
+            "ownedPropertyIds": [],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_04",
+            "name": "D",
+            "token": "Aeroplane",
+            "balance": 73000,
+            "ownedPropertyIds": [
+                "PRP_12"
+            ],
+            "ownedEnergyGridIds": []
+        }
+    ],
+    "properties": [
+        {
+            "propertyId": "PRP_01",
+            "ownerPlayerId": "USR_01",
+            "rentLevel": 1
+        },
+        {
+            "propertyId": "PRP_12",
+            "ownerPlayerId": "USR_04",
+            "rentLevel": 2
+        }
+    ],
+    "pendingDebt": {
+        "debtorId": "USR_01",
+        "creditorId": "USR_04",
+        "originalAmountDue": 25000,
+        "cashAmountUsed": 23000,
+        "amountRemaining": 2000,
+        "reason": "RENT",
+        "propertyId": "PRP_12"
+    }
+}

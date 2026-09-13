@@ -17,6 +17,7 @@ enum class AppDestination(val route: String) {
     QrScanner("qr_scanner"),
     ResumeGame("resume_game"),
     PersistenceDebug("persistence_debug"),
+    DebugPreset("debug_preset"),
     ;
 
     companion object {

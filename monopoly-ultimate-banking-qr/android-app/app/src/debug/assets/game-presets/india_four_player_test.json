@@ -1,0 +1,68 @@
+{
+    "presetId": "india-four-player-test",
+    "name": "India - Four Players with Assets",
+    "editionId": "india",
+    "currentPlayerId": "USR_01",
+    "players": [
+        {
+            "playerId": "USR_01",
+            "name": "A",
+            "token": "Car",
+            "balance": 90000,
+            "ownedPropertyIds": [
+                "PRP_01",
+                "PRP_02",
+                "PRP_03"
+            ],
+            "ownedEnergyGridIds": [
+                "ENG_01",
+                "ENG_02"
+            ]
+        },
+        {
+            "playerId": "USR_03",
+            "name": "B",
+            "token": "Ship",
+            "balance": 40000,
+            "ownedPropertyIds": [
+                "PRP_04",
+                "PRP_05",
+                "PRP_06",
+                "PRP_07",
+                "PRP_08",
+                "PRP_09"
+            ],
+            "ownedEnergyGridIds": [
+                "ENG_03",
+                "ENG_04"
+            ]
+        },
+        {
+            "playerId": "USR_02",
+            "name": "C",
+            "token": "Helicopter",
+            "balance": 10000,
+            "ownedPropertyIds": [
+                "PRP_10",
+                "PRP_11"
+            ],
+            "ownedEnergyGridIds": []
+        },
+        {
+            "playerId": "USR_04",
+            "name": "D",
+            "token": "Aeroplane",
+            "balance": 45000,
+            "ownedPropertyIds": [
+                "PRP_12",
+                "PRP_13",
+                "PRP_14",
+                "PRP_15",
+                "PRP_16",
+                "PRP_17",
+                "PRP_18"
+            ],
+            "ownedEnergyGridIds": []
+        }
+    ]
+}

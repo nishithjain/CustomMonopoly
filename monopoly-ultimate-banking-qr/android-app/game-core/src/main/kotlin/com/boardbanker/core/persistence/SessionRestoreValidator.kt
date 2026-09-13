@@ -1,5 +1,6 @@
 package com.boardbanker.core.persistence
 
+import com.boardbanker.core.model.EntityRef
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.GameStatus
@@ -61,8 +62,73 @@ class SessionRestoreValidator(
             if (!session.players.containsKey(debt.debtorPlayerId)) {
                 problems += "Debt references unknown debtor ${debt.debtorPlayerId}"
             }
-            if (!session.players.containsKey(debt.creditorPlayerId)) {
+            if (debt.creditorPlayerId != EntityRef.BANK &&
+                !session.players.containsKey(debt.creditorPlayerId)
+            ) {
                 problems += "Debt references unknown creditor ${debt.creditorPlayerId}"
+            }
+            debt.eventContributorDebt?.let { contributorDebt ->
+                if (!definitions.events.containsKey(contributorDebt.eventId)) {
+                    problems += "Contributor debt references unknown event ${contributorDebt.eventId}"
+                }
+                if (!session.players.containsKey(contributorDebt.recipientPlayerId)) {
+                    problems += "Contributor debt references unknown recipient ${contributorDebt.recipientPlayerId}"
+                }
+                if (!session.players.containsKey(contributorDebt.contributorPlayerId)) {
+                    problems += "Contributor debt references unknown contributor ${contributorDebt.contributorPlayerId}"
+                }
+                if (contributorDebt.contributorPlayerId != debt.debtorPlayerId) {
+                    problems += "Contributor debt debtor mismatch"
+                }
+            }
+            debt.eventDebt?.let { eventDebt ->
+                if (!definitions.events.containsKey(eventDebt.eventId)) {
+                    problems += "Event debt references unknown event ${eventDebt.eventId}"
+                }
+                if (!session.players.containsKey(eventDebt.payerPlayerId)) {
+                    problems += "Event debt references unknown payer ${eventDebt.payerPlayerId}"
+                }
+            }
+            debt.eventBankDebit?.let { eventBankDebit ->
+                if (!definitions.events.containsKey(eventBankDebit.eventId)) {
+                    problems += "Event bank debit references unknown event ${eventBankDebit.eventId}"
+                }
+                if (!session.players.containsKey(eventBankDebit.debtorPlayerId)) {
+                    problems += "Event bank debit references unknown debtor ${eventBankDebit.debtorPlayerId}"
+                }
+                if (eventBankDebit.debtorPlayerId != debt.debtorPlayerId) {
+                    problems += "Event bank debit debtor mismatch"
+                }
+            }
+        }
+
+        session.pendingEventMultiContributorSettlement?.let { settlement ->
+            if (!definitions.events.containsKey(settlement.eventId)) {
+                problems += "Pending contributor settlement references unknown event ${settlement.eventId}"
+            }
+            if (!session.players.containsKey(settlement.recipientPlayerId)) {
+                problems += "Pending contributor settlement references unknown recipient ${settlement.recipientPlayerId}"
+            }
+            settlement.contributorPlayerIds.forEach { contributorId ->
+                if (!session.players.containsKey(contributorId)) {
+                    problems += "Pending contributor settlement references unknown contributor $contributorId"
+                }
+            }
+            settlement.completedTransfers.forEach { transfer ->
+                if (!session.players.containsKey(transfer.fromPlayerId)) {
+                    problems += "Pending contributor settlement references unknown payer ${transfer.fromPlayerId}"
+                }
+                if (!session.players.containsKey(transfer.toPlayerId)) {
+                    problems += "Pending contributor settlement references unknown recipient ${transfer.toPlayerId}"
+                }
+                if (transfer.toPlayerId != settlement.recipientPlayerId) {
+                    problems += "Pending contributor settlement transfer recipient mismatch"
+                }
+            }
+            settlement.skippedContributorIds.forEach { contributorId ->
+                if (!session.players.containsKey(contributorId)) {
+                    problems += "Pending contributor settlement references unknown skipped contributor $contributorId"
+                }
             }
         }
 
@@ -104,6 +170,25 @@ class SessionRestoreValidator(
             val event = definitions.events[pending.eventId]
             if (event != null && pending.currentActionIndex !in event.actions.indices) {
                 problems += "Pending event execution has invalid action index ${pending.currentActionIndex}"
+            }
+        }
+
+        session.pendingEventResolution?.let { resolution ->
+            if (!definitions.events.containsKey(resolution.eventId)) {
+                problems += "Pending event resolution references unknown event ${resolution.eventId}"
+            }
+            if (!session.players.containsKey(resolution.actingPlayerId)) {
+                problems += "Pending event resolution references unknown acting player ${resolution.actingPlayerId}"
+            }
+            resolution.obligations.forEach { obligation ->
+                if (!session.players.containsKey(obligation.payerId)) {
+                    problems += "Pending event resolution references unknown payer ${obligation.payerId}"
+                }
+                if (obligation.recipientId != EntityRef.BANK &&
+                    !session.players.containsKey(obligation.recipientId)
+                ) {
+                    problems += "Pending event resolution references unknown recipient ${obligation.recipientId}"
+                }
             }
         }
 

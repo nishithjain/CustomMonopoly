@@ -4,6 +4,7 @@ import com.boardbanker.core.model.EditionDefinition
 import com.boardbanker.core.model.EditionIds
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PlayerOrder
 
 class SavedGameRestoreOrchestrator(
     private val serializer: GameSessionSerializer,
@@ -40,9 +41,10 @@ class SavedGameRestoreOrchestrator(
                     metadata.editionId,
                 )
 
-                val session = deserializeSession(raw.sessionJson) ?: return SavedGameLoadResult.Corrupted(
-                    "Invalid session JSON",
-                )
+                val session = deserializeSession(raw.sessionJson)?.let(PlayerOrder::normalize)
+                    ?: return SavedGameLoadResult.Corrupted(
+                        "Invalid session JSON",
+                    )
 
                 semanticValidationCount++
                 val validationProblems = sessionRestoreValidatorFactory(definitions).validate(session)

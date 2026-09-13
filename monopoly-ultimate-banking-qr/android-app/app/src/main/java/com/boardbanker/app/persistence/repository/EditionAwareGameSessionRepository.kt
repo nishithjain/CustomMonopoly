@@ -1,5 +1,6 @@
 package com.boardbanker.app.persistence.repository
 
+import android.util.Log
 import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.persistence.RawSavedGameLoadResult
 import com.boardbanker.core.persistence.SavedGameLoadResult
@@ -14,10 +15,15 @@ class EditionAwareGameSessionRepository(
 ) : GameSessionRepository {
     override suspend fun save(session: GameSession): SaveSessionResult {
         when (val validationFailure = restoreOrchestrator.validateForSave(session)) {
-            is SavedGameLoadResult.SessionValidationFailed ->
+            is SavedGameLoadResult.SessionValidationFailed -> {
+                Log.e(
+                    TAG,
+                    "Session validation failed before save for ${validationFailure.editionId}: ${validationFailure.reason}",
+                )
                 return SaveSessionResult.Failure(
                     "Cannot save ${validationFailure.editionId} game: ${validationFailure.reason}",
                 )
+            }
             is SavedGameLoadResult.MissingEdition ->
                 return SaveSessionResult.Failure(validationFailure.reason)
             null -> Unit
@@ -41,6 +47,10 @@ class EditionAwareGameSessionRepository(
     override suspend fun delete(gameId: String) = storage.delete(gameId)
 
     override suspend fun deleteAll() = storage.deleteAll()
+
+    private companion object {
+        const val TAG = "EditionAwareGameSessionRepository"
+    }
 
     private fun restoreFromRaw(rawResult: RawSavedGameLoadResult): SavedGameLoadResult =
         when (rawResult) {

@@ -8,12 +8,26 @@ data class DebtPropertyOption(
     val debtValue: Int,
 )
 
+data class DebtEventRecipient(
+    val playerId: String,
+    val playerName: String,
+)
+
 data class DebtResolutionUiState(
     val debtorPlayerId: String = "",
     val debtorName: String = "",
     val creditorPlayerId: String? = null,
     val creditorName: String = "",
     val creditorIsBank: Boolean = false,
+    val isEventDebt: Boolean = false,
+    val isEventContributorDebt: Boolean = false,
+    val isEventBankDebit: Boolean = false,
+    val eventName: String = "",
+    val contributionPerPlayer: Int = 0,
+    val recipientCount: Int = 0,
+    val eventRecipients: List<DebtEventRecipient> = emptyList(),
+    val totalEventDue: Int = 0,
+    val shortfall: Int = 0,
     val amountDue: Int = 0,
     val availableCash: Int = 0,
     val remainingAfterCash: Int = 0,
@@ -35,6 +49,7 @@ data class DebtResolutionUiState(
     val properties: List<DebtPropertyOption> = emptyList(),
     val hasActiveDebt: Boolean = false,
     val commandInFlight: Boolean = false,
+    val showBankruptcyConfirmation: Boolean = false,
     val result: GameplayResultUiModel? = null,
     val message: String? = null,
 )

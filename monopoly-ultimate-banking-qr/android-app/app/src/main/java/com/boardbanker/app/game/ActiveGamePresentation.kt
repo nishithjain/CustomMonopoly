@@ -10,6 +10,7 @@ import com.boardbanker.app.util.pluralize
 import com.boardbanker.core.model.EnergyGridDefinition
 import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.model.GameSession
+import com.boardbanker.core.model.PlayerOrder
 import com.boardbanker.core.model.PropertyDisplayNames
 import com.boardbanker.core.model.displayNameWithNumber
 import com.boardbanker.core.rules.EnergyGridRentCalculator
@@ -20,7 +21,8 @@ object ActiveGamePresentation {
     fun buildPlayerDashboard(session: GameSession, definitions: GameDefinitions): List<PlayerDashboardUi> {
         val activePlayerId = session.turnState?.activePlayerId
         val hasEnergyGridsInEdition = definitions.energyGrids.isNotEmpty()
-        return session.players.map { (playerId, playerState) ->
+        return PlayerOrder.displayOrder(session).map { playerId ->
+            val playerState = session.players[playerId]!!
             val propertyCount = session.properties.values.count { it.ownerPlayerId == playerId }
             val energyGridCount = ownedEnergyGridCount(session, playerId)
             val activeEventNames = PlayerActiveEventEffects.activeEventNames(

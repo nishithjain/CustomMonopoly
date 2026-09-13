@@ -115,6 +115,15 @@ class EventEngine(
         val event = definitions.events[eventId]
             ?: return EventResult.failure("Unknown event $eventId")
 
+        session.pendingEventResolution?.let { resolution ->
+            if (resolution.isBankingRecordedFor(eventId, actingPlayerId)) {
+                return EventResult.success(
+                    session.copy(pendingEventExecution = null),
+                    emptyList(),
+                )
+            }
+        }
+
         val existingPending = session.pendingEventExecution
         if (existingPending != null) {
             if (existingPending.eventId != eventId) {
@@ -122,6 +131,18 @@ class EventEngine(
             }
             if (existingPending.actingPlayerId != actingPlayerId) {
                 return EventResult.failure("Acting player mismatch for pending event")
+            }
+            val resolution = session.pendingEventResolution
+            val eventAlreadyApplied = session.transactions.any {
+                it.transactionType == TransactionType.EVENT_APPLIED &&
+                    it.eventId == eventId &&
+                    it.playerId == actingPlayerId
+            }
+            if (resolution?.bankingRecorded == true || eventAlreadyApplied) {
+                return EventResult.success(
+                    session.copy(pendingEventExecution = null),
+                    emptyList(),
+                )
             }
         } else {
             JailGameplayGuard.boardActionBlockedMessage(definitions, session, actingPlayerId)?.let {
@@ -146,9 +167,18 @@ class EventEngine(
         var actionIndex = existingPending?.currentActionIndex ?: 0
         while (actionIndex < event.actions.size) {
             val rule = event.actions[actionIndex]
+            val effectivePropertyId = resolvedPropertyId
+                ?: if (rule.actionType == "FORCED_PROPERTY_SELLBACK") {
+                    ForcedPropertySellbackSelection.resolve(currentSession, definitions, actingPlayerId)
+                        .autoSelectedPropertyId
+                } else {
+                    null
+                }
             missingInputMessage(
+                session = currentSession,
+                actingPlayerId = actingPlayerId,
                 rule = rule,
-                propertyId = resolvedPropertyId,
+                propertyId = effectivePropertyId,
                 targetPlayerId = resolvedTargetPlayerId,
                 secondPropertyId = resolvedSecondPropertyId,
                 secondPlayerId = resolvedSecondPlayerId,
@@ -159,7 +189,7 @@ class EventEngine(
                             eventId = eventId,
                             actingPlayerId = actingPlayerId,
                             currentActionIndex = actionIndex,
-                            propertyId = resolvedPropertyId,
+                            propertyId = effectivePropertyId,
                             targetPlayerId = resolvedTargetPlayerId,
                             secondPropertyId = resolvedSecondPropertyId,
                             secondPlayerId = resolvedSecondPlayerId,
@@ -178,7 +208,7 @@ class EventEngine(
                 eventId = eventId,
                 actingPlayerId = actingPlayerId,
                 rule = rule,
-                propertyId = resolvedPropertyId,
+                propertyId = effectivePropertyId,
                 targetPlayerId = resolvedTargetPlayerId,
                 secondPropertyId = resolvedSecondPropertyId,
                 secondPlayerId = resolvedSecondPlayerId,
@@ -200,6 +230,28 @@ class EventEngine(
             currentSession = actionResult.session!!
             pendingMessage = actionResult.pendingMessage ?: pendingMessage
             needsDebtResolution = needsDebtResolution || actionResult.needsDebtResolution
+            if (actionResult.needsDebtResolution) {
+                return EventResult.success(
+                    session = currentSession.copy(
+                        pendingEventExecution = PendingEventExecution(
+                            eventId = eventId,
+                            actingPlayerId = actingPlayerId,
+                            currentActionIndex = actionIndex,
+                            propertyId = resolvedPropertyId,
+                            targetPlayerId = resolvedTargetPlayerId,
+                            secondPropertyId = resolvedSecondPropertyId,
+                            secondPlayerId = resolvedSecondPlayerId,
+                        ),
+                    ),
+                    transactions = accumulatedTransactions,
+                    physicalActions = accumulatedPhysical,
+                    pendingMessage = pendingMessage,
+                    needsDebtResolution = true,
+                    skippedTurnPlayerIds = skippedTurnPlayerIds,
+                    extraTurnStartedPlayerId = extraTurnStartedPlayerId,
+                    extraTurnCancelledBySkipPlayerId = extraTurnCancelledBySkipPlayerId,
+                )
+            }
             if (actionResult.skippedTurnPlayerIds.isNotEmpty()) {
                 skippedTurnPlayerIds = actionResult.skippedTurnPlayerIds
             }
@@ -249,6 +301,8 @@ class EventEngine(
     }
 
     private fun missingInputMessage(
+        session: GameSession,
+        actingPlayerId: String,
         rule: EventActionDefinition,
         propertyId: String?,
         targetPlayerId: String?,
@@ -277,8 +331,14 @@ class EventEngine(
         "SEND_PLAYER_TO_JAIL" -> if (targetPlayerId == null) "Target player required" else null
         "INCREASE_SELECTED_PROPERTY_RENT_LEVEL",
         "DECREASE_SELECTED_PROPERTY_RENT_LEVEL",
-        "FORCED_PROPERTY_SELLBACK",
         -> if (propertyId == null) "Property scan required" else null
+        "FORCED_PROPERTY_SELLBACK" ->
+            ForcedPropertySellbackSelection.missingPropertyMessage(
+                session = session,
+                definitions = definitions,
+                actingPlayerId = actingPlayerId,
+                propertyId = propertyId,
+            )
         "COOPERATIVE_PROPERTY_UPGRADE" -> when {
             targetPlayerId == null && secondPlayerId == null -> "Scan another player's card"
             propertyId == null -> "Scan one of your eligible Property Cards"
@@ -328,7 +388,7 @@ class EventEngine(
                     indiaResult.transactions.filter { it.transactionType != TransactionType.EVENT_APPLIED }
                 },
                 timestamp = timestamp,
-                finalizeEvent = finalizeEvent,
+                finalizeEvent = finalizeEvent && !indiaResult.needsDebtResolution,
             )
             return indiaResult.copy(session = sessionAfter, transactions = transactions)
         }

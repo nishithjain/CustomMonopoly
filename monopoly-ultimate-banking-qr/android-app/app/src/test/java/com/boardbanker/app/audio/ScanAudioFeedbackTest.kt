@@ -230,7 +230,7 @@ class GameplayWorkflowAudioTest {
         val session = AppTestSupport.newGame()
         controller.onEventScanned("EVT_06", session)
         controller.onEventContinue(session)
-        val actions = controller.onEventPropertyScanned("PRP_01")
+        val actions = controller.onEventPropertyScanned("PRP_01", session)
         val wrong = actions.filterIsInstance<com.boardbanker.app.gameplay.workflow.WorkflowAction.WrongCardType>()
         assertEquals(1, wrong.size)
         wrong.forEach { InvalidUserActionAudio.notifyInvalidUserAction(audio) }

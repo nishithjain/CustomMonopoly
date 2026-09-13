@@ -39,6 +39,7 @@ import com.boardbanker.app.ui.components.BankingActionLabels
 import com.boardbanker.app.ui.components.IconLabelRow
 import com.boardbanker.app.ui.components.GameplayResultPresentation
 import com.boardbanker.app.ui.components.DisplayIdentity
+import com.boardbanker.app.ui.components.DisplayIdentityRow
 import com.boardbanker.app.ui.components.DisplayIdentityTransferRow
 import com.boardbanker.app.ui.components.PlayerIconSize
 
@@ -89,6 +90,34 @@ fun DebtResolutionScreen(
             title = { Text("Debt") },
             text = { Text(message) },
             confirmButton = { TextButton(onClick = viewModel::dismissMessage) { Text("OK") } },
+        )
+    }
+
+    if (uiState.showBankruptcyConfirmation) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissBankruptcyConfirmation,
+            title = { Text("Declare Bankruptcy") },
+            text = {
+                Text(
+                    if (uiState.commandInFlight) {
+                        "Declaring bankruptcy..."
+                    } else {
+                        "${uiState.debtorName} cannot pay the remaining ${viewModel.money(uiState.shortfall)}. Continue?"
+                    },
+                )
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = viewModel::dismissBankruptcyConfirmation,
+                    enabled = !uiState.commandInFlight,
+                ) { Text("CANCEL") }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = viewModel::confirmBankruptcy,
+                    enabled = !uiState.commandInFlight,
+                ) { Text(if (uiState.commandInFlight) "DECLARING BANKRUPTCY..." else "DECLARE BANKRUPTCY") }
+            },
         )
     }
 
@@ -181,29 +210,98 @@ internal fun DebtResolutionActiveContent(
     onSettleSelected: () -> Unit,
     onCheckBankruptcy: () -> Unit,
 ) {
-    Text("DEBT PAYMENT", style = MaterialTheme.typography.titleMedium)
-    DisplayIdentityTransferRow(
-        from = DisplayIdentity.Player(uiState.debtorPlayerId, uiState.debtorName),
-        to = if (uiState.creditorIsBank) {
-            DisplayIdentity.Bank
-        } else {
-            DisplayIdentity.Player(uiState.creditorPlayerId, uiState.creditorName)
-        },
-        iconSize = PlayerIconSize.Normal,
-        showFallbackPlayerIcon = true,
-    )
-    Text(
-        buildString {
-            append("Amount due:\n${formatMoney(uiState.amountDue)}\n\n")
-            append("Available cash:\n${formatMoney(uiState.availableCash)}\n\n")
-            append("Remaining after cash:\n${formatMoney(uiState.remainingAfterCash)}")
-        },
-        style = MaterialTheme.typography.bodyLarge,
-    )
-    Text(
-        text = "Select properties to cover",
-        style = MaterialTheme.typography.titleSmall,
-    )
+    if (uiState.isEventContributorDebt) {
+        Text(uiState.eventName, style = MaterialTheme.typography.titleMedium)
+        DisplayIdentityTransferRow(
+            from = DisplayIdentity.Player(uiState.debtorPlayerId, uiState.debtorName),
+            to = DisplayIdentity.Player(uiState.creditorPlayerId, uiState.creditorName),
+            iconSize = PlayerIconSize.Normal,
+            showFallbackPlayerIcon = true,
+        )
+        Text(
+            buildString {
+                append("Amount due: ${formatMoney(uiState.contributionPerPlayer)}\n")
+                append("Available cash: ${formatMoney(uiState.availableCash)}\n")
+                append("Shortfall: ${formatMoney(uiState.shortfall)}")
+            },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = if (uiState.properties.isEmpty()) {
+                "No assets are available to sell."
+            } else {
+                "Select properties to sell to the Bank"
+            },
+            style = MaterialTheme.typography.titleSmall,
+        )
+    } else if (uiState.isEventDebt) {
+        Text(uiState.eventName, style = MaterialTheme.typography.titleMedium)
+        Text(
+            buildString {
+                append("Contribution per player: ${formatMoney(uiState.contributionPerPlayer)}\n")
+                append("Recipients: ${uiState.recipientCount}\n")
+                append("Total due: ${formatMoney(uiState.totalEventDue)}\n")
+                append("Available cash: ${formatMoney(uiState.availableCash)}\n")
+                append("Shortfall: ${formatMoney(uiState.shortfall)}")
+            },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        uiState.eventRecipients.forEach { recipient ->
+            DisplayIdentityRow(
+                identity = DisplayIdentity.Player(recipient.playerId, recipient.playerName),
+                iconSize = PlayerIconSize.Compact,
+                showFallbackPlayerIcon = true,
+            )
+        }
+        Text(
+            text = "Select assets to cover the shortfall",
+            style = MaterialTheme.typography.titleSmall,
+        )
+    } else if (uiState.isEventBankDebit) {
+        Text(uiState.eventName, style = MaterialTheme.typography.titleMedium)
+        DisplayIdentityTransferRow(
+            from = DisplayIdentity.Player(uiState.debtorPlayerId, uiState.debtorName),
+            to = DisplayIdentity.Bank,
+            iconSize = PlayerIconSize.Normal,
+            showFallbackPlayerIcon = true,
+        )
+        Text(
+            buildString {
+                append("Amount due: ${formatMoney(uiState.totalEventDue)}\n")
+                append("Available cash: ${formatMoney(uiState.availableCash)}\n")
+                append("Shortfall: ${formatMoney(uiState.shortfall)}")
+            },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = "Select properties to sell to the Bank",
+            style = MaterialTheme.typography.titleSmall,
+        )
+    } else {
+        Text("DEBT PAYMENT", style = MaterialTheme.typography.titleMedium)
+        DisplayIdentityTransferRow(
+            from = DisplayIdentity.Player(uiState.debtorPlayerId, uiState.debtorName),
+            to = if (uiState.creditorIsBank) {
+                DisplayIdentity.Bank
+            } else {
+                DisplayIdentity.Player(uiState.creditorPlayerId, uiState.creditorName)
+            },
+            iconSize = PlayerIconSize.Normal,
+            showFallbackPlayerIcon = true,
+        )
+        Text(
+            buildString {
+                append("Amount due:\n${formatMoney(uiState.amountDue)}\n\n")
+                append("Available cash:\n${formatMoney(uiState.availableCash)}\n\n")
+                append("Remaining after cash:\n${formatMoney(uiState.remainingAfterCash)}")
+            },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = "Select properties to cover",
+            style = MaterialTheme.typography.titleSmall,
+        )
+    }
     DebtSettlementSummaryPanel(
         summary = uiState.settlementSummary,
         formatMoney = formatMoney,
@@ -238,8 +336,12 @@ internal fun DebtResolutionActiveContent(
     ) {
         Text(uiState.settlementSummary.settleButtonLabel)
     }
-    Button(onClick = onCheckBankruptcy, modifier = Modifier.fillMaxWidth()) {
-        Text("CHECK BANKRUPTCY")
+    Button(
+        onClick = onCheckBankruptcy,
+        enabled = uiState.shortfall > 0,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        IconLabelRow(icon = CommonUiIcon.DEBT, label = "DECLARE BANKRUPTCY")
     }
 }
 

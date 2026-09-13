@@ -146,7 +146,14 @@ class Batch5SoundTests {
             ),
         )
         val before = session
-        val result = engine.process(session, GameCommand.CheckBankruptcy)
+        val result = engine.process(
+            session,
+            GameCommand.CheckBankruptcy(
+                eventResolutionId = "",
+                debtId = "generic-debt",
+                debtorPlayerId = session.debtResolution!!.debtorPlayerId,
+            ),
+        )
         assertEquals(listOf("USR_01"), GameplayOutcomeAudio.playersNewlyBankrupt(before, result))
         val coordinator = GameEndAudioCoordinator(winnerDelayMs = 0L)
         coordinator.onBankruptcyCommitted(audio)

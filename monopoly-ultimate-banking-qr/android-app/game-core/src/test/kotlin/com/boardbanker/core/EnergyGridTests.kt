@@ -169,6 +169,46 @@ class EnergyGridGameplayTest {
         assertEquals(before, result.session.players["USR_01"]!!.balance)
         assertTrue(result.transactions.none { it.transactionType == TransactionType.RENT_PAYMENT })
     }
+
+    @Test
+    fun insufficientEnergyGridRentCanBeSettledWithOwnedProperty() {
+        var session = TestFixtures.newGameForEdition(
+            EditionIds.INDIA,
+            listOf("USR_01", "USR_02"),
+        )
+        session = session.copy(
+            players = session.players.mapValues { (playerId, player) ->
+                when (playerId) {
+                    "USR_01" -> player.copy(balance = 40000)
+                    "USR_02" -> player.copy(balance = 10000)
+                    else -> player
+                }
+            },
+            energyGrids = session.energyGrids +
+                ("ENG_01" to session.energyGrids["ENG_01"]!!.copy(ownerPlayerId = "USR_01")) +
+                ("ENG_02" to session.energyGrids["ENG_02"]!!.copy(ownerPlayerId = "USR_01")),
+            properties = session.properties +
+                ("PRP_10" to session.properties["PRP_10"]!!.copy(ownerPlayerId = "USR_02")),
+        )
+        session = TestFixtures.sessionWithActivePlayer(session, "USR_02", engine)
+
+        val debt = engine.process(
+            session,
+            GameCommand.ProcessEnergyGridLanding("USR_02", "ENG_01"),
+        )
+        assertTrue(debt.isSuccess)
+        assertNotNull(debt.session.debtResolution)
+
+        val settled = engine.process(
+            debt.session,
+            GameCommand.ResolveDebtWithProperties(propertyIds = listOf("PRP_10")),
+        )
+        assertTrue(settled.isSuccess)
+        assertNull(settled.session.debtResolution)
+        val settledProperty = settled.session.properties["PRP_10"]
+        assertNotNull(settledProperty)
+        assertEquals("USR_01", settledProperty?.ownerPlayerId)
+    }
 }
 
 class EnergyGridConcludeGameTest {

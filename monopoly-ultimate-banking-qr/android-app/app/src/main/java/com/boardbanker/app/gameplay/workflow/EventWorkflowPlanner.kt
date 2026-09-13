@@ -6,6 +6,9 @@ import com.boardbanker.core.command.GameCommand
 import com.boardbanker.core.model.EventActionDefinition
 import com.boardbanker.core.model.EventDefinition
 import com.boardbanker.core.model.EventEngineRule
+import com.boardbanker.core.event.ForcedPropertySellbackSelection
+import com.boardbanker.core.model.GameDefinitions
+import com.boardbanker.core.model.GameSession
 import com.boardbanker.core.model.PendingEventExecution
 
 enum class EventWorkflowPattern {
@@ -154,6 +157,44 @@ object EventWorkflowPlanner {
     }
 
     fun scanPrompt(step: EventScanStep?): String = scanRequest(step).instruction
+
+    fun scanPrompt(
+        step: EventScanStep?,
+        session: GameSession,
+        definitions: GameDefinitions,
+        eventId: String,
+        actionIndex: Int,
+        actingPlayerId: String?,
+    ): String {
+        if (step == EventScanStep.PROPERTY || step == EventScanStep.SECOND_PROPERTY) {
+            val event = definitions.events[eventId]
+            val action = event?.actions?.getOrNull(actionIndex)
+            if (action?.actionType == "FORCED_PROPERTY_SELLBACK") {
+                val playerId = actingPlayerId
+                    ?: session.turnState?.activePlayerId?.takeIf { it.isNotBlank() }
+                if (playerId != null) {
+                    val selection = ForcedPropertySellbackSelection.resolve(session, definitions, playerId)
+                    if (selection.requiresPropertyScan) {
+                        return "Scan one of your lowest-value Property Cards"
+                    }
+                }
+            }
+        }
+        return scanPrompt(step)
+    }
+
+    fun autoResolvedForcedSellbackPropertyId(
+        session: GameSession,
+        definitions: GameDefinitions,
+        event: EventDefinition,
+        actionIndex: Int,
+        actingPlayerId: String,
+    ): String? {
+        val action = event.actions.getOrNull(actionIndex) ?: return null
+        if (action.actionType != "FORCED_PROPERTY_SELLBACK") return null
+        return ForcedPropertySellbackSelection.resolve(session, definitions, actingPlayerId)
+            .autoSelectedPropertyId
+    }
 
     fun scanHeaderForPlan(plan: EventWorkflowPlan, step: EventScanStep?): String = when (step) {
         EventScanStep.ACTING_PLAYER -> "Scan Player Card"

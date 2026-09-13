@@ -392,12 +392,15 @@ object GameplayOutcomeAudio {
 
     internal fun hasNonRentPlayerTransfer(result: GameResult): Boolean =
         result.transactions.any { transaction ->
-            transaction.transactionType == TransactionType.RENT_PAYMENT &&
-                transaction.propertyId == null &&
-                transaction.fromEntity != null &&
-                transaction.toEntity != null &&
-                transaction.fromEntity != EntityRef.BANK &&
-                transaction.toEntity != EntityRef.BANK
+            transaction.transactionType == TransactionType.EVENT_PLAYER_TRANSFER ||
+                (
+                    transaction.transactionType == TransactionType.RENT_PAYMENT &&
+                        transaction.propertyId == null &&
+                        transaction.fromEntity != null &&
+                        transaction.toEntity != null &&
+                        transaction.fromEntity != EntityRef.BANK &&
+                        transaction.toEntity != EntityRef.BANK
+                    )
         }
 
     private fun isNonRentPlayerTransfer(result: GameResult): Boolean = hasNonRentPlayerTransfer(result)

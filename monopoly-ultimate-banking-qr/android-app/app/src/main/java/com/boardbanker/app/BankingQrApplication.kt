@@ -6,6 +6,7 @@ import com.boardbanker.app.audio.GameAudioFeedback
 import com.boardbanker.app.audio.GameEndAudioCoordinator
 import com.boardbanker.app.audio.SoundPoolGameAudioFeedback
 import com.boardbanker.app.data.AndroidGameDataLoader
+import com.boardbanker.app.debugpreset.DebugPresetServices
 import com.boardbanker.core.edition.EditionRepository
 import com.boardbanker.app.game.ActiveGameSessionManager
 import com.boardbanker.app.persistence.CommittedGameSessionStore
@@ -21,7 +22,7 @@ import com.boardbanker.core.model.GameDefinitions
 import com.boardbanker.core.persistence.KotlinGameSessionSerializer
 import com.boardbanker.core.persistence.SavedGameRestoreOrchestrator
 
-class BankingQrApplication : Application() {
+class BankingQrApplication : Application(), DebugPresetServices {
     private var startupError: String? = null
 
     lateinit var editionRepository: EditionRepository
@@ -30,11 +31,18 @@ class BankingQrApplication : Application() {
     lateinit var gameSessionRepository: GameSessionRepository
         private set
 
-    lateinit var committedGameSessionStore: CommittedGameSessionStore
+    override lateinit var committedGameSessionStore: CommittedGameSessionStore
         private set
 
-    lateinit var activeGameSessionManager: ActiveGameSessionManager
+    override lateinit var activeGameSessionManager: ActiveGameSessionManager
         private set
+
+    override val assetManager
+        get() = assets
+
+    override fun loadDefinitions(editionId: String): GameDefinitions = editionRepository.load(editionId)
+
+    override fun loadEditionDefinition(editionId: String) = editionRepository.loadManifest(editionId)
 
     val transientScanWorkflow: TransientScanWorkflowHolder = TransientScanWorkflowHolder()
 

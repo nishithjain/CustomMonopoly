@@ -201,7 +201,14 @@ class DebtBankruptcyUndoTests {
                 amountRemaining = 500,
             ),
         )
-        val result = engine.process(session, GameCommand.CheckBankruptcy)
+        val result = engine.process(
+            session,
+            GameCommand.CheckBankruptcy(
+                eventResolutionId = "",
+                debtId = "generic-debt",
+                debtorPlayerId = session.debtResolution!!.debtorPlayerId,
+            ),
+        )
         assertEquals(GameStatus.FINISHED, result.session.status)
         assertTrue(result.session.players["USR_01"]!!.bankrupt)
         assertEquals(GameOutcome.BANKRUPTCY, result.outcome)
